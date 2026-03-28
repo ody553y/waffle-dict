@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import ScreamerCore
 
-@Suite
+@Suite(.serialized)
 struct WorkerClientTests {
     @Test func defaultConfigurationUsesLoopbackHealthURL() {
         let configuration = WorkerConfiguration()
@@ -40,11 +40,83 @@ struct WorkerClientTests {
             try await client.fetchHealth()
         }
     }
+
+    @Test func transcribeFilePostsExpectedRequestAndDecodesResponse() async throws {
+        let responsePayload = """
+        {"job_id":"job-123","backend_id":"stub-whisper","text":"transcribed:demo.wav:stub-whisper"}
+        """
+
+        let session = URLSession.makeMockingSession { request in
+            #expect(request.httpMethod == "POST")
+            #expect(request.url?.absoluteString == "http://127.0.0.1:8765/transcriptions/file")
+
+            let body = try #require(requestBodyData(for: request))
+            let payload = try #require(
+                JSONSerialization.jsonObject(with: body) as? [String: Any]
+            )
+
+            #expect((payload["job_id"] as? String) == "job-123")
+            #expect((payload["model_id"] as? String) == "stub-whisper")
+            #expect((payload["file_path"] as? String) == "/tmp/demo.wav")
+            #expect((payload["language_hint"] as? String) == "en")
+            #expect((payload["translate_to_english"] as? Bool) == false)
+
+            let response = HTTPURLResponse(
+                url: request.url ?? URL(string: "http://127.0.0.1")!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            )!
+            return (response, Data(responsePayload.utf8))
+        }
+        let client = WorkerClient(session: session)
+
+        let response = try await client.transcribeFile(
+            FileTranscriptionRequestPayload(
+                jobID: "job-123",
+                modelID: "stub-whisper",
+                filePath: "/tmp/demo.wav",
+                languageHint: "en",
+                translateToEnglish: false
+            )
+        )
+
+        #expect(response.jobID == "job-123")
+        #expect(response.backendID == "stub-whisper")
+        #expect(response.text == "transcribed:demo.wav:stub-whisper")
+    }
+}
+
+private func requestBodyData(for request: URLRequest) -> Data? {
+    if let body = request.httpBody {
+        return body
+    }
+
+    guard let stream = request.httpBodyStream else {
+        return nil
+    }
+
+    stream.open()
+    defer { stream.close() }
+
+    var data = Data()
+    let bufferSize = 1024
+    let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+    defer { buffer.deallocate() }
+
+    while stream.hasBytesAvailable {
+        let bytesRead = stream.read(buffer, maxLength: bufferSize)
+        guard bytesRead > 0 else { break }
+        data.append(buffer, count: bytesRead)
+    }
+
+    return data
 }
 
 private final class MockURLProtocol: URLProtocol {
     nonisolated(unsafe) static var statusCode: Int = 200
     nonisolated(unsafe) static var body = Data()
+    nonisolated(unsafe) static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
 
     override class func canInit(with request: URLRequest) -> Bool {
         true
@@ -55,6 +127,18 @@ private final class MockURLProtocol: URLProtocol {
     }
 
     override func startLoading() {
+        if let requestHandler = Self.requestHandler {
+            do {
+                let (response, body) = try requestHandler(request)
+                client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                client?.urlProtocol(self, didLoad: body)
+                client?.urlProtocolDidFinishLoading(self)
+            } catch {
+                client?.urlProtocol(self, didFailWithError: error)
+            }
+            return
+        }
+
         let response = HTTPURLResponse(
             url: request.url ?? URL(string: "http://127.0.0.1")!,
             statusCode: Self.statusCode,
@@ -76,6 +160,16 @@ private extension URLSession {
         configuration.protocolClasses = [MockURLProtocol.self]
         MockURLProtocol.statusCode = statusCode
         MockURLProtocol.body = body
+        MockURLProtocol.requestHandler = nil
+        return URLSession(configuration: configuration)
+    }
+
+    static func makeMockingSession(
+        requestHandler: @escaping (URLRequest) throws -> (HTTPURLResponse, Data)
+    ) -> URLSession {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        MockURLProtocol.requestHandler = requestHandler
         return URLSession(configuration: configuration)
     }
 }

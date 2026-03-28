@@ -21,8 +21,8 @@
 
   ],
   "swiftCommands" : {
-    "C.ScreamerCore-arm64-apple-macosx26.0-debug.module" : {
-      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+    "C.ScreamerCore-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
       "fileList" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/sources",
       "importPath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/Modules",
       "inputs" : [
@@ -32,7 +32,7 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+          "name" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
         },
         {
           "kind" : "file",
@@ -68,19 +68,25 @@
         "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/include/ScreamerCore-Swift.h",
         "-swift-version",
         "6",
-        "-I",
-        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
-        "-L",
-        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
         "-plugin-path",
-        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
         "-sdk",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
         "-g",
         "-Xcc",
         "-isysroot",
         "-Xcc",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
         "-Xcc",
         "-fPIC",
         "-Xcc",
@@ -106,8 +112,8 @@
       "tempsPath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build",
       "wholeModuleOptimization" : false
     },
-    "C.ScreamerCoreTests-arm64-apple-macosx26.0-debug.module" : {
-      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+    "C.ScreamerCoreTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
       "fileList" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/sources",
       "importPath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/Modules",
       "inputs" : [
@@ -117,7 +123,7 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+          "name" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
         },
         {
           "kind" : "file",
@@ -156,19 +162,25 @@
         "-parse-as-library",
         "-swift-version",
         "6",
-        "-I",
-        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
-        "-L",
-        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
         "-plugin-path",
-        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
         "-sdk",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
         "-g",
         "-Xcc",
         "-isysroot",
         "-Xcc",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
         "-Xcc",
         "-fPIC",
         "-Xcc",
@@ -194,8 +206,8 @@
       "tempsPath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build",
       "wholeModuleOptimization" : false
     },
-    "C.ScreamerPackageTests-arm64-apple-macosx26.0-debug.module" : {
-      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+    "C.ScreamerPackageTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
       "fileList" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.build/sources",
       "importPath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/Modules",
       "inputs" : [
@@ -205,7 +217,7 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+          "name" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
         },
         {
           "kind" : "file",
@@ -245,19 +257,25 @@
         "-emit-objc-header",
         "-emit-objc-header-path",
         "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.build/include/ScreamerPackageTests-Swift.h",
-        "-I",
-        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
-        "-L",
-        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
         "-plugin-path",
-        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
         "-sdk",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
         "-g",
         "-Xcc",
         "-isysroot",
         "-Xcc",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
         "-Xcc",
         "-fPIC",
         "-Xcc",
@@ -289,7 +307,7 @@
   },
   "swiftTargetScanArgs" : {
     "ScreamerCore" : [
-      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
       "-module-name",
       "ScreamerCore",
       "-package-name",
@@ -320,19 +338,25 @@
       "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/include/ScreamerCore-Swift.h",
       "-swift-version",
       "6",
-      "-I",
-      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
-      "-L",
-      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
       "-plugin-path",
-      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
       "-sdk",
-      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
       "-g",
       "-Xcc",
       "-isysroot",
       "-Xcc",
-      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
       "-Xcc",
       "-fPIC",
       "-Xcc",
@@ -340,10 +364,10 @@
       "-package-name",
       "screamer",
       "-driver-use-frontend-path",
-      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
     ],
     "ScreamerCoreTests" : [
-      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
       "-module-name",
       "ScreamerCoreTests",
       "-package-name",
@@ -373,19 +397,25 @@
       "-parse-as-library",
       "-swift-version",
       "6",
-      "-I",
-      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
-      "-L",
-      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
       "-plugin-path",
-      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
       "-sdk",
-      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
       "-g",
       "-Xcc",
       "-isysroot",
       "-Xcc",
-      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
       "-Xcc",
       "-fPIC",
       "-Xcc",
@@ -393,10 +423,10 @@
       "-package-name",
       "screamer",
       "-driver-use-frontend-path",
-      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
     ],
     "ScreamerPackageTests" : [
-      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
       "-module-name",
       "ScreamerPackageTests",
       "-package-name",
@@ -427,19 +457,25 @@
       "-emit-objc-header",
       "-emit-objc-header-path",
       "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.build/include/ScreamerPackageTests-Swift.h",
-      "-I",
-      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
-      "-L",
-      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
       "-plugin-path",
-      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
       "-sdk",
-      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
       "-g",
       "-Xcc",
       "-isysroot",
       "-Xcc",
-      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
       "-Xcc",
       "-fPIC",
       "-Xcc",
@@ -447,7 +483,7 @@
       "-package-name",
       "screamer",
       "-driver-use-frontend-path",
-      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
     ]
   },
   "targetDependencyMap" : {
@@ -548,7 +584,7 @@
       ],
       "outputFilePath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.product/Objects.LinkFileList"
     },
-    "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt" : {
+    "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
       "alwaysOutOfDate" : true,
       "inputs" : [
         {
@@ -557,10 +593,10 @@
         },
         {
           "kind" : "file",
-          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
         }
       ],
-      "outputFilePath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+      "outputFilePath" : "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
     }
   }
 }
