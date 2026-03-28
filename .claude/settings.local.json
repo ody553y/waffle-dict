@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift test:*)",
+      "Bash(/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.xctest/Contents/MacOS/ScreamerPackageTests --help)",
+      "Bash(/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.xctest/Contents/MacOS/ScreamerPackageTests list:*)",
+      "Bash(xcrun --find swiftpm_testing_helper)",
+      "Read(//Library/Developer/CommandLineTools/usr/lib/swift/**)",
+      "Bash(DYLD_FRAMEWORK_PATH=/Library/Developer/CommandLineTools/Library/Developer/Frameworks xcrun swift test 2>&1)",
+      "Read(//Library/Developer/CommandLineTools/**)",
+      "Read(//usr/**)",
+      "Bash(xcrun --toolchain default --find xctest)",
+      "Bash(xcrun --find xctest)",
+      "Bash(find /Users/andre/Documents/GitHub/screamer/.build -name *.xctest -o -name ScreamerPackageTests -not -path *xctest*)",
+      "Bash(swift package:*)",
+      "Bash(swift build:*)",
+      "Bash(python3 -m unittest discover -s tests -v)"
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+module ScreamerCore {
+    header "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/include/ScreamerCore-Swift.h"
+}
