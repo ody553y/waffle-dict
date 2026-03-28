@@ -1,6 +1,6 @@
 {
   "": {
-    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.build/primary.swiftdeps"
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.build/master.swiftdeps"
   },
   "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.derived/runner.swift": {
     "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerPackageTests.build/runner.d",

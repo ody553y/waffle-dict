@@ -14,7 +14,9 @@
       "Bash(find /Users/andre/Documents/GitHub/screamer/.build -name *.xctest -o -name ScreamerPackageTests -not -path *xctest*)",
       "Bash(swift package:*)",
       "Bash(swift build:*)",
-      "Bash(python3 -m unittest discover -s tests -v)"
+      "Bash(python3 -m unittest discover -s tests -v)",
+      "Bash(python3:*)",
+      "Bash(PYTHONPATH=worker python3 -m unittest discover -s worker/tests -v 2>&1)"
     ]
   }
 }

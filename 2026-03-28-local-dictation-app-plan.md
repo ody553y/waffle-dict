@@ -253,6 +253,46 @@ Request permissions lazily (on first use), not at launch. Store the HF token in 
 - macOS 26.2 SDK (Tahoe beta)
 - Python 3.11 (system)
 
+### 2026-03-28 — Claude Code session 2
+
+**FasterWhisperBackend (Python):**
+
+- `worker/screamer_worker/backends/faster_whisper.py` — Concrete `TranscriptionBackend` implementation backed by `faster-whisper`. Lazy-loads models on first `transcribe_file` call. Uses `device="cpu"`, `compute_type="int8"` per plan. Gracefully raises `RuntimeError` when the `faster-whisper` pip package is not installed.
+
+**WorkerProcess (Swift):**
+
+- `Sources/ScreamerCore/WorkerProcess.swift` — Spawns the Python worker as a `Process`, passes `--host`/`--port` args, polls `/health` every 200ms until ready or timeout (default 10s). Resolves `worker/` path from the app bundle (`Contents/Resources/worker`) or falls back to the dev-layout sibling directory.
+
+**CLI args for worker:**
+
+- `worker/screamer_worker/__main__.py` — Now accepts `--host` and `--port` via `argparse` (required by `WorkerProcess`). Auto-registers `FasterWhisperBackend` if the import succeeds.
+
+**Spike 2 benchmark script:**
+
+- `worker/benchmarks/spike2_faster_whisper.py` — Standalone script that loads a `faster-whisper` model, transcribes a clip (or auto-generated 10s silence), and reports RTF + pass/fail against plan criteria (RTF ≤ 0.15, latency ≤ 2s for ≤ 10s clip). Run with: `python3 worker/benchmarks/spike2_faster_whisper.py --audio clip.wav --model small`.
+
+**macOS App Target (`ScreamerApp`):**
+
+- `Package.swift` — Added `executableTarget("ScreamerApp")` depending on `ScreamerCore`.
+- `Sources/ScreamerApp/ScreamerApp.swift` — `@main` SwiftUI app with `MenuBarExtra` (mic icon, `.window` style) + `Settings` scene.
+- `Sources/ScreamerApp/AppDelegate.swift` — Spawns the Python worker via `WorkerProcess` on launch, terminates on quit.
+- `Sources/ScreamerApp/MenuBarView.swift` — Menu bar popover showing worker status (green/yellow/red dot), start/stop recording button, settings + quit. Polls `/health` on appear.
+- `Sources/ScreamerApp/SettingsView.swift` — Tabbed settings: General (paste/clipboard toggles), Models (placeholder), Keyboard (placeholder).
+
+**AudioCaptureService:**
+
+- `Sources/ScreamerCore/AudioCaptureService.swift` — Manages mic recording lifecycle. Lists input devices via `AVCaptureDevice.DiscoverySession`. Records 16kHz mono WAV to `~/Library/Application Support/Screamer/Scratch/` with UUID+timestamp filenames for crash recovery. Provides `startRecording()`, `stopRecording()`, `cancelRecording()`, `recoverOrphanedRecordings()`, and `cleanupScratchFile()`.
+
+**PermissionsService:**
+
+- `Sources/ScreamerCore/PermissionsService.swift` — Checks Accessibility (`AXIsProcessTrusted`) and Microphone (`AVCaptureDevice.authorizationStatus`) permissions. `promptAccessibility()` triggers the system dialog pointing to Privacy & Security. Works around Swift 6 strict concurrency for the `kAXTrustedCheckOptionPrompt` global.
+
+**Status:**
+
+- `swift build` passes — all targets (ScreamerCore, ScreamerApp, ScreamerCoreTests) compile cleanly.
+- All 3 Python tests pass (`PYTHONPATH=worker python3 -m unittest discover -s worker/tests`).
+- Spike 2 benchmark requires `pip install faster-whisper` to run.
+
 ---
 
 - Research references used for this plan:

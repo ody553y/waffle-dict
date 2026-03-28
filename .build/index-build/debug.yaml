@@ -1,0 +1,88 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "PackageStructure": ["<PackageStructure>"]
+  "ScreamerCore-arm64-apple-macosx26.0-debug.module": ["<ScreamerCore-arm64-apple-macosx26.0-debug.module>"]
+  "ScreamerCoreTests-arm64-apple-macosx26.0-debug.module": ["<ScreamerCoreTests-arm64-apple-macosx26.0-debug.module>"]
+  "ScreamerPackageTests-arm64-apple-macosx26.0-debug.module": ["<ScreamerPackageTests-arm64-apple-macosx26.0-debug.module>"]
+  "main": ["<ScreamerCore-arm64-apple-macosx26.0-debug.module>"]
+  "test": ["<ScreamerCore-arm64-apple-macosx26.0-debug.module>","<ScreamerCoreTests-arm64-apple-macosx26.0-debug.module>"]
+default: "main"
+nodes:
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/andre/Documents/GitHub/screamer/Tests/ScreamerCoreTests/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/WorkerClient.swift","/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/WorkerProcess.swift"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/sources"]
+    description: "Write auxiliary file /Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/sources"
+
+  "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCoreTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/andre/Documents/GitHub/screamer/Tests/ScreamerCoreTests/WorkerClientTests.swift"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCoreTests.build/sources"]
+    description: "Write auxiliary file /Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCoreTests.build/sources"
+
+  "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.derived/runner.swift"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/sources"]
+    description: "Write auxiliary file /Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/sources"
+
+  "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Library/Developer/CommandLineTools/usr/bin/swiftc"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+
+  "<ScreamerCore-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCore.swiftmodule"]
+    outputs: ["<ScreamerCore-arm64-apple-macosx26.0-debug.module>"]
+
+  "<ScreamerCoreTests-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCoreTests.swiftmodule"]
+    outputs: ["<ScreamerCoreTests-arm64-apple-macosx26.0-debug.module>"]
+
+  "<ScreamerPackageTests-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerPackageTests.swiftmodule"]
+    outputs: ["<ScreamerPackageTests-arm64-apple-macosx26.0-debug.module>"]
+
+  "C.ScreamerCore-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/WorkerClient.swift","/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/WorkerProcess.swift","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/sources"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCore.swiftmodule"]
+    description: "Compiling Swift Module 'ScreamerCore' (2 sources)"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-module-name","ScreamerCore","-emit-dependencies","-emit-module","-emit-module-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCore.swiftmodule","-output-file-map","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/output-file-map.json","-parse-as-library","-incremental","@/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/sources","-I","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-Onone","-enable-testing","-j10","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/include/ScreamerCore-Swift.h","-swift-version","6","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-I","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-L","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-plugin-path","/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xcc","-isysroot","-Xcc","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-Xcc","-fPIC","-Xcc","-g","-package-name","screamer"]
+
+  "C.ScreamerCoreTests-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/andre/Documents/GitHub/screamer/Tests/ScreamerCoreTests/WorkerClientTests.swift","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCore.swiftmodule","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCoreTests.build/sources"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCoreTests.swiftmodule"]
+    description: "Compiling Swift Module 'ScreamerCoreTests' (1 sources)"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-module-name","ScreamerCoreTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCoreTests.swiftmodule","-output-file-map","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCoreTests.build/output-file-map.json","-parse-as-library","-incremental","@/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCoreTests.build/sources","-I","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j10","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-swift-version","6","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-I","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-L","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-plugin-path","/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xcc","-isysroot","-Xcc","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-Xcc","-fPIC","-Xcc","-g","-package-name","screamer"]
+
+  "C.ScreamerPackageTests-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.derived/runner.swift","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerCoreTests.swiftmodule","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/sources"]
+    outputs: ["/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerPackageTests.swiftmodule"]
+    description: "Compiling Swift Module 'ScreamerPackageTests' (1 sources)"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-module-name","ScreamerPackageTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules/ScreamerPackageTests.swiftmodule","-output-file-map","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/output-file-map.json","-parse-as-library","-incremental","@/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/sources","-I","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j10","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerPackageTests.build/include/ScreamerPackageTests-Swift.h","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-I","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-L","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-plugin-path","/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xcc","-isysroot","-Xcc","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-Xcc","-fPIC","-Xcc","-g","-package-name","screamer"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/","/Users/andre/Documents/GitHub/screamer/Tests/ScreamerCoreTests/","/Users/andre/Documents/GitHub/screamer/Package.swift","/Users/andre/Documents/GitHub/screamer/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

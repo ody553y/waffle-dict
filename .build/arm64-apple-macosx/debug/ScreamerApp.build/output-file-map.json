@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/master.swiftdeps"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerApp/AppDelegate.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/AppDelegate.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/AppDelegate.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/AppDelegate.dia"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerApp/MenuBarView.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/MenuBarView.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/MenuBarView.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/MenuBarView~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/MenuBarView.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/MenuBarView.dia"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerApp/ScreamerApp.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/ScreamerApp.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/ScreamerApp.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/ScreamerApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/ScreamerApp.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/ScreamerApp.dia"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerApp/SettingsView.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/SettingsView.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/SettingsView.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/SettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/SettingsView.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerApp.build/SettingsView.dia"
+  }
+}

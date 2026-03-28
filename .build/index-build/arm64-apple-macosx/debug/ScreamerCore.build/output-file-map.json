@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/master.swiftdeps"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/WorkerClient.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerClient.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerClient.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerClient.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerClient.dia"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/WorkerProcess.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerProcess.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerProcess.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerProcess~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerProcess.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/index-build/arm64-apple-macosx/debug/ScreamerCore.build/WorkerProcess.dia"
+  }
+}

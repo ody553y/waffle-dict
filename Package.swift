@@ -16,6 +16,10 @@ let package = Package(
         .target(
             name: "ScreamerCore"
         ),
+        .executableTarget(
+            name: "ScreamerApp",
+            dependencies: ["ScreamerCore"]
+        ),
         .testTarget(
             name: "ScreamerCoreTests",
             dependencies: ["ScreamerCore"]
