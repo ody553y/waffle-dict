@@ -155,6 +155,19 @@ public final class AudioCaptureService: NSObject, @unchecked Sendable {
     public func cleanupScratchFile(_ url: URL) {
         try? FileManager.default.removeItem(at: url)
     }
+
+    public func recordingDurationSeconds(for fileURL: URL) -> Double? {
+        guard let audioFile = try? AVAudioFile(forReading: fileURL) else {
+            return nil
+        }
+
+        let sampleRate = audioFile.processingFormat.sampleRate
+        guard sampleRate > 0 else {
+            return nil
+        }
+
+        return Double(audioFile.length) / sampleRate
+    }
 }
 
 // MARK: - AVAudioRecorderDelegate

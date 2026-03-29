@@ -4,7 +4,12 @@ import logging
 from dataclasses import dataclass, field
 
 from screamer_worker.backends.base import BackendCapabilities
-from screamer_worker.models import FileTranscriptionRequest, LiveSessionConfig
+from screamer_worker.models import (
+    BackendTranscriptionResult,
+    FileTranscriptionRequest,
+    LiveSessionConfig,
+    TranscriptionSegment,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +59,10 @@ class FasterWhisperBackend:
     def finish_live_session(self, session_id: str) -> str:
         raise NotImplementedError("Live sessions not yet supported")
 
-    def transcribe_file(self, request: FileTranscriptionRequest) -> str:
+    def transcribe_file(
+        self,
+        request: FileTranscriptionRequest,
+    ) -> BackendTranscriptionResult:
         if not _HAS_FASTER_WHISPER:
             raise RuntimeError("faster-whisper is not installed")
 
@@ -64,13 +72,27 @@ class FasterWhisperBackend:
             model = self._models[request.model_id]
 
         task = "translate" if request.translate_to_english else "transcribe"
-        segments, _info = model.transcribe(
+        segment_results, _info = model.transcribe(
             request.file_path,
             language=request.language_hint,
             task=task,
             beam_size=5,
         )
-        return " ".join(seg.text.strip() for seg in segments)
+
+        segments: list[TranscriptionSegment] = []
+        for segment in segment_results:
+            segments.append(
+                TranscriptionSegment(
+                    start=float(segment.start),
+                    end=float(segment.end),
+                    text=segment.text.strip(),
+                )
+            )
+
+        text = " ".join(
+            segment.text for segment in segments if segment.text
+        )
+        return BackendTranscriptionResult(text=text, segments=segments)
 
     def cancel_job(self, job_id: str) -> None:
         pass

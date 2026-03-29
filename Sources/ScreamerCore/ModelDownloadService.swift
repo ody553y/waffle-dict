@@ -116,8 +116,21 @@ public final class ModelDownloadService: @unchecked Sendable {
     }
 
     private func checksum(for fileURL: URL) throws -> String {
-        let data = try Data(contentsOf: fileURL)
-        let digest = SHA256.hash(data: data)
+        let fileHandle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? fileHandle.close() }
+
+        var hasher = SHA256()
+        let chunkSize = 1_048_576
+
+        while true {
+            let chunk = fileHandle.readData(ofLength: chunkSize)
+            if chunk.isEmpty {
+                break
+            }
+            hasher.update(data: chunk)
+        }
+
+        let digest = hasher.finalize()
         return digest.map { String(format: "%02x", $0) }.joined()
     }
 

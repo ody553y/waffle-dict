@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from screamer_worker.backends.base import BackendCapabilities
+from screamer_worker.models import BackendTranscriptionResult
 from screamer_worker.server import make_server
 
 
@@ -81,6 +82,7 @@ class ParakeetTranscriptionStubTest(unittest.TestCase):
         self.assertEqual(payload["job_id"], "parakeet-job-1")
         self.assertEqual(payload["backend_id"], "parakeet")
         self.assertEqual(payload["text"], "stub parakeet transcription")
+        self.assertEqual(payload["segments"], None)
 
 
 class _StubParakeetBackend:
@@ -99,8 +101,11 @@ class _StubParakeetBackend:
     def finish_live_session(self, session_id: str) -> str:
         raise NotImplementedError
 
-    def transcribe_file(self, request) -> str:
-        return "stub parakeet transcription"
+    def transcribe_file(self, request) -> BackendTranscriptionResult:
+        return BackendTranscriptionResult(
+            text="stub parakeet transcription",
+            segments=None,
+        )
 
     def cancel_job(self, job_id: str) -> None:
         pass

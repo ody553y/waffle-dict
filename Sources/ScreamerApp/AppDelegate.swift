@@ -3,17 +3,30 @@ import ScreamerCore
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private static let hotkeyStorageKey = "globalHotkey"
+
     private var workerProcess: Process?
     let modelStore = ModelStore()
-    lazy var dictationController = DictationController(modelStore: modelStore)
+    let transcriptStore: TranscriptStore? = try? TranscriptStore()
+    lazy var dictationController: DictationController = {
+        DictationController(
+            modelStore: modelStore,
+            transcriptStore: transcriptStore,
+            restartWorker: { [weak self] in
+                guard let self else { return false }
+                return await self.restartWorkerProcess()
+            }
+        )
+    }()
 
     private let permissionsService = PermissionsService()
     private let dictationPanelController = DictationPanelController()
-    private let hotkeyService: HotkeyServiceProtocol = HotkeyService()
+    private var activeHotkey = AppDelegate.loadStoredHotkey()
+    private lazy var hotkeyService: HotkeyServiceProtocol = HotkeyService(hotkey: activeHotkey)
     private var hotkeyPermissionMonitorTask: Task<Void, Never>?
 
     var hotkeyDisplayValue: String {
-        hotkeyService.hotkeyDisplayValue
+        activeHotkey.displayValue
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -21,12 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startHotkeyPermissionMonitoring()
 
         Task {
-            do {
-                let wp = WorkerProcess()
-                workerProcess = try await wp.start()
-            } catch {
-                print("[Screamer] Worker failed to start: \(error)")
-            }
+            _ = await restartWorkerProcess()
         }
     }
 
@@ -68,5 +76,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         dictationController.updateHotkeyActive(started)
+    }
+
+    func updateHotkey(_ hotkey: GlobalHotkey) {
+        guard hotkey != activeHotkey else { return }
+
+        activeHotkey = hotkey
+        hotkeyService.updateHotkey(hotkey)
+        if let json = hotkey.encodedJSONString() {
+            UserDefaults.standard.set(json, forKey: Self.hotkeyStorageKey)
+        }
+        refreshHotkeyRegistration()
+    }
+
+    private func restartWorkerProcess() async -> Bool {
+        workerProcess?.terminate()
+        workerProcess = nil
+
+        do {
+            let wp = WorkerProcess()
+            workerProcess = try await wp.start()
+            return true
+        } catch {
+            print("[Screamer] Worker failed to start: \(error)")
+            return false
+        }
+    }
+
+    private static func loadStoredHotkey() -> GlobalHotkey {
+        guard
+            let rawValue = UserDefaults.standard.string(forKey: hotkeyStorageKey),
+            let hotkey = GlobalHotkey.decoded(from: rawValue)
+        else {
+            return .optionSpace
+        }
+        return hotkey
     }
 }

@@ -3,14 +3,69 @@ import Carbon.HIToolbox
 import Foundation
 
 public struct GlobalHotkey: Sendable, Equatable {
+    public struct StoragePayload: Codable, Equatable, Sendable {
+        public let keyCode: UInt16
+        public let modifiers: UInt64
+        public let displayValue: String
+
+        public init(keyCode: UInt16, modifiers: UInt64, displayValue: String) {
+            self.keyCode = keyCode
+            self.modifiers = modifiers
+            self.displayValue = displayValue
+        }
+    }
+
     public let keyCode: CGKeyCode
     public let modifiers: CGEventFlags
     public let displayValue: String
 
+    public static let supportedModifiers: CGEventFlags = [
+        .maskCommand,
+        .maskShift,
+        .maskControl,
+        .maskAlternate,
+        .maskSecondaryFn,
+    ]
+
     public init(keyCode: CGKeyCode, modifiers: CGEventFlags, displayValue: String) {
         self.keyCode = keyCode
-        self.modifiers = modifiers
+        self.modifiers = modifiers.intersection(Self.supportedModifiers)
         self.displayValue = displayValue
+    }
+
+    public init(storagePayload: StoragePayload) {
+        self.init(
+            keyCode: CGKeyCode(storagePayload.keyCode),
+            modifiers: CGEventFlags(rawValue: storagePayload.modifiers),
+            displayValue: storagePayload.displayValue
+        )
+    }
+
+    public var storagePayload: StoragePayload {
+        StoragePayload(
+            keyCode: UInt16(keyCode),
+            modifiers: modifiers.rawValue,
+            displayValue: displayValue
+        )
+    }
+
+    public func encodedJSONString() -> String? {
+        let encoder = JSONEncoder()
+        guard let data = try? encoder.encode(storagePayload) else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    public static func decoded(from jsonString: String) -> GlobalHotkey? {
+        guard let data = jsonString.data(using: .utf8) else {
+            return nil
+        }
+        let decoder = JSONDecoder()
+        guard let payload = try? decoder.decode(StoragePayload.self, from: data) else {
+            return nil
+        }
+        return GlobalHotkey(storagePayload: payload)
     }
 
     public static let optionSpace = GlobalHotkey(
@@ -27,12 +82,13 @@ public protocol HotkeyServiceProtocol: AnyObject {
     @discardableResult
     func start(onPress: @escaping @Sendable () -> Void) -> Bool
 
+    func updateHotkey(_ hotkey: GlobalHotkey)
     func stop()
 }
 
 public final class HotkeyService: HotkeyServiceProtocol, @unchecked Sendable {
     private let lock = NSLock()
-    private let hotkey: GlobalHotkey
+    private var hotkey: GlobalHotkey
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var runLoop: CFRunLoop?
@@ -46,7 +102,9 @@ public final class HotkeyService: HotkeyServiceProtocol, @unchecked Sendable {
     }
 
     public var hotkeyDisplayValue: String {
-        hotkey.displayValue
+        lock.lock()
+        defer { lock.unlock() }
+        return hotkey.displayValue
     }
 
     public var isRunning: Bool {
@@ -105,6 +163,23 @@ public final class HotkeyService: HotkeyServiceProtocol, @unchecked Sendable {
             CFRunLoopWakeUp(localRunLoop)
             CFRunLoopStop(localRunLoop)
         }
+    }
+
+    public func updateHotkey(_ hotkey: GlobalHotkey) {
+        lock.lock()
+        if self.hotkey == hotkey {
+            lock.unlock()
+            return
+        }
+
+        self.hotkey = hotkey
+        let shouldRestart = eventTap != nil
+        let callback = onPress
+        lock.unlock()
+
+        guard shouldRestart, let callback else { return }
+        stop()
+        _ = start(onPress: callback)
     }
 
     private func runEventTapLoop() {
@@ -186,22 +261,17 @@ public final class HotkeyService: HotkeyServiceProtocol, @unchecked Sendable {
         }
 
         let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
-        let supportedMask: CGEventFlags = [
-            .maskCommand,
-            .maskShift,
-            .maskControl,
-            .maskAlternate,
-            .maskSecondaryFn,
-        ]
-        let normalizedFlags = event.flags.intersection(supportedMask)
+        let normalizedFlags = event.flags.intersection(GlobalHotkey.supportedModifiers)
 
-        guard keyCode == hotkey.keyCode, normalizedFlags == hotkey.modifiers else {
+        lock.lock()
+        let activeHotkey = hotkey
+        let callback = onPress
+        lock.unlock()
+
+        guard keyCode == activeHotkey.keyCode, normalizedFlags == activeHotkey.modifiers else {
             return Unmanaged.passUnretained(event)
         }
 
-        lock.lock()
-        let callback = onPress
-        lock.unlock()
         callback?()
 
         // Consume the hotkey event so Option+Space does not leak into foreground apps.

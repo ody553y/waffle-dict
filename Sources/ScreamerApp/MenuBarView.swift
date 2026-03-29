@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct MenuBarView: View {
+    @Environment(\.openWindow) private var openWindow
+
+    let hotkeyDisplayValue: String
     @AppStorage("showTranscriptInMenuAfterTranscription")
     private var showTranscriptInMenuAfterTranscription = true
 
@@ -49,7 +52,7 @@ struct MenuBarView: View {
             .disabled(dictationController.isTranscribing || (modelStore.hasInstalledModels == false && dictationController.isRecording == false))
 
             if dictationController.isHotkeyActive == false {
-                Text("Global hotkey ⌥Space is inactive. Enable Accessibility access to use it.")
+                Text("Global hotkey \(hotkeyDisplayValue) is inactive. Enable Accessibility access to use it.")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -113,6 +116,15 @@ struct MenuBarView: View {
                         }
                         .font(.caption)
                     }
+
+                    if dictationController.canRetryLastTranscription {
+                        Button("Retry") {
+                            Task {
+                                await dictationController.retryLastTranscription()
+                            }
+                        }
+                        .font(.caption)
+                    }
                 }
             }
 
@@ -142,6 +154,10 @@ struct MenuBarView: View {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
             .keyboardShortcut(",")
+
+            Button("History") {
+                openWindow(id: "transcript-history")
+            }
 
             Button("Quit") {
                 NSApplication.shared.terminate(nil)

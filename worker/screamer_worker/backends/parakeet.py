@@ -4,7 +4,11 @@ import logging
 from dataclasses import dataclass, field
 
 from screamer_worker.backends.base import BackendCapabilities
-from screamer_worker.models import FileTranscriptionRequest, LiveSessionConfig
+from screamer_worker.models import (
+    BackendTranscriptionResult,
+    FileTranscriptionRequest,
+    LiveSessionConfig,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +53,10 @@ class ParakeetBackend:
     def finish_live_session(self, session_id: str) -> str:
         raise NotImplementedError("Live sessions not yet supported for Parakeet")
 
-    def transcribe_file(self, request: FileTranscriptionRequest) -> str:
+    def transcribe_file(
+        self,
+        request: FileTranscriptionRequest,
+    ) -> BackendTranscriptionResult:
         if not _HAS_NEMO:
             raise RuntimeError("NeMo toolkit is not installed")
 
@@ -58,8 +65,11 @@ class ParakeetBackend:
 
         transcriptions = self._model.transcribe([request.file_path])
         if not transcriptions:
-            return ""
-        return transcriptions[0]
+            return BackendTranscriptionResult(text="", segments=None)
+        return BackendTranscriptionResult(
+            text=transcriptions[0],
+            segments=None,
+        )
 
     def cancel_job(self, job_id: str) -> None:
         pass

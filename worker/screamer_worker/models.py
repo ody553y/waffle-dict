@@ -45,6 +45,23 @@ class FileTranscriptionResponse:
     job_id: str
     backend_id: str
     text: str
+    segments: list["TranscriptionSegment"] | None = None
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class TranscriptionSegment:
+    start: float
+    end: float
+    text: str
+
+
+@dataclass(frozen=True)
+class BackendTranscriptionResult:
+    text: str
+    segments: list[TranscriptionSegment] | None = None
+
+    def to_dict(self) -> dict[str, object]:
         return asdict(self)

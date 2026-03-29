@@ -1,6 +1,14 @@
 # Step 3 — Next Steps for Codex
 **Date:** 29/03/2026
 
+## Update Before These Next Steps
+
+Since this document was first written, the project has moved forward beyond the original Step 3 scope. I completed the work that wired the main dictation flow together, including the menu bar recording/transcription states, paste and clipboard behavior, shared dictation control, the floating dictation panel, the global hotkey scaffolding, and the first pass of model management in settings. That model work included a bundled model manifest, install-state detection, selected-model resolution, download plumbing, and the supporting Swift tests.
+
+While pushing those changes, GitHub rejected the branch because generated local build artifacts under `.build/` had accidentally been committed, including a file over GitHub's 100 MB limit. I fixed that by removing tracked generated files from Git, adding `.gitignore` entries for `.build/`, local Xcode user data, and other machine-specific files, rerunning the Swift and Python verification steps, and recommitting only the real source changes. The cleaned commit was then pushed successfully.
+
+I intentionally left the follow-up Parakeet spike files and newer planning docs out of that cleanup commit so they could be handled separately and not get mixed into the hotkey/model-management work.
+
 ## Current State Summary
 
 We're at the **end of Phase 0 / beginning of Phase 1**. The foundation is solid:

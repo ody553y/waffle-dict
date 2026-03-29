@@ -69,14 +69,40 @@ public struct FileTranscriptionRequestPayload: Encodable, Equatable, Sendable {
 }
 
 public struct FileTranscriptionResponsePayload: Decodable, Equatable, Sendable {
+    public struct Segment: Decodable, Equatable, Sendable {
+        public let start: Double
+        public let end: Double
+        public let text: String
+
+        public init(start: Double, end: Double, text: String) {
+            self.start = start
+            self.end = end
+            self.text = text
+        }
+    }
+
     public let jobID: String
     public let backendID: String
     public let text: String
+    public let segments: [Segment]?
+
+    public init(
+        jobID: String,
+        backendID: String,
+        text: String,
+        segments: [Segment]? = nil
+    ) {
+        self.jobID = jobID
+        self.backendID = backendID
+        self.text = text
+        self.segments = segments
+    }
 
     enum CodingKeys: String, CodingKey {
         case jobID = "job_id"
         case backendID = "backend_id"
         case text
+        case segments
     }
 }
 

@@ -12,9 +12,15 @@ let package = Package(
             targets: ["ScreamerCore"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/groue/GRDB.swift", from: "7.0.0"),
+    ],
     targets: [
         .target(
             name: "ScreamerCore",
+            dependencies: [
+                .product(name: "GRDB", package: "GRDB.swift"),
+            ],
             resources: [
                 .process("Resources"),
             ]

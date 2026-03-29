@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import ScreamerCore
@@ -45,6 +46,36 @@ struct ModelDownloadServiceTests {
         #expect(throws: ModelDownloadError.checksumMismatch) {
             try service.verifyChecksum(of: fileURL, expectedChecksum: "wrong")
         }
+    }
+
+    @Test func verifyChecksumHandlesFilesLargerThanOneMegabyte() async throws {
+        let tempDirectory = try makeDownloadTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
+
+        let catalogService = ModelCatalogService(
+            manifestDataLoader: { Data("[]".utf8) },
+            applicationSupportDirectory: tempDirectory
+        )
+        let service = ModelDownloadService(
+            catalogService: catalogService,
+            transport: MockDownloadTransport()
+        )
+
+        let fileURL = tempDirectory.appending(path: "large-download.bin")
+        FileManager.default.createFile(atPath: fileURL.path, contents: nil)
+        let fileHandle = try FileHandle(forWritingTo: fileURL)
+        defer { try? fileHandle.close() }
+
+        let chunk = Data(repeating: 0xAB, count: 65_536)
+        var hasher = SHA256()
+
+        for _ in 0..<20 { // 1,310,720 bytes total (> 1MB)
+            try fileHandle.write(contentsOf: chunk)
+            hasher.update(data: chunk)
+        }
+
+        let expectedChecksum = hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        try service.verifyChecksum(of: fileURL, expectedChecksum: expectedChecksum)
     }
 
     @Test func resumeUsesStoredResumeDataAndInstallsDownload() async throws {

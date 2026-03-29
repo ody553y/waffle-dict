@@ -45,7 +45,15 @@ struct WorkerClientTests {
 
     @Test func transcribeFilePostsExpectedRequestAndDecodesResponse() async throws {
         let responsePayload = """
-        {"job_id":"job-123","backend_id":"stub-whisper","text":"transcribed:demo.wav:stub-whisper"}
+        {
+          "job_id":"job-123",
+          "backend_id":"stub-whisper",
+          "text":"transcribed:demo.wav:stub-whisper",
+          "segments":[
+            {"start":0.0,"end":1.2,"text":"transcribed:"},
+            {"start":1.2,"end":2.4,"text":"demo.wav:stub-whisper"}
+          ]
+        }
         """
 
         let session = URLSession.makeMockingSession { request in
@@ -86,6 +94,37 @@ struct WorkerClientTests {
         #expect(response.jobID == "job-123")
         #expect(response.backendID == "stub-whisper")
         #expect(response.text == "transcribed:demo.wav:stub-whisper")
+        #expect(response.segments?.count == 2)
+        #expect(response.segments?[0].start == 0.0)
+        #expect(response.segments?[0].end == 1.2)
+        #expect(response.segments?[0].text == "transcribed:")
+    }
+
+    @Test func transcribeFileDecodesNullSegments() async throws {
+        let responsePayload = """
+        {"job_id":"job-124","backend_id":"parakeet","text":"hello","segments":null}
+        """
+
+        let session = URLSession.makeMockingSession(
+            statusCode: 200,
+            body: Data(responsePayload.utf8)
+        )
+        let client = WorkerClient(session: session)
+
+        let response = try await client.transcribeFile(
+            FileTranscriptionRequestPayload(
+                jobID: "job-124",
+                modelID: "parakeet-0.6b",
+                filePath: "/tmp/demo.wav",
+                languageHint: "en",
+                translateToEnglish: false
+            )
+        )
+
+        #expect(response.jobID == "job-124")
+        #expect(response.backendID == "parakeet")
+        #expect(response.text == "hello")
+        #expect(response.segments == nil)
     }
 }
 

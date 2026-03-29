@@ -110,7 +110,7 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
 
             started = time.perf_counter()
             try:
-                text = backend.transcribe_file(request)
+                transcription_result = backend.transcribe_file(request)
             except Exception as error:
                 self._write_json(
                     HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -127,7 +127,8 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
             response = FileTranscriptionResponse(
                 job_id=request.job_id,
                 backend_id=backend.backend_id,
-                text=text,
+                text=transcription_result.text,
+                segments=transcription_result.segments,
             )
             self._write_json(HTTPStatus.OK, response.to_dict())
             return

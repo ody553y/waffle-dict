@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from screamer_worker.models import FileTranscriptionRequest, LiveSessionConfig
+from screamer_worker.models import (
+    BackendTranscriptionResult,
+    FileTranscriptionRequest,
+    LiveSessionConfig,
+)
 
 
 @dataclass(frozen=True)
@@ -25,7 +29,10 @@ class TranscriptionBackend(Protocol):
     def finish_live_session(self, session_id: str) -> str:
         ...
 
-    def transcribe_file(self, request: FileTranscriptionRequest) -> str:
+    def transcribe_file(
+        self,
+        request: FileTranscriptionRequest,
+    ) -> BackendTranscriptionResult:
         ...
 
     def cancel_job(self, job_id: str) -> None:
