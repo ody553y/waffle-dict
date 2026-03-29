@@ -13,7 +13,7 @@ struct WorkerClientTests {
 
     @Test func fetchHealthDecodesWorkerPayload() async throws {
         let payload = """
-        {"service":"screamer-worker","status":"ok","version":"0.1.0"}
+        {"service":"screamer-worker","status":"ok","version":"0.1.0","model_loaded":false,"model_id":null}
         """
 
         let session = URLSession.makeMockingSession(
@@ -27,6 +27,8 @@ struct WorkerClientTests {
         #expect(health.service == "screamer-worker")
         #expect(health.status == "ok")
         #expect(health.version == "0.1.0")
+        #expect(health.modelLoaded == false)
+        #expect(health.modelID == nil)
     }
 
     @Test func fetchHealthThrowsForUnexpectedStatusCode() async {

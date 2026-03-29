@@ -26,6 +26,16 @@ public struct WorkerHealth: Decodable, Equatable, Sendable {
     public let service: String
     public let status: String
     public let version: String
+    public let modelLoaded: Bool
+    public let modelID: String?
+
+    enum CodingKeys: String, CodingKey {
+        case service
+        case status
+        case version
+        case modelLoaded = "model_loaded"
+        case modelID = "model_id"
+    }
 }
 
 public struct FileTranscriptionRequestPayload: Encodable, Equatable, Sendable {

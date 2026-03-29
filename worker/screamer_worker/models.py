@@ -8,8 +8,10 @@ class HealthResponse:
     service: str = "screamer-worker"
     status: str = "ok"
     version: str = "0.1.0"
+    model_loaded: bool = False
+    model_id: str | None = None
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, object]:
         return asdict(self)
 
 

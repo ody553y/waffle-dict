@@ -75,6 +75,10 @@ public final class AudioCaptureService: NSObject, @unchecked Sendable {
 
     // MARK: - Permission
 
+    public var microphoneAuthorizationStatus: AVAuthorizationStatus {
+        AVCaptureDevice.authorizationStatus(for: .audio)
+    }
+
     public func requestPermission() async -> Bool {
         await withCheckedContinuation { continuation in
             AVCaptureDevice.requestAccess(for: .audio) { granted in

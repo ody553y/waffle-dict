@@ -1,6 +1,6 @@
 {
   "": {
-    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/master.swiftdeps"
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/primary.swiftdeps"
   },
   "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/AudioCaptureService.swift": {
     "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/AudioCaptureService.d",
@@ -8,6 +8,13 @@
     "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/AudioCaptureService~partial.swiftmodule",
     "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/AudioCaptureService.swiftdeps",
     "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/AudioCaptureService.dia"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/PasteHelper.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/PasteHelper.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/PasteHelper.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/PasteHelper~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/PasteHelper.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/PasteHelper.dia"
   },
   "/Users/andre/Documents/GitHub/screamer/Sources/ScreamerCore/PermissionsService.swift": {
     "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCore.build/PermissionsService.d",

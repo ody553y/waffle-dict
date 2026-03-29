@@ -1,6 +1,13 @@
 {
   "": {
-    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/master.swiftdeps"
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/primary.swiftdeps"
+  },
+  "/Users/andre/Documents/GitHub/screamer/Tests/ScreamerCoreTests/PasteHelperTests.swift": {
+    "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/PasteHelperTests.d",
+    "object": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/PasteHelperTests.swift.o",
+    "swiftmodule": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/PasteHelperTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/PasteHelperTests.swiftdeps",
+    "diagnostics": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/PasteHelperTests.dia"
   },
   "/Users/andre/Documents/GitHub/screamer/Tests/ScreamerCoreTests/WorkerClientTests.swift": {
     "dependencies": "/Users/andre/Documents/GitHub/screamer/.build/arm64-apple-macosx/debug/ScreamerCoreTests.build/WorkerClientTests.d",
