@@ -27,6 +27,12 @@ class FasterWhisperBackend:
     )
     _models: dict[str, object] = field(default_factory=dict, repr=False)
 
+    @staticmethod
+    def _resolved_model_name(model_id: str) -> str:
+        if model_id.startswith("whisper-"):
+            return model_id.removeprefix("whisper-")
+        return model_id
+
     def prepare_model(self, model_id: str) -> None:
         if not _HAS_FASTER_WHISPER:
             raise RuntimeError(
@@ -35,11 +41,12 @@ class FasterWhisperBackend:
             )
         if model_id in self._models:
             return
-        logger.info("Loading faster-whisper model %s", model_id)
+        resolved_model_id = self._resolved_model_name(model_id)
+        logger.info("Loading faster-whisper model %s", resolved_model_id)
         self._models[model_id] = WhisperModel(
-            model_id, device="cpu", compute_type="int8"
+            resolved_model_id, device="cpu", compute_type="int8"
         )
-        logger.info("Model %s loaded", model_id)
+        logger.info("Model %s loaded", resolved_model_id)
 
     def start_live_session(self, config: LiveSessionConfig) -> str:
         raise NotImplementedError("Live sessions not yet supported")

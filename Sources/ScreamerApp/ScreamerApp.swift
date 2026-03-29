@@ -6,12 +6,18 @@ struct ScreamerApp: App {
 
     var body: some Scene {
         MenuBarExtra("Screamer", systemImage: "mic.fill") {
-            MenuBarView()
+            MenuBarView(
+                dictationController: appDelegate.dictationController,
+                modelStore: appDelegate.modelStore
+            )
         }
         .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView()
+            SettingsView(
+                hotkeyDisplayValue: appDelegate.hotkeyDisplayValue,
+                modelStore: appDelegate.modelStore
+            )
         }
     }
 }

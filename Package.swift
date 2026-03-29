@@ -14,7 +14,10 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ScreamerCore"
+            name: "ScreamerCore",
+            resources: [
+                .process("Resources"),
+            ]
         ),
         .executableTarget(
             name: "ScreamerApp",
@@ -22,7 +25,10 @@ let package = Package(
         ),
         .testTarget(
             name: "ScreamerCoreTests",
-            dependencies: ["ScreamerCore"]
+            dependencies: ["ScreamerCore"],
+            resources: [
+                .process("Fixtures"),
+            ]
         ),
     ]
 )

@@ -16,7 +16,29 @@ def main() -> None:
         from screamer_worker.backends.faster_whisper import FasterWhisperBackend
 
         fw = FasterWhisperBackend()
-        backends[fw.backend_id] = fw
+        for model_id in [
+            "whisper-tiny",
+            "whisper-base",
+            "whisper-small",
+            "whisper-medium",
+            "whisper-large-v3",
+            "tiny",
+            "base",
+            "small",
+            "medium",
+            "large-v3",
+            fw.backend_id,
+        ]:
+            backends[model_id] = fw
+    except Exception:
+        pass
+
+    try:
+        from screamer_worker.backends.parakeet import ParakeetBackend
+
+        pk = ParakeetBackend()
+        backends["parakeet-0.6b"] = pk
+        backends[pk.backend_id] = pk
     except Exception:
         pass
 

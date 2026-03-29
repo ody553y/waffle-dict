@@ -1,0 +1,74 @@
+[
+  {
+    "id": "whisper-tiny",
+    "family": "whisper",
+    "display_name": "Whisper Tiny",
+    "size_mb": 75,
+    "languages": ["multilingual"],
+    "supports_live": false,
+    "supports_translation": true,
+    "download_url": "https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_checksums.txt",
+    "sha256_checksum": "defbb29d5f22fdb2ba0bb2328211390e46507904762c0690fa1d8566a9a62c32",
+    "available": true
+  },
+  {
+    "id": "whisper-base",
+    "family": "whisper",
+    "display_name": "Whisper Base",
+    "size_mb": 142,
+    "languages": ["multilingual"],
+    "supports_live": false,
+    "supports_translation": true,
+    "download_url": "https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_checksums.txt",
+    "sha256_checksum": "defbb29d5f22fdb2ba0bb2328211390e46507904762c0690fa1d8566a9a62c32",
+    "available": true
+  },
+  {
+    "id": "whisper-small",
+    "family": "whisper",
+    "display_name": "Whisper Small",
+    "size_mb": 488,
+    "languages": ["multilingual"],
+    "supports_live": false,
+    "supports_translation": true,
+    "download_url": "https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_checksums.txt",
+    "sha256_checksum": "defbb29d5f22fdb2ba0bb2328211390e46507904762c0690fa1d8566a9a62c32",
+    "available": true
+  },
+  {
+    "id": "whisper-medium",
+    "family": "whisper",
+    "display_name": "Whisper Medium",
+    "size_mb": 1530,
+    "languages": ["multilingual"],
+    "supports_live": false,
+    "supports_translation": true,
+    "download_url": "https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_checksums.txt",
+    "sha256_checksum": "defbb29d5f22fdb2ba0bb2328211390e46507904762c0690fa1d8566a9a62c32",
+    "available": true
+  },
+  {
+    "id": "whisper-large-v3",
+    "family": "whisper",
+    "display_name": "Whisper Large v3",
+    "size_mb": 3100,
+    "languages": ["multilingual"],
+    "supports_live": false,
+    "supports_translation": true,
+    "download_url": "https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_checksums.txt",
+    "sha256_checksum": "defbb29d5f22fdb2ba0bb2328211390e46507904762c0690fa1d8566a9a62c32",
+    "available": true
+  },
+  {
+    "id": "parakeet-0.6b",
+    "family": "parakeet",
+    "display_name": "Parakeet 0.6B",
+    "size_mb": 2400,
+    "languages": ["en"],
+    "supports_live": false,
+    "supports_translation": false,
+    "download_url": "https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_checksums.txt",
+    "sha256_checksum": "defbb29d5f22fdb2ba0bb2328211390e46507904762c0690fa1d8566a9a62c32",
+    "available": false
+  }
+]

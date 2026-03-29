@@ -1,0 +1,26 @@
+[
+  {
+    "id": "whisper-small",
+    "family": "whisper",
+    "display_name": "Whisper Small",
+    "size_mb": 488,
+    "languages": ["en", "fr", "de"],
+    "supports_live": false,
+    "supports_translation": true,
+    "download_url": "https://example.com/whisper-small.bin",
+    "sha256_checksum": "abc123",
+    "available": true
+  },
+  {
+    "id": "parakeet-0.6b",
+    "family": "parakeet",
+    "display_name": "Parakeet 0.6B",
+    "size_mb": 2400,
+    "languages": ["en"],
+    "supports_live": false,
+    "supports_translation": false,
+    "download_url": "https://example.com/parakeet-0.6b.bin",
+    "sha256_checksum": "def456",
+    "available": false
+  }
+]
