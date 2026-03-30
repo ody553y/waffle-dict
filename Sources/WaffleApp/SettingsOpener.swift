@@ -11,10 +11,8 @@ enum SettingsOpener {
     ) {
         activate(true)
 
-        let didOpenWithAppKit = sendAction(Selector(("showSettingsWindow:")), nil, nil)
-        if didOpenWithAppKit == false {
-            openSettings()
-        }
+        openSettings()
+        _ = sendAction(Selector(("showSettingsWindow:")), nil, nil)
 
         activate(true)
     }

@@ -4,7 +4,7 @@ import Testing
 
 @MainActor
 struct SettingsOpenerTests {
-    @Test func openUsesShowSettingsActionWhenAvailable() {
+    @Test func openAlwaysCallsOpenSettingsEvenWhenShowSettingsActionIsAvailable() {
         var openSettingsCallCount = 0
         var activateCalls: [Bool] = []
         var sendActionCallCount = 0
@@ -20,7 +20,7 @@ struct SettingsOpenerTests {
         )
 
         #expect(sendActionCallCount == 1)
-        #expect(openSettingsCallCount == 0)
+        #expect(openSettingsCallCount == 1)
         #expect(activateCalls == [true, true])
     }
 

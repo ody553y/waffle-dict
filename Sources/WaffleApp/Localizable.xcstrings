@@ -1,6 +1,52 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "action.accept": {
+      "comment": "Generic action title for accepting a suggestion",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept"
+          }
+        }
+      }
+    },
+    "action.add": {
+      "comment": "Action title for adding an item",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        }
+      }
+    },
     "action.ask": {
       "comment": "Action title for submitting transcript question",
       "localizations": {
@@ -43,6 +89,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "キャンセル"
+          }
+        }
+      }
+    },
+    "action.clear": {
+      "comment": "Action title for clearing a list",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "action.close": {
+      "comment": "Action title for closing a sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
           }
         }
       }
@@ -208,6 +300,52 @@
         }
       }
     },
+    "action.merge": {
+      "comment": "Action title for merging two items",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge"
+          }
+        }
+      }
+    },
+    "action.ok": {
+      "comment": "Generic action title for confirming an alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
     "action.openSettings": {
       "comment": "Action title that opens the app settings window",
       "localizations": {
@@ -323,6 +461,29 @@
         }
       }
     },
+    "action.save": {
+      "comment": "Generic action title for saving edits",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
     "action.stop": {
       "comment": "Action title for stopping an in-progress AI action stream",
       "localizations": {
@@ -365,6 +526,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "スクリーマー"
+          }
+        }
+      }
+    },
+    "controlCenter.window.title": {
+      "comment": "Window title for the Dock-facing control center",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control Center"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control Center"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control Center"
           }
         }
       }
@@ -990,6 +1174,75 @@
         }
       }
     },
+    "error.history.segmentEditor.missingTranscriptID": {
+      "comment": "Error shown when segment editor cannot resolve transcript ID",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to save edits for this transcript."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to save edits for this transcript."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to save edits for this transcript."
+          }
+        }
+      }
+    },
+    "error.history.shareArchiveFailed": {
+      "comment": "Error shown when sharing transcript archives fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to share transcript archive."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to share transcript archive."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to share transcript archive."
+          }
+        }
+      }
+    },
+    "error.history.speakerSuggestionAcceptFailed": {
+      "comment": "Error shown when accepting a speaker-name suggestion fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to apply speaker suggestion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to apply speaker suggestion."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to apply speaker suggestion."
+          }
+        }
+      }
+    },
     "error.hotkey.saveFailed": {
       "comment": "Error shown when global hotkey cannot be saved",
       "localizations": {
@@ -1473,6 +1726,98 @@
         }
       }
     },
+    "error.settings.speakerProfiles.deleteFailed": {
+      "comment": "Error shown when deleting a speaker profile fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete speaker profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete speaker profile."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete speaker profile."
+          }
+        }
+      }
+    },
+    "error.settings.speakerProfiles.loadFailed": {
+      "comment": "Error shown when loading speaker profiles fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load speaker profiles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load speaker profiles."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load speaker profiles."
+          }
+        }
+      }
+    },
+    "error.settings.speakerProfiles.mergeFailed": {
+      "comment": "Error shown when merging speaker profiles fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to merge speaker profiles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to merge speaker profiles."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to merge speaker profiles."
+          }
+        }
+      }
+    },
+    "error.settings.speakerProfiles.renameFailed": {
+      "comment": "Error shown when renaming a speaker profile fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to rename speaker profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to rename speaker profile."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to rename speaker profile."
+          }
+        }
+      }
+    },
     "error.transcription.timeout": {
       "comment": "Error shown when transcription request times out",
       "localizations": {
@@ -1634,6 +1979,29 @@
         }
       }
     },
+    "file.importArchive": {
+      "comment": "File menu item for importing Waffle transcript archive files",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Transcript Archive…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Transcript Archive…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Transcript Archive…"
+          }
+        }
+      }
+    },
     "history.actions.askQuestion": {
       "comment": "Button title to ask a question about transcript via AI",
       "localizations": {
@@ -1749,6 +2117,29 @@
         }
       }
     },
+    "history.actions.customPrompt.noTemplates": {
+      "comment": "Empty-state text shown in custom prompt template picker",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No templates saved"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No templates saved"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No templates saved"
+          }
+        }
+      }
+    },
     "history.actions.customPrompt.placeholder": {
       "comment": "Placeholder for transcript custom prompt input",
       "localizations": {
@@ -1768,6 +2159,236 @@
           "stringUnit": {
             "state": "translated",
             "value": "カスタムプロンプト"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate": {
+      "comment": "Button title for saving current custom prompt as a template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as template…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as template…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as template…"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.defaultName": {
+      "comment": "Default name for a newly saved prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Template"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Template"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Template"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.error.limit": {
+      "comment": "Validation error shown when prompt template max limit is reached",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d templates."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d templates."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d templates."
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.error.nameLength": {
+      "comment": "Validation error shown when template name exceeds max length",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name must be 40 characters or fewer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name must be 40 characters or fewer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name must be 40 characters or fewer."
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.error.nameRequired": {
+      "comment": "Validation error shown when template name is empty",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name is required."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name is required."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name is required."
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.error.promptRequired": {
+      "comment": "Validation error shown when prompt template text is empty",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt text is required."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt text is required."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt text is required."
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.name": {
+      "comment": "Input label for naming a saved custom prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.sheetTitle": {
+      "comment": "Sheet title for saving a custom prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Prompt Template"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Prompt Template"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Prompt Template"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.saveTemplate.success": {
+      "comment": "Inline status text shown when a custom prompt template is saved",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template saved"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template saved"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template saved"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.useTemplate": {
+      "comment": "Menu button title for selecting a saved prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use template…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use template…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use template…"
           }
         }
       }
@@ -2002,6 +2623,29 @@
         }
       }
     },
+    "history.actions.type.autoSummary": {
+      "comment": "Label for automatically generated transcript summary action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Summary"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Summary"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Summary"
+          }
+        }
+      }
+    },
     "history.actions.type.custom": {
       "comment": "Label for previously saved custom prompt AI action",
       "localizations": {
@@ -2021,6 +2665,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "カスタム"
+          }
+        }
+      }
+    },
+    "history.actions.type.pipelineStep": {
+      "comment": "Label for a pipeline-step transcript action without a step name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline Step"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline Step"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline Step"
+          }
+        }
+      }
+    },
+    "history.actions.type.pipelineStep.named": {
+      "comment": "Label for a pipeline-step transcript action that includes the step name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline: %@"
           }
         }
       }
@@ -2113,6 +2803,121 @@
           "stringUnit": {
             "state": "translated",
             "value": "応答を待っています…"
+          }
+        }
+      }
+    },
+    "history.audio.failedToLoad": {
+      "comment": "Inline status shown when retained audio fails to load",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load audio file."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load audio file."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load audio file."
+          }
+        }
+      }
+    },
+    "history.audio.fileNotFound": {
+      "comment": "Inline status shown when linked retained audio file no longer exists",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio file not found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio file not found."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio file not found."
+          }
+        }
+      }
+    },
+    "history.audio.loading": {
+      "comment": "Status text while loading retained transcript audio",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading audio…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading audio…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading audio…"
+          }
+        }
+      }
+    },
+    "history.audio.pause": {
+      "comment": "Accessibility label for pausing transcript audio",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause audio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause audio"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause audio"
+          }
+        }
+      }
+    },
+    "history.audio.play": {
+      "comment": "Accessibility label for playing transcript audio",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play audio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play audio"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play audio"
           }
         }
       }
@@ -2830,6 +3635,75 @@
         }
       }
     },
+    "history.importArchive.error.title": {
+      "comment": "Title for archive import failure alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Failed"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Failed"
+          }
+        }
+      }
+    },
+    "history.importArchive.summary.message": {
+      "comment": "Summary message shown after importing transcript archives",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported %d transcripts with %d AI actions. Skipped %d duplicates."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported %d transcripts with %d AI actions. Skipped %d duplicates."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported %d transcripts with %d AI actions. Skipped %d duplicates."
+          }
+        }
+      }
+    },
+    "history.importArchive.summary.title": {
+      "comment": "Title for transcript archive import summary alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive Import Complete"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive Import Complete"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive Import Complete"
+          }
+        }
+      }
+    },
     "history.menu.copyTranscript": {
       "comment": "Command menu item for copying selected transcript text",
       "localizations": {
@@ -3152,6 +4026,121 @@
         }
       }
     },
+    "history.row.contextMenu.export": {
+      "comment": "Context menu action for exporting a transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        }
+      }
+    },
+    "history.row.contextMenu.share": {
+      "comment": "Context menu action for sharing a transcript archive",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        }
+      }
+    },
+    "history.row.editSegments": {
+      "comment": "Button title for opening the segment editor sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Segments"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Segments"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Segments"
+          }
+        }
+      }
+    },
+    "history.row.export": {
+      "comment": "Button title for exporting a single expanded transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        }
+      }
+    },
+    "history.row.share": {
+      "comment": "Button title for sharing a single expanded transcript archive",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        }
+      }
+    },
     "history.row.speakers.count": {
       "comment": "Badge showing count of unique speakers in transcript",
       "localizations": {
@@ -3244,6 +4233,121 @@
         }
       }
     },
+    "history.segmentEditor.description": {
+      "comment": "Description text shown at top of segment editor sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit segment text and speaker labels for this transcript."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit segment text and speaker labels for this transcript."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit segment text and speaker labels for this transcript."
+          }
+        }
+      }
+    },
+    "history.segmentEditor.speaker.add": {
+      "comment": "Action title for adding a speaker label to a segment",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Speaker"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Speaker"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Speaker"
+          }
+        }
+      }
+    },
+    "history.segmentEditor.speaker.note": {
+      "comment": "Clarifies segment speaker edits are local to the transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker changes here apply only to this transcript and do not rename global speaker profiles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker changes here apply only to this transcript and do not rename global speaker profiles."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker changes here apply only to this transcript and do not rename global speaker profiles."
+          }
+        }
+      }
+    },
+    "history.segmentEditor.speaker.placeholder": {
+      "comment": "Placeholder for segment speaker label text field",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker label"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker label"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker label"
+          }
+        }
+      }
+    },
+    "history.segmentEditor.title": {
+      "comment": "Title for segment editor sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Segments"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Segments"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Segments"
+          }
+        }
+      }
+    },
     "history.source.dictation": {
       "comment": "Accessibility source name for dictation transcripts",
       "localizations": {
@@ -3286,6 +4390,75 @@
           "stringUnit": {
             "state": "translated",
             "value": "インポートされたファイル"
+          }
+        }
+      }
+    },
+    "history.speakers.profile.saveFailed": {
+      "comment": "Inline error shown when saving a speaker profile from rename UI fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save profile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save profile"
+          }
+        }
+      }
+    },
+    "history.speakers.profile.saveFromName": {
+      "comment": "Link title for saving a renamed speaker as a reusable speaker profile",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save \\\"%@\\\" as speaker profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save \\\"%@\\\" as speaker profile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save \\\"%@\\\" as speaker profile"
+          }
+        }
+      }
+    },
+    "history.speakers.profile.saved": {
+      "comment": "Inline confirmation shown after saving a speaker profile from rename UI",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile saved"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile saved"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile saved"
           }
         }
       }
@@ -3355,6 +4528,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "スピーカーの名前を変更する"
+          }
+        }
+      }
+    },
+    "history.speakers.suggestion.row": {
+      "comment": "Suggestion banner text mapping speaker labels to suggested profile names",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ \\u{2192} Suggested: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ \\u{2192} Suggested: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ \\u{2192} Suggested: %@"
           }
         }
       }
@@ -3543,6 +4739,52 @@
         }
       }
     },
+    "history.toolbar.importArchive": {
+      "comment": "Toolbar button title for importing transcript archive files",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Archive…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Archive…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Archive…"
+          }
+        }
+      }
+    },
+    "history.toolbar.importArchive.help": {
+      "comment": "Tooltip for import archive toolbar button",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import transcript archive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import transcript archive"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import transcript archive"
+          }
+        }
+      }
+    },
     "history.toolbar.importFile": {
       "comment": "Toolbar button title for importing audio files",
       "localizations": {
@@ -3585,6 +4827,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "インポートファイル"
+          }
+        }
+      }
+    },
+    "history.toolbar.share": {
+      "comment": "Toolbar button title for sharing selected transcripts as an archive",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        }
+      }
+    },
+    "history.toolbar.share.help": {
+      "comment": "Tooltip for share toolbar button",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share selected transcripts as a Waffle archive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share selected transcripts as a Waffle archive"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share selected transcripts as a Waffle archive"
           }
         }
       }
@@ -4302,6 +5590,98 @@
         }
       }
     },
+    "settings.ai.autoSummarize.enabled": {
+      "comment": "Toggle label for running automatic summary after dictation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-summarize after transcription"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-summarize after transcription"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-summarize after transcription"
+          }
+        }
+      }
+    },
+    "settings.ai.autoSummarize.note": {
+      "comment": "Help text for auto-summarize settings dependency",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires LM Studio to be running with a model loaded."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires LM Studio to be running with a model loaded."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires LM Studio to be running with a model loaded."
+          }
+        }
+      }
+    },
+    "settings.ai.autoSummarize.section": {
+      "comment": "Section title for automatic transcript summarization settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Summarization"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Summarization"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Summarization"
+          }
+        }
+      }
+    },
+    "settings.ai.autoSummarize.useTemplate": {
+      "comment": "Menu button title for selecting auto-summarize prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use template…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use template…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use template…"
+          }
+        }
+      }
+    },
     "settings.ai.connection.accessibility.connected": {
       "comment": "Accessibility label for connected LM Studio status indicator",
       "localizations": {
@@ -4785,6 +6165,1823 @@
         }
       }
     },
+    "settings.ai.pipelines.add": {
+      "comment": "Button title for creating a new export pipeline",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Pipeline"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Pipeline"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Pipeline"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.autoBadge": {
+      "comment": "Badge shown on pipelines configured to run automatically",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.count": {
+      "comment": "Pipeline count indicator showing current and maximum pipeline count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / %d"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / %d"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / %d"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.delete.fallback": {
+      "comment": "Fallback title for delete pipeline confirmation alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete pipeline?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete pipeline?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete pipeline?"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.delete.message": {
+      "comment": "Confirmation message for deleting an export pipeline",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? This cannot be undone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? This cannot be undone."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? This cannot be undone."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.addStep": {
+      "comment": "Menu button title for adding a prompt-template step to a pipeline",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Step"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Step"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Step"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.addTitle": {
+      "comment": "Sheet title when creating a new export pipeline",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Pipeline"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Pipeline"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Pipeline"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.autoRun": {
+      "comment": "Toggle label for enabling automatic pipeline execution after transcription",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run automatically after each transcription"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run automatically after each transcription"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run automatically after each transcription"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.editTitle": {
+      "comment": "Sheet title when editing an existing export pipeline",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Pipeline"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Pipeline"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Pipeline"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.name": {
+      "comment": "Field label for export pipeline name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.output": {
+      "comment": "Picker label for selecting export pipeline output destination",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.steps": {
+      "comment": "Subsection title for pipeline step list in editor sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.editor.steps.help": {
+      "comment": "Help text explaining how to reorder pipeline steps in the editor",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag rows to reorder steps."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag rows to reorder steps."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag rows to reorder steps."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.empty": {
+      "comment": "Empty-state message shown when there are no export pipelines",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pipelines yet. Add one to chain prompt templates after transcription."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pipelines yet. Add one to chain prompt templates after transcription."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pipelines yet. Add one to chain prompt templates after transcription."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.limit": {
+      "comment": "Validation message shown when export pipeline limit is reached",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d pipelines."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d pipelines."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d pipelines."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.noModel": {
+      "comment": "Help text shown when no LM Studio model is selected for running pipelines",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an LM Studio model to run pipelines."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an LM Studio model to run pipelines."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an LM Studio model to run pipelines."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.noTranscripts": {
+      "comment": "Help text shown when there are no transcripts available for pipeline run-now",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Now is available after at least one transcript exists."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Now is available after at least one transcript exists."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Now is available after at least one transcript exists."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.output": {
+      "comment": "Pipeline row subtitle describing output destination",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output: %@"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.output.clipboard": {
+      "comment": "Output destination label for clipboard delivery",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy final output to clipboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy final output to clipboard"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy final output to clipboard"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.output.none": {
+      "comment": "Output destination label for no clipboard delivery",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to action log only"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to action log only"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to action log only"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.run.connectionRequired": {
+      "comment": "Run-now error shown when LM Studio connection settings are invalid",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio host and port must be valid before running pipelines."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio host and port must be valid before running pipelines."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio host and port must be valid before running pipelines."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.run.failure": {
+      "comment": "Run-now status shown when a pipeline run fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline failed: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline failed: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline failed: %@"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.run.noModel": {
+      "comment": "Run-now error shown when no LM Studio model is selected",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an LM Studio model first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an LM Studio model first."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an LM Studio model first."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.run.noTranscripts": {
+      "comment": "Run-now message shown when there are no transcripts yet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No transcripts available to process."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No transcripts available to process."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No transcripts available to process."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.run.storeUnavailable": {
+      "comment": "Run-now error shown when transcript storage is unavailable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript history is unavailable."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript history is unavailable."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript history is unavailable."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.run.success": {
+      "comment": "Run-now status shown after a successful pipeline run",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline completed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline completed."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline completed."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.runNow": {
+      "comment": "Button title for running a pipeline immediately",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Now"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Now"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.section": {
+      "comment": "Section title for export pipeline configuration",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipelines"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipelines"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipelines"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.steps.count": {
+      "comment": "Step-count badge for pipeline list rows",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d step%@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d step%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d step%@"
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.validation.nameRequired": {
+      "comment": "Validation message shown when a pipeline name is missing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline name is required."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline name is required."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline name is required."
+          }
+        }
+      }
+    },
+    "settings.ai.pipelines.validation.stepsRequired": {
+      "comment": "Validation message shown when saving a pipeline with no steps",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add at least one step."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add at least one step."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add at least one step."
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.add": {
+      "comment": "Button title for adding a new prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Template"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Template"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Template"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.add.sheetTitle": {
+      "comment": "Sheet title for adding a prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Prompt Template"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Prompt Template"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Prompt Template"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.count": {
+      "comment": "Template count indicator showing current and maximum template count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / %d"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / %d"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d / %d"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.delete.fallback": {
+      "comment": "Fallback title for delete template confirmation alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete template?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete template?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete template?"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.delete.message": {
+      "comment": "Confirmation message for deleting a prompt template",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? This cannot be undone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? This cannot be undone."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? This cannot be undone."
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.empty": {
+      "comment": "Empty-state message shown when there are no prompt templates",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No prompt templates yet. Add one to reuse your best prompts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No prompt templates yet. Add one to reuse your best prompts."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No prompt templates yet. Add one to reuse your best prompts."
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.empty.short": {
+      "comment": "Short empty-state text shown in template picker menus",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No templates saved"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No templates saved"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No templates saved"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.limit": {
+      "comment": "Validation message shown when prompt template limit is reached",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d templates."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d templates."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can save up to %d templates."
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.name": {
+      "comment": "Label for prompt template name input",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.section": {
+      "comment": "Section title for prompt template management",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt Templates"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt Templates"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt Templates"
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.validation.nameLength": {
+      "comment": "Validation message shown when template name exceeds maximum length",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name must be 40 characters or fewer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name must be 40 characters or fewer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name must be 40 characters or fewer."
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.validation.nameRequired": {
+      "comment": "Validation message shown when a template name is missing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name is required."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name is required."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name is required."
+          }
+        }
+      }
+    },
+    "settings.ai.promptTemplates.validation.promptRequired": {
+      "comment": "Validation message shown when template prompt text is missing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt text is required."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt text is required."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt text is required."
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.delete.fallback": {
+      "comment": "Fallback title for delete-speaker-profile confirmation alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete profile?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete profile?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete profile?"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.delete.message": {
+      "comment": "Confirmation message shown before deleting a speaker profile",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? Future recordings will not be auto-matched to this profile. Existing speaker names in transcripts are unchanged."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? Future recordings will not be auto-matched to this profile. Existing speaker names in transcripts are unchanged."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\"? Future recordings will not be auto-matched to this profile. Existing speaker names in transcripts are unchanged."
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.empty": {
+      "comment": "Empty-state message for speaker profiles settings section",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No speaker profiles yet. Profiles are created when diarized transcripts include embeddings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No speaker profiles yet. Profiles are created when diarized transcripts include embeddings."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No speaker profiles yet. Profiles are created when diarized transcripts include embeddings."
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.matchSensitivity": {
+      "comment": "Label for speaker profile match sensitivity slider",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match sensitivity"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match sensitivity"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match sensitivity"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.matchSensitivity.hint": {
+      "comment": "Hint text below speaker match sensitivity slider",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Higher = stricter matching"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Higher = stricter matching"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Higher = stricter matching"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.merge.button": {
+      "comment": "Button title for merging a speaker profile with another profile",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge…"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.merge.keepName": {
+      "comment": "Picker label for choosing which profile name to keep after merge",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep name"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep name"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.merge.target": {
+      "comment": "Picker label for selecting secondary profile to merge",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge with"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge with"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge with"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.merge.title": {
+      "comment": "Sheet title for merging two speaker profiles",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Speaker Profiles"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Speaker Profiles"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Speaker Profiles"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.merge.warning": {
+      "comment": "Warning text shown in merge speaker profiles sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merging is irreversible."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merging is irreversible."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merging is irreversible."
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.metadata": {
+      "comment": "Metadata text showing transcript count and last seen relative date for a speaker profile",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d transcripts • Last seen %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d transcripts • Last seen %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d transcripts • Last seen %@"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.name": {
+      "comment": "Text field placeholder for speaker profile display name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.section": {
+      "comment": "Section title for speaker profile management settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker Profiles"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker Profiles"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker Profiles"
+          }
+        }
+      }
+    },
+    "settings.ai.speakerProfiles.unavailable": {
+      "comment": "Message shown when speaker profile management cannot be loaded",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker profiles are unavailable because the transcript database could not be opened."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker profiles are unavailable because the transcript database could not be opened."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker profiles are unavailable because the transcript database could not be opened."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.enabled": {
+      "comment": "Toggle label for enabling webhook delivery after transcript creation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send webhook on new transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send webhook on new transcript"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send webhook on new transcript"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.endpoint": {
+      "comment": "Field label for webhook destination URL",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.includeSegments": {
+      "comment": "Toggle label for including transcript time segments in webhook payloads",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include time segments"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include time segments"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include time segments"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.includeSpeakerMap": {
+      "comment": "Toggle label for including speaker map in webhook payloads",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include speaker names"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include speaker names"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include speaker names"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.note": {
+      "comment": "Informational note describing when webhook payloads are sent",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle will POST JSON to this URL after each dictation and file import."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle will POST JSON to this URL after each dictation and file import."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle will POST JSON to this URL after each dictation and file import."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.recent.empty": {
+      "comment": "Empty-state text shown when there are no webhook delivery entries",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No deliveries yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No deliveries yet."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No deliveries yet."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.recent.noResponse": {
+      "comment": "Fallback detail shown for webhook delivery entries that have no status code or error text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No response received."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No response received."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No response received."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.recent.section": {
+      "comment": "Subsection title for recent webhook delivery events",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Deliveries"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Deliveries"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Deliveries"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.secret": {
+      "comment": "Field label for optional webhook HMAC signing secret",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing secret (optional)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing secret (optional)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing secret (optional)"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.secret.note": {
+      "comment": "Security note shown below webhook HMAC secret field",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this secret confidential."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this secret confidential."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this secret confidential."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.section": {
+      "comment": "Section title for webhook configuration and delivery log settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhooks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhooks"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhooks"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.test": {
+      "comment": "Action title for sending a test webhook payload",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.test.failure": {
+      "comment": "Status message shown when a test webhook request fails with an error",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook failed: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook failed: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook failed: %@"
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.test.nonSuccessStatus": {
+      "comment": "Status message shown when a test webhook returns a non-success status code",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook responded with HTTP %d."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook responded with HTTP %d."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook responded with HTTP %d."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.test.success": {
+      "comment": "Status message shown when a test webhook call succeeds",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook delivered (HTTP %d)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook delivered (HTTP %d)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test webhook delivered (HTTP %d)."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.test.validationFailed": {
+      "comment": "Message shown when test webhook is attempted with invalid endpoint settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix the webhook URL before sending a test payload."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix the webhook URL before sending a test payload."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix the webhook URL before sending a test payload."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.validation.endpointInvalid": {
+      "comment": "Validation message shown when webhook endpoint URL is invalid or uses a non-HTTPS scheme",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL must be a valid https:// URL."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL must be a valid https:// URL."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL must be a valid https:// URL."
+          }
+        }
+      }
+    },
+    "settings.ai.webhooks.validation.endpointRequired": {
+      "comment": "Validation message shown when webhook delivery is enabled without an endpoint URL",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL is required when webhook delivery is enabled."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL is required when webhook delivery is enabled."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint URL is required when webhook delivery is enabled."
+          }
+        }
+      }
+    },
+    "settings.general.appVisibility.help": {
+      "comment": "Help text explaining menu-bar-first app visibility mode",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable this to keep Waffle menu-bar-only and hidden from Cmd+Tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable this to keep Waffle menu-bar-only and hidden from Cmd+Tab."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable this to keep Waffle menu-bar-only and hidden from Cmd+Tab."
+          }
+        }
+      }
+    },
+    "settings.general.appVisibility.section": {
+      "comment": "Section title for app visibility behavior in Dock and App Switcher",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Visibility"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Visibility"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Visibility"
+          }
+        }
+      }
+    },
+    "settings.general.appVisibility.showDockSwitcher": {
+      "comment": "Toggle label for showing app in Dock and Cmd+Tab app switcher",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Dock and App Switcher"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Dock and App Switcher"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Dock and App Switcher"
+          }
+        }
+      }
+    },
     "settings.general.copyFallback": {
       "comment": "Toggle label for clipboard fallback when paste cannot run",
       "localizations": {
@@ -5084,6 +8281,374 @@
         }
       }
     },
+    "settings.general.iCloudBackup.browse": {
+      "comment": "Button title for opening the iCloud backups browser sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse iCloud Backups…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse iCloud Backups…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse iCloud Backups…"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.dateUnknown": {
+      "comment": "Fallback text for iCloud backup files without known date metadata",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown date"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown date"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown date"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.delete.message": {
+      "comment": "Confirmation message shown before deleting an iCloud backup file",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\" from iCloud Drive? This does not delete local transcripts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\" from iCloud Drive? This does not delete local transcripts."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete \\\"%@\\\" from iCloud Drive? This does not delete local transcripts."
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.delete.titleFallback": {
+      "comment": "Fallback title for delete-backup confirmation alert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete backup?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete backup?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete backup?"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.deleteFailed": {
+      "comment": "Error shown when deleting an iCloud backup file fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete backup: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete backup: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete backup: %@"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.empty": {
+      "comment": "Empty-state message shown when there are no iCloud backup files",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No backups found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No backups found."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No backups found."
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.loadFailed": {
+      "comment": "Error shown when iCloud backup list loading fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load iCloud backups: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load iCloud backups: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load iCloud backups: %@"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.openFinder": {
+      "comment": "Button title for revealing iCloud backups directory in Finder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Finder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Finder"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Finder"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.restore": {
+      "comment": "Button title for restoring an iCloud backup archive",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.sizeUnknown": {
+      "comment": "Fallback text for iCloud backup files without known size metadata",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown size"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown size"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown size"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.browser.title": {
+      "comment": "Title for iCloud backups browser sheet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Backups"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Backups"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Backups"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.enabled": {
+      "comment": "Toggle label for enabling iCloud transcript backups",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back up transcripts to iCloud Drive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back up transcripts to iCloud Drive"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back up transcripts to iCloud Drive"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.note": {
+      "comment": "Help text describing where iCloud backup files are stored",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripts are saved as .waffle files in iCloud Drive > Waffle > Transcripts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripts are saved as .waffle files in iCloud Drive > Waffle > Transcripts."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripts are saved as .waffle files in iCloud Drive > Waffle > Transcripts."
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.refreshAvailability": {
+      "comment": "Button title for re-checking iCloud container availability",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Availability"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Availability"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Availability"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.section": {
+      "comment": "Section title for iCloud transcript backup preferences",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Backup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Backup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Backup"
+          }
+        }
+      }
+    },
+    "settings.general.iCloudBackup.unavailable": {
+      "comment": "Message shown when iCloud Drive container access is unavailable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Drive is not available. Sign in to iCloud in System Settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Drive is not available. Sign in to iCloud in System Settings."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Drive is not available. Sign in to iCloud in System Settings."
+          }
+        }
+      }
+    },
     "settings.general.languageHint.autoDetect": {
       "comment": "Option label for automatic language detection",
       "localizations": {
@@ -5264,6 +8829,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "プレビューの自動終了 (秒): %d"
+          }
+        }
+      }
+    },
+    "settings.general.retainAudioRecordings": {
+      "comment": "Toggle label for retaining WAV recordings linked to transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retain audio recordings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retain audio recordings"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retain audio recordings"
+          }
+        }
+      }
+    },
+    "settings.general.retainAudioRecordings.note": {
+      "comment": "Help text warning about retained audio file size and export behavior",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV files use ~1.9 MB/minute. Audio is not included in transcript exports."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV files use ~1.9 MB/minute. Audio is not included in transcript exports."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV files use ~1.9 MB/minute. Audio is not included in transcript exports."
           }
         }
       }
@@ -6648,6 +10259,121 @@
         }
       }
     },
+    "settings.models.empty.description": {
+      "comment": "Description shown when the model catalog is empty and diagnostics are available",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle couldn't load any models. Check diagnostics below and retry."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle couldn't load any models. Check diagnostics below and retry."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle couldn't load any models. Check diagnostics below and retry."
+          }
+        }
+      }
+    },
+    "settings.models.empty.title": {
+      "comment": "Title shown when the model catalog cannot be loaded",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model catalog unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model catalog unavailable"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model catalog unavailable"
+          }
+        }
+      }
+    },
+    "settings.models.language.plural": {
+      "comment": "Plural language label used in model metadata",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "languages"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "languages"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "languages"
+          }
+        }
+      }
+    },
+    "settings.models.language.singular": {
+      "comment": "Singular language label used in model metadata",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "language"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "language"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "language"
+          }
+        }
+      }
+    },
+    "settings.models.metadata": {
+      "comment": "Model metadata showing size and supported language count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d MB • %d %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d MB • %d %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d MB • %d %@"
+          }
+        }
+      }
+    },
     "settings.models.refresh": {
       "comment": "Action title to refresh model catalog in settings",
       "localizations": {
@@ -6667,6 +10393,351 @@
           "stringUnit": {
             "state": "translated",
             "value": "リフレッシュ"
+          }
+        }
+      }
+    },
+    "settings.models.unverified.warning": {
+      "comment": "Warning label shown when using an unverified bundled model manifest",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Using bundled catalog without a valid signature."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Using bundled catalog without a valid signature."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Using bundled catalog without a valid signature."
+          }
+        }
+      }
+    },
+    "settings.statistics.empty.description": {
+      "comment": "Empty-state description when no transcripts exist",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start dictating or import audio files to populate usage statistics."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start dictating or import audio files to populate usage statistics."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start dictating or import audio files to populate usage statistics."
+          }
+        }
+      }
+    },
+    "settings.statistics.empty.title": {
+      "comment": "Empty-state title when no transcripts are available for statistics",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data yet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data yet"
+          }
+        }
+      }
+    },
+    "settings.statistics.frequency.section": {
+      "comment": "Section title for last-30-days recording frequency chart",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Frequency (Last 30 Days)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Frequency (Last 30 Days)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Frequency (Last 30 Days)"
+          }
+        }
+      }
+    },
+    "settings.statistics.loadFailed": {
+      "comment": "Fallback message when statistics loading fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to load statistics right now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to load statistics right now."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to load statistics right now."
+          }
+        }
+      }
+    },
+    "settings.statistics.models.section": {
+      "comment": "Section title for model usage breakdown",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model Usage"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model Usage"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model Usage"
+          }
+        }
+      }
+    },
+    "settings.statistics.refresh": {
+      "comment": "Action title for refreshing statistics",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        }
+      }
+    },
+    "settings.statistics.summary.averageDuration": {
+      "comment": "Label for average duration metric",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Average Duration"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Average Duration"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Average Duration"
+          }
+        }
+      }
+    },
+    "settings.statistics.summary.section": {
+      "comment": "Section title for statistics summary cards",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        }
+      }
+    },
+    "settings.statistics.summary.totalDuration": {
+      "comment": "Label for total duration metric",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Duration"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Duration"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Duration"
+          }
+        }
+      }
+    },
+    "settings.statistics.summary.totalRecordings": {
+      "comment": "Label for total transcript count metric",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Recordings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Recordings"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Recordings"
+          }
+        }
+      }
+    },
+    "settings.statistics.summary.totalWords": {
+      "comment": "Label for total word count metric",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Words"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Words"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Words"
+          }
+        }
+      }
+    },
+    "settings.statistics.title": {
+      "comment": "Title for settings statistics view",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage Statistics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage Statistics"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage Statistics"
+          }
+        }
+      }
+    },
+    "settings.statistics.unavailable.description": {
+      "comment": "Description shown when statistics cannot be loaded in settings context",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the app normally to view usage statistics."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the app normally to view usage statistics."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the app normally to view usage statistics."
+          }
+        }
+      }
+    },
+    "settings.statistics.unavailable.title": {
+      "comment": "Title shown when transcript store is unavailable in settings context",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics unavailable"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics unavailable"
           }
         }
       }
@@ -6759,6 +10830,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "モデル"
+          }
+        }
+      }
+    },
+    "settings.tab.statistics": {
+      "comment": "Settings tab title for transcript usage statistics",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics"
           }
         }
       }

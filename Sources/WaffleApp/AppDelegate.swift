@@ -42,7 +42,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var startupBeganAtUptimeNanos: UInt64?
     private var didLogStartupCompletion = false
     private var openWindowByID: ((String) -> Void)?
+    private var pendingWindowIDs: [String] = []
     private let appVisibilityCoordinator = AppVisibilityCoordinator()
+    let onboardingCoordinator = OnboardingCoordinator()
 
     var hotkeyDisplayValue: String {
         activeHotkey.displayValue
@@ -64,6 +66,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             _ = await restartWorkerProcess()
         }
+
+        if onboardingCoordinator.isCompleted() == false {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            openWindow(id: "onboarding")
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -81,12 +88,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         guard flag == false else { return false }
         NSApplication.shared.activate(ignoringOtherApps: true)
-        openWindowByID?("control-center")
+        openWindow(id: "control-center")
         return true
     }
 
     func setWindowOpener(_ handler: @escaping (String) -> Void) {
         openWindowByID = handler
+        if pendingWindowIDs.isEmpty == false {
+            let pendingIDs = pendingWindowIDs
+            pendingWindowIDs.removeAll(keepingCapacity: false)
+            for id in pendingIDs {
+                handler(id)
+            }
+        }
     }
 
     func setShowInDockAndAppSwitcher(_ value: Bool) {
@@ -123,6 +137,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         dictationController.updateHotkeyActive(started)
+    }
+
+    func markOnboardingCompleted() {
+        onboardingCoordinator.markCompleted()
     }
 
     func updateHotkey(_ hotkey: GlobalHotkey) {
@@ -191,5 +209,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let startupMilliseconds = Int((startupDurationSeconds * 1_000).rounded())
         print("[waffle] startup completed in \(startupMilliseconds)ms")
+    }
+
+    private func openWindow(id: String) {
+        if let openWindowByID {
+            openWindowByID(id)
+            return
+        }
+
+        pendingWindowIDs.append(id)
     }
 }

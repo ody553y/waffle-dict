@@ -40,16 +40,22 @@ struct ControlCenterView: View {
                     Text("Worker: \(dictationController.workerStatus)")
                         .font(.headline)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Worker status \(dictationController.workerStatus)")
 
                 Text("Recording: \(recordingStatusText)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel("Recording status \(recordingStatusText)")
 
                 Text(
                     "Model: \(modelStore.selectedEntry?.displayName ?? "No installed model selected")"
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .accessibilityLabel(
+                    "Selected model \(modelStore.selectedEntry?.displayName ?? "No installed model selected")"
+                )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -77,11 +83,15 @@ struct ControlCenterView: View {
                         SettingsOpener.open(openSettings: { openSettings() })
                     }
                     .buttonStyle(.bordered)
+                    .keyboardShortcut(",", modifiers: .command)
+                    .accessibilityHint("Opens app settings")
 
                     Button("Open History") {
                         openWindow(id: "transcript-history")
                     }
                     .buttonStyle(.bordered)
+                    .keyboardShortcut("h", modifiers: .command)
+                    .accessibilityHint("Opens transcript history")
                 }
 
                 HStack(spacing: 10) {
@@ -89,6 +99,8 @@ struct ControlCenterView: View {
                         NotificationCenter.default.post(name: .waffleOpenReviewQueue, object: nil)
                     }
                     .buttonStyle(.bordered)
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+                    .accessibilityHint("Opens review queue")
 
                     Button("Import File") {
                         openWindow(id: "transcript-history")
@@ -97,6 +109,8 @@ struct ControlCenterView: View {
                         }
                     }
                     .buttonStyle(.bordered)
+                    .keyboardShortcut("i", modifiers: .command)
+                    .accessibilityHint("Imports audio files into history")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -144,7 +158,12 @@ struct ControlCenterView: View {
                                     openInHistory(recordID: record.id)
                                 }
                                 .buttonStyle(.borderless)
+                                .accessibilityLabel(
+                                    "Open transcript from \(record.createdAt.formatted(date: .abbreviated, time: .shortened))"
+                                )
                             }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(recentTranscriptAccessibilityLabel(for: record))
                         }
                     }
                 }
@@ -202,5 +221,16 @@ struct ControlCenterView: View {
         }.value
         recentRecords = loaded
         isLoadingRecent = false
+    }
+
+    private func recentTranscriptAccessibilityLabel(for record: TranscriptRecord) -> String {
+        let timestamp = record.createdAt.formatted(date: .abbreviated, time: .shortened)
+        let preview = record.text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\n", with: " ")
+        if preview.count > 120 {
+            return "Transcript from \(timestamp): \(String(preview.prefix(120)))…"
+        }
+        return "Transcript from \(timestamp): \(preview)"
     }
 }

@@ -14,6 +14,14 @@ final class ReviewQueueViewModel: ObservableObject {
         transcripts.filter { $0.reviewStatus == nil }.count
     }
 
+    var progressTitle: String {
+        Self.progressTitle(currentIndex: currentIndex, totalCount: transcripts.count)
+    }
+
+    var progressAccessibilityLabel: String {
+        Self.progressAccessibilityLabel(currentIndex: currentIndex, totalCount: transcripts.count)
+    }
+
     func load(store: TranscriptStore) throws {
         isLoading = true
         defer { isLoading = false }
@@ -37,6 +45,18 @@ final class ReviewQueueViewModel: ObservableObject {
     func back() {
         guard transcripts.isEmpty == false else { return }
         currentIndex = max(currentIndex - 1, 0)
+    }
+
+    nonisolated static func progressTitle(currentIndex: Int, totalCount: Int) -> String {
+        guard totalCount > 0 else { return "All caught up!" }
+        let safeIndex = max(0, min(currentIndex, totalCount - 1))
+        return "\(safeIndex + 1) of \(totalCount)"
+    }
+
+    nonisolated static func progressAccessibilityLabel(currentIndex: Int, totalCount: Int) -> String {
+        guard totalCount > 0 else { return "Review queue is empty" }
+        let safeIndex = max(0, min(currentIndex, totalCount - 1))
+        return "Transcript \(safeIndex + 1) of \(totalCount) in review queue"
     }
 
     private func updateCurrentStatus(to status: String, store: TranscriptStore) throws {
@@ -104,13 +124,9 @@ struct ReviewQueueView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                if viewModel.transcripts.isEmpty {
-                    Text("All caught up!")
-                        .font(.headline)
-                } else {
-                    Text("\(viewModel.currentIndex + 1) of \(viewModel.transcripts.count)")
-                        .font(.headline)
-                }
+                Text(viewModel.progressTitle)
+                    .font(.headline)
+                    .accessibilityLabel(viewModel.progressAccessibilityLabel)
                 Spacer()
             }
 
@@ -150,6 +166,7 @@ struct ReviewQueueView: View {
                     onOpenInHistory(transcriptID)
                     dismiss()
                 }
+                .keyboardShortcut("o", modifiers: .command)
                 .disabled(viewModel.current?.id == nil)
             }
         }
@@ -209,6 +226,10 @@ struct ReviewQueueView: View {
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.secondary.opacity(0.08))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "Transcript preview. \(accessibilityPreviewText(transcript.text))"
         )
     }
 
@@ -274,6 +295,16 @@ struct ReviewQueueView: View {
         let minutes = totalSeconds / 60
         let remainingSeconds = totalSeconds % 60
         return String(format: "%d:%02d", minutes, remainingSeconds)
+    }
+
+    private func accessibilityPreviewText(_ text: String) -> String {
+        let compact = text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\n", with: " ")
+        if compact.count > 180 {
+            return "\(String(compact.prefix(180)))…"
+        }
+        return compact
     }
 }
 

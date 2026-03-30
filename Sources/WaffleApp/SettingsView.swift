@@ -7,14 +7,18 @@ struct SettingsView: View {
     let onUpdateHotkey: (GlobalHotkey) -> Void
     let onLMStudioConfigurationChanged: () -> Void
     let onAppVisibilityChanged: (Bool) -> Void
+    let onReopenOnboarding: () -> Void
     let transcriptStore: TranscriptStore?
     @ObservedObject var modelStore: ModelStore
     @ObservedObject var updaterSettings: UpdaterSettings
+    @AppStorage(SettingsTabRouter.selectedTabDefaultsKey)
+    private var selectedTabRawValue = SettingsTab.general.rawValue
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTabRawValue) {
             GeneralSettingsView(
                 onAppVisibilityChanged: onAppVisibilityChanged,
+                onReopenOnboarding: onReopenOnboarding,
                 modelStore: modelStore,
                 updaterSettings: updaterSettings
             )
@@ -28,6 +32,7 @@ struct SettingsView: View {
                         systemImage: "gear"
                     )
                 }
+                .tag(SettingsTab.general.rawValue)
             ModelsSettingsView(modelStore: modelStore)
                 .tabItem {
                     Label(
@@ -39,6 +44,7 @@ struct SettingsView: View {
                         systemImage: "arrow.down.circle"
                     )
                 }
+                .tag(SettingsTab.models.rawValue)
             AISettingsView(
                 onConfigurationChanged: onLMStudioConfigurationChanged,
                 transcriptStore: transcriptStore
@@ -53,6 +59,7 @@ struct SettingsView: View {
                         systemImage: "sparkles"
                     )
                 }
+                .tag(SettingsTab.ai.rawValue)
             Group {
                 if let transcriptStore {
                     StatisticsSettingsView(store: transcriptStore, modelStore: modelStore)
@@ -84,6 +91,7 @@ struct SettingsView: View {
                     systemImage: "chart.bar"
                 )
             }
+            .tag(SettingsTab.statistics.rawValue)
             KeyboardSettingsView(onUpdateHotkey: onUpdateHotkey)
                 .tabItem {
                     Label(
@@ -95,8 +103,9 @@ struct SettingsView: View {
                         systemImage: "keyboard"
                     )
                 }
+                .tag(SettingsTab.keyboard.rawValue)
         }
-        .frame(minWidth: 700, idealWidth: 900, minHeight: 520, idealHeight: 620)
+        .frame(minWidth: 620, idealWidth: 900, minHeight: 480, idealHeight: 620)
     }
 }
 
@@ -104,6 +113,7 @@ struct GeneralSettingsView: View {
     @Environment(\.openWindow) private var openWindow
 
     let onAppVisibilityChanged: (Bool) -> Void
+    let onReopenOnboarding: () -> Void
 
     @AppStorage("pasteIntoActiveApp") private var pasteIntoActiveApp = true
     @AppStorage("copyToClipboardAsFallback") private var copyToClipboardAsFallback = true
@@ -128,122 +138,123 @@ struct GeneralSettingsView: View {
     @State private var isICloudBackupsSheetPresented = false
 
     var body: some View {
-        Form {
-            Toggle(
-                localized(
-                    "settings.general.pasteIntoActiveApp",
-                    default: "Paste into active app after transcription",
-                    comment: "Toggle label for auto-paste behavior after dictation"
-                ),
-                isOn: $pasteIntoActiveApp
-            )
-            Toggle(
-                localized(
-                    "settings.general.copyFallback",
-                    default: "Copy to clipboard as fallback",
-                    comment: "Toggle label for clipboard fallback when paste cannot run"
-                ),
-                isOn: $copyToClipboardAsFallback
-            )
-            Toggle(
-                localized(
-                    "settings.general.showPreviewAfterDictation",
-                    default: "Show preview after dictation",
-                    comment: "Toggle label for showing menu bar transcript preview after dictation"
-                ),
-                isOn: $showPreviewAfterDictation
-            )
-
-            Stepper(
-                value: $previewAutoDismissSeconds,
-                in: 0 ... 30,
-                step: 1
-            ) {
-                Text(
-                    localizedFormat(
-                        "settings.general.previewAutoDismissSeconds",
-                        default: "Preview auto-dismiss (seconds): %d",
-                        comment: "Stepper label controlling transcript preview auto-dismiss seconds",
-                        previewAutoDismissSeconds
-                    )
-                )
-            }
-            .disabled(showPreviewAfterDictation == false)
-
-            Text(
-                localized(
-                    "settings.general.previewAutoDismissHint",
-                    default: "Set to 0 to keep the preview visible until dismissed.",
-                    comment: "Help text for preview auto-dismiss stepper"
-                )
-            )
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            Toggle(
-                localized(
-                    "settings.general.retainAudioRecordings",
-                    default: "Retain audio recordings",
-                    comment: "Toggle label for retaining WAV recordings linked to transcripts"
-                ),
-                isOn: $retainAudioRecordings
-            )
-
-            Text(
-                localized(
-                    "settings.general.retainAudioRecordings.note",
-                    default: "WAV files use ~1.9 MB/minute. Audio is not included in transcript exports.",
-                    comment: "Help text warning about retained audio file size and export behavior"
-                )
-            )
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            Section(
-                localized(
-                    "settings.general.appVisibility.section",
-                    default: "App Visibility",
-                    comment: "Section title for app visibility behavior in Dock and App Switcher"
-                )
-            ) {
+        ScrollView {
+            Form {
                 Toggle(
                     localized(
-                        "settings.general.appVisibility.showDockSwitcher",
-                        default: "Show in Dock and App Switcher",
-                        comment: "Toggle label for showing app in Dock and Cmd+Tab app switcher"
+                        "settings.general.pasteIntoActiveApp",
+                        default: "Paste into active app after transcription",
+                        comment: "Toggle label for auto-paste behavior after dictation"
                     ),
-                    isOn: $showInDockAndAppSwitcher
+                    isOn: $pasteIntoActiveApp
                 )
-                .onChange(of: showInDockAndAppSwitcher) { _, newValue in
-                    onAppVisibilityChanged(newValue)
+                Toggle(
+                    localized(
+                        "settings.general.copyFallback",
+                        default: "Copy to clipboard as fallback",
+                        comment: "Toggle label for clipboard fallback when paste cannot run"
+                    ),
+                    isOn: $copyToClipboardAsFallback
+                )
+                Toggle(
+                    localized(
+                        "settings.general.showPreviewAfterDictation",
+                        default: "Show preview after dictation",
+                        comment: "Toggle label for showing menu bar transcript preview after dictation"
+                    ),
+                    isOn: $showPreviewAfterDictation
+                )
+
+                Stepper(
+                    value: $previewAutoDismissSeconds,
+                    in: 0 ... 30,
+                    step: 1
+                ) {
+                    Text(
+                        localizedFormat(
+                            "settings.general.previewAutoDismissSeconds",
+                            default: "Preview auto-dismiss (seconds): %d",
+                            comment: "Stepper label controlling transcript preview auto-dismiss seconds",
+                            previewAutoDismissSeconds
+                        )
+                    )
+                }
+                .disabled(showPreviewAfterDictation == false)
+
+                Text(
+                    localized(
+                        "settings.general.previewAutoDismissHint",
+                        default: "Set to 0 to keep the preview visible until dismissed.",
+                        comment: "Help text for preview auto-dismiss stepper"
+                    )
+                )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
+                Toggle(
+                    localized(
+                        "settings.general.retainAudioRecordings",
+                        default: "Retain audio recordings",
+                        comment: "Toggle label for retaining WAV recordings linked to transcripts"
+                    ),
+                    isOn: $retainAudioRecordings
+                )
+
+                Text(
+                    localized(
+                        "settings.general.retainAudioRecordings.note",
+                        default: "WAV files use ~1.9 MB/minute. Audio is not included in transcript exports.",
+                        comment: "Help text warning about retained audio file size and export behavior"
+                    )
+                )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
+                Section(
+                    localized(
+                        "settings.general.appVisibility.section",
+                        default: "App Visibility",
+                        comment: "Section title for app visibility behavior in Dock and App Switcher"
+                    )
+                ) {
+                    Toggle(
+                        localized(
+                            "settings.general.appVisibility.showDockSwitcher",
+                            default: "Show in Dock and App Switcher",
+                            comment: "Toggle label for showing app in Dock and Cmd+Tab app switcher"
+                        ),
+                        isOn: $showInDockAndAppSwitcher
+                    )
+                    .onChange(of: showInDockAndAppSwitcher) { _, newValue in
+                        onAppVisibilityChanged(newValue)
+                    }
+
+                    Text(
+                        localized(
+                            "settings.general.appVisibility.help",
+                            default: "Disable this to keep Waffle menu-bar-only and hidden from Cmd+Tab.",
+                            comment: "Help text explaining menu-bar-first app visibility mode"
+                        )
+                    )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
                 }
 
-                Text(
+                Section(
                     localized(
-                        "settings.general.appVisibility.help",
-                        default: "Disable this to keep Waffle menu-bar-only and hidden from Cmd+Tab.",
-                        comment: "Help text explaining menu-bar-first app visibility mode"
+                        "settings.general.iCloudBackup.section",
+                        default: "iCloud Backup",
+                        comment: "Section title for iCloud transcript backup preferences"
                     )
-                )
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            }
-
-            Section(
-                localized(
-                    "settings.general.iCloudBackup.section",
-                    default: "iCloud Backup",
-                    comment: "Section title for iCloud transcript backup preferences"
-                )
-            ) {
-                Toggle(
-                    localized(
-                        "settings.general.iCloudBackup.enabled",
-                        default: "Back up transcripts to iCloud Drive",
-                        comment: "Toggle label for enabling iCloud transcript backups"
-                    ),
-                    isOn: $iCloudBackupEnabled
-                )
+                ) {
+                    Toggle(
+                        localized(
+                            "settings.general.iCloudBackup.enabled",
+                            default: "Back up transcripts to iCloud Drive",
+                            comment: "Toggle label for enabling iCloud transcript backups"
+                        ),
+                        isOn: $iCloudBackupEnabled
+                    )
 
                 Text(
                     localized(
@@ -298,13 +309,13 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section(
-                localized(
-                    "settings.general.transcriptionModel.section",
-                    default: "Transcription Model",
-                    comment: "Section title for selecting the transcription model"
-                )
-            ) {
+                Section(
+                    localized(
+                        "settings.general.transcriptionModel.section",
+                        default: "Transcription Model",
+                        comment: "Section title for selecting the transcription model"
+                    )
+                ) {
                 if modelStore.installedEntries.isEmpty {
                     Text(
                         localized(
@@ -343,13 +354,13 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section(
-                localized(
-                    "settings.general.languageHint.section",
-                    default: "Language Hint",
-                    comment: "Section title for dictation language hint settings"
-                )
-            ) {
+                Section(
+                    localized(
+                        "settings.general.languageHint.section",
+                        default: "Language Hint",
+                        comment: "Section title for dictation language hint settings"
+                    )
+                ) {
                 Picker(
                     localized(
                         "settings.general.languageHint.picker",
@@ -394,13 +405,13 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section(
-                localized(
-                    "settings.general.shortcuts.section",
-                    default: "Keyboard Shortcuts",
-                    comment: "Section title listing keyboard shortcuts"
-                )
-            ) {
+                Section(
+                    localized(
+                        "settings.general.shortcuts.section",
+                        default: "Keyboard Shortcuts",
+                        comment: "Section title listing keyboard shortcuts"
+                    )
+                ) {
                 LabeledContent(
                     localized(
                         "settings.general.shortcuts.recordStop",
@@ -488,16 +499,26 @@ struct GeneralSettingsView: View {
                 ) {
                     Text("\u{2191} / \u{2193}, Return, Esc")
                 }
-            }
+                }
 
-            if shouldShowDebugSection {
-                Section(
-                    localized(
-                        "settings.general.debug.section",
-                        default: "Debug",
-                        comment: "Section title for performance debug metrics"
-                    )
-                ) {
+                Section("Onboarding") {
+                    Button("Reopen Onboarding") {
+                        onReopenOnboarding()
+                    }
+
+                    Text("Show the first-run setup guide again.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                if shouldShowDebugSection {
+                    Section(
+                        localized(
+                            "settings.general.debug.section",
+                            default: "Debug",
+                            comment: "Section title for performance debug metrics"
+                        )
+                    ) {
                     LabeledContent(
                         localized(
                             "settings.general.debug.startup",
@@ -582,13 +603,13 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section(
-                localized(
-                    "settings.general.updates.section",
-                    default: "Updates",
-                    comment: "Section title for app update preferences"
-                )
-            ) {
+                Section(
+                    localized(
+                        "settings.general.updates.section",
+                        default: "Updates",
+                        comment: "Section title for app update preferences"
+                    )
+                ) {
                 Toggle(
                     localized(
                         "settings.general.updates.autoCheck",
@@ -639,8 +660,12 @@ struct GeneralSettingsView: View {
                 }
                 .disabled(updaterSettings.isUpdaterReady == false)
             }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal)
+            .padding(.vertical, 6)
         }
-        .padding()
         .task {
             modelStore.refreshCatalog()
             updaterSettings.refresh()
@@ -806,7 +831,8 @@ private struct ICloudBackupsBrowserSheet: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(backup.url.lastPathComponent)
                             .font(.body.weight(.semibold))
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                             .truncationMode(.middle)
 
                         Text(backupMetadataText(for: backup))
@@ -1173,7 +1199,8 @@ struct AISettingsView: View {
     private let webhookService = WebhookService()
 
     var body: some View {
-        Form {
+        ScrollView {
+            Form {
             Section(
                 localized(
                     "settings.ai.connection.section",
@@ -1469,8 +1496,8 @@ struct AISettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 } else {
-                    List {
-                        ForEach(promptTemplates) { template in
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(promptTemplates.enumerated()), id: \.element.id) { index, template in
                             PromptTemplateInlineRow(
                                 template: template,
                                 onUpdate: { updated in
@@ -1483,10 +1510,23 @@ struct AISettingsView: View {
                                     templateErrorMessage = message
                                 }
                             )
+                            .padding(.vertical, 6)
+
+                            if index < promptTemplates.count - 1 {
+                                Divider()
+                            }
                         }
-                        .onMove(perform: movePromptTemplates)
                     }
-                    .frame(minHeight: 170, maxHeight: 260)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(NSColor.controlBackgroundColor))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                    )
                 }
 
                 if let templateErrorMessage {
@@ -1543,8 +1583,8 @@ struct AISettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 } else {
-                    List {
-                        ForEach(exportPipelines) { pipeline in
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(exportPipelines.enumerated()), id: \.element.id) { index, pipeline in
                             PipelineInlineRow(
                                 pipeline: pipeline,
                                 isRunning: runningPipelineIDs.contains(pipeline.id),
@@ -1561,9 +1601,23 @@ struct AISettingsView: View {
                                     pendingDeletePipeline = pipeline
                                 }
                             )
+                            .padding(.vertical, 6)
+
+                            if index < exportPipelines.count - 1 {
+                                Divider()
+                            }
                         }
                     }
-                    .frame(minHeight: 170, maxHeight: 280)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(NSColor.controlBackgroundColor))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                    )
                 }
 
                 if selectedPipelineModelID == nil {
@@ -1788,9 +1842,13 @@ struct AISettingsView: View {
                 }
             }
 
-            SpeakerProfilesSection(transcriptStore: transcriptStore)
+                SpeakerProfilesSection(transcriptStore: transcriptStore)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal)
+            .padding(.vertical, 6)
         }
-        .padding()
         .task {
             await refreshModels()
             loadPromptTemplates()
@@ -1931,68 +1989,70 @@ struct AISettingsView: View {
     }
 
     private var addTemplateSheet: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(
-                localized(
-                    "settings.ai.promptTemplates.add.sheetTitle",
-                    default: "Add Prompt Template",
-                    comment: "Sheet title for adding a prompt template"
-                )
-            )
-            .font(.headline)
-
-            TextField(
-                localized(
-                    "settings.ai.promptTemplates.name",
-                    default: "Name",
-                    comment: "Label for prompt template name input"
-                ),
-                text: $newTemplateName
-            )
-            .textFieldStyle(.roundedBorder)
-
-            TextEditor(text: $newTemplatePrompt)
-                .frame(minHeight: 120)
-                .font(.body)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
-                )
-
-            if let templateErrorMessage {
-                Text(templateErrorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            HStack {
-                Spacer()
-
-                Button(
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(
                     localized(
-                        "action.cancel",
-                        default: "Cancel",
-                        comment: "Generic action title for canceling a dialog"
+                        "settings.ai.promptTemplates.add.sheetTitle",
+                        default: "Add Prompt Template",
+                        comment: "Sheet title for adding a prompt template"
                     )
-                ) {
-                    dismissAddTemplateSheet()
-                }
-                .buttonStyle(.bordered)
+                )
+                .font(.headline)
 
-                Button(
+                TextField(
                     localized(
-                        "action.add",
-                        default: "Add",
-                        comment: "Action title for adding an item"
+                        "settings.ai.promptTemplates.name",
+                        default: "Name",
+                        comment: "Label for prompt template name input"
+                    ),
+                    text: $newTemplateName
+                )
+                .textFieldStyle(.roundedBorder)
+
+                TextEditor(text: $newTemplatePrompt)
+                    .frame(minHeight: 120)
+                    .font(.body)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
                     )
-                ) {
-                    saveTemplateFromSheet()
+
+                if let templateErrorMessage {
+                    Text(templateErrorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
                 }
-                .buttonStyle(.borderedProminent)
+
+                HStack {
+                    Spacer()
+
+                    Button(
+                        localized(
+                            "action.cancel",
+                            default: "Cancel",
+                            comment: "Generic action title for canceling a dialog"
+                        )
+                    ) {
+                        dismissAddTemplateSheet()
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button(
+                        localized(
+                            "action.add",
+                            default: "Add",
+                            comment: "Action title for adding an item"
+                        )
+                    ) {
+                        saveTemplateFromSheet()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
         }
         .padding(16)
-        .frame(minWidth: 420, minHeight: 300)
+        .frame(minWidth: 420, idealWidth: 520, minHeight: 300, idealHeight: 360)
     }
 
     private func loadWebhookState() {
@@ -2524,6 +2584,7 @@ private struct PromptTemplateInlineRow: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.red)
+                .accessibilityLabel("Delete template")
             }
 
             if isEditingPrompt {
@@ -2565,7 +2626,8 @@ private struct PromptTemplateInlineRow: View {
                 Text(promptPreview(for: template.prompt))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                     .onTapGesture {
                         onValidationError(nil)
                         promptDraft = template.prompt
@@ -2679,7 +2741,8 @@ private struct PipelineInlineRow: View {
             HStack(alignment: .center, spacing: 8) {
                 Text(pipeline.name)
                     .font(.body.weight(.semibold))
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(
                     localizedFormat(
@@ -2730,6 +2793,7 @@ private struct PipelineInlineRow: View {
                     Image(systemName: "pencil")
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Edit pipeline")
 
                 Button {
                     onDelete()
@@ -2738,6 +2802,7 @@ private struct PipelineInlineRow: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.red)
+                .accessibilityLabel("Delete pipeline")
             }
 
             HStack(spacing: 8) {
@@ -2812,181 +2877,185 @@ private struct PipelineEditorSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(
-                pipeline == nil
-                    ? localized(
-                        "settings.ai.pipelines.editor.addTitle",
-                        default: "Add Pipeline",
-                        comment: "Sheet title when creating a new export pipeline"
-                    )
-                    : localized(
-                        "settings.ai.pipelines.editor.editTitle",
-                        default: "Edit Pipeline",
-                        comment: "Sheet title when editing an existing export pipeline"
-                    )
-            )
-            .font(.headline)
-
-            TextField(
-                localized(
-                    "settings.ai.pipelines.editor.name",
-                    default: "Name",
-                    comment: "Field label for export pipeline name"
-                ),
-                text: $name
-            )
-            .textFieldStyle(.roundedBorder)
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(
-                        localized(
-                            "settings.ai.pipelines.editor.steps",
-                            default: "Steps",
-                            comment: "Subsection title for pipeline step list in editor sheet"
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(
+                    pipeline == nil
+                        ? localized(
+                            "settings.ai.pipelines.editor.addTitle",
+                            default: "Add Pipeline",
+                            comment: "Sheet title when creating a new export pipeline"
                         )
-                    )
-                    .font(.subheadline.weight(.semibold))
+                        : localized(
+                            "settings.ai.pipelines.editor.editTitle",
+                            default: "Edit Pipeline",
+                            comment: "Sheet title when editing an existing export pipeline"
+                        )
+                )
+                .font(.headline)
 
-                    Spacer()
+                TextField(
+                    localized(
+                        "settings.ai.pipelines.editor.name",
+                        default: "Name",
+                        comment: "Field label for export pipeline name"
+                    ),
+                    text: $name
+                )
+                .textFieldStyle(.roundedBorder)
 
-                    if steps.count < ExportPipeline.maxStepCount {
-                        Menu(
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Text(
                             localized(
-                                "settings.ai.pipelines.editor.addStep",
-                                default: "Add Step",
-                                comment: "Menu button title for adding a prompt-template step to a pipeline"
+                                "settings.ai.pipelines.editor.steps",
+                                default: "Steps",
+                                comment: "Subsection title for pipeline step list in editor sheet"
                             )
-                        ) {
-                            if promptTemplates.isEmpty {
-                                Text(
-                                    localized(
-                                        "settings.ai.promptTemplates.empty.short",
-                                        default: "No templates saved",
-                                        comment: "Short empty-state text shown in template picker menus"
-                                    )
+                        )
+                        .font(.subheadline.weight(.semibold))
+
+                        Spacer()
+
+                        if steps.count < ExportPipeline.maxStepCount {
+                            Menu(
+                                localized(
+                                    "settings.ai.pipelines.editor.addStep",
+                                    default: "Add Step",
+                                    comment: "Menu button title for adding a prompt-template step to a pipeline"
                                 )
-                                .disabled(true)
-                            } else {
-                                ForEach(promptTemplates) { template in
-                                    Button(template.name) {
-                                        addStep(from: template)
+                            ) {
+                                if promptTemplates.isEmpty {
+                                    Text(
+                                        localized(
+                                            "settings.ai.promptTemplates.empty.short",
+                                            default: "No templates saved",
+                                            comment: "Short empty-state text shown in template picker menus"
+                                        )
+                                    )
+                                    .disabled(true)
+                                } else {
+                                    ForEach(promptTemplates) { template in
+                                        Button(template.name) {
+                                            addStep(from: template)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                Text(
-                    localized(
-                        "settings.ai.pipelines.editor.steps.help",
-                        default: "Drag rows to reorder steps.",
-                        comment: "Help text explaining how to reorder pipeline steps in the editor"
+                    Text(
+                        localized(
+                            "settings.ai.pipelines.editor.steps.help",
+                            default: "Drag rows to reorder steps.",
+                            comment: "Help text explaining how to reorder pipeline steps in the editor"
+                        )
                     )
-                )
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
 
-                List {
-                    ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
-                        HStack(alignment: .center, spacing: 8) {
-                            Text("\(index + 1).")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                .frame(width: 24, alignment: .trailing)
+                    List {
+                        ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
+                            HStack(alignment: .center, spacing: 8) {
+                                Text("\(index + 1).")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 24, alignment: .trailing)
 
-                            Text(displayName(for: step))
-                                .font(.body)
-                                .lineLimit(1)
+                                Text(displayName(for: step))
+                                    .font(.body)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
 
-                            Spacer()
+                                Spacer()
 
-                            Button {
-                                removeStep(id: step.id)
-                            } label: {
-                                Image(systemName: "minus.circle")
+                                Button {
+                                    removeStep(id: step.id)
+                                } label: {
+                                    Image(systemName: "minus.circle")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.red)
+                                .accessibilityLabel("Remove step")
                             }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(.red)
                         }
+                        .onMove(perform: moveSteps)
                     }
-                    .onMove(perform: moveSteps)
+                    .frame(minHeight: 180, maxHeight: 260)
                 }
-                .frame(minHeight: 180, maxHeight: 260)
-            }
 
-            Toggle(
-                localized(
-                    "settings.ai.pipelines.editor.autoRun",
-                    default: "Run automatically after each transcription",
-                    comment: "Toggle label for enabling automatic pipeline execution after transcription"
-                ),
-                isOn: $runAutomatically
-            )
-
-            Picker(
-                localized(
-                    "settings.ai.pipelines.editor.output",
-                    default: "Output",
-                    comment: "Picker label for selecting export pipeline output destination"
-                ),
-                selection: $outputDestination
-            ) {
-                Text(
+                Toggle(
                     localized(
-                        "settings.ai.pipelines.output.none",
-                        default: "Save to action log only",
-                        comment: "Output destination label for no clipboard delivery"
-                    )
+                        "settings.ai.pipelines.editor.autoRun",
+                        default: "Run automatically after each transcription",
+                        comment: "Toggle label for enabling automatic pipeline execution after transcription"
+                    ),
+                    isOn: $runAutomatically
                 )
-                .tag(ExportPipelineOutputDestination.none)
 
-                Text(
+                Picker(
                     localized(
-                        "settings.ai.pipelines.output.clipboard",
-                        default: "Copy final output to clipboard",
-                        comment: "Output destination label for clipboard delivery"
-                    )
-                )
-                .tag(ExportPipelineOutputDestination.clipboard)
-            }
-
-            if let validationMessage {
-                Text(validationMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            HStack {
-                Spacer()
-
-                Button(
-                    localized(
-                        "action.cancel",
-                        default: "Cancel",
-                        comment: "Generic action title for canceling a dialog"
-                    )
+                        "settings.ai.pipelines.editor.output",
+                        default: "Output",
+                        comment: "Picker label for selecting export pipeline output destination"
+                    ),
+                    selection: $outputDestination
                 ) {
-                    dismiss()
-                }
-                .buttonStyle(.bordered)
-
-                Button(
-                    localized(
-                        "action.save",
-                        default: "Save",
-                        comment: "Generic action title for saving data"
+                    Text(
+                        localized(
+                            "settings.ai.pipelines.output.none",
+                            default: "Save to action log only",
+                            comment: "Output destination label for no clipboard delivery"
+                        )
                     )
-                ) {
-                    save()
+                    .tag(ExportPipelineOutputDestination.none)
+
+                    Text(
+                        localized(
+                            "settings.ai.pipelines.output.clipboard",
+                            default: "Copy final output to clipboard",
+                            comment: "Output destination label for clipboard delivery"
+                        )
+                    )
+                    .tag(ExportPipelineOutputDestination.clipboard)
                 }
-                .buttonStyle(.borderedProminent)
+
+                if let validationMessage {
+                    Text(validationMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+
+                HStack {
+                    Spacer()
+
+                    Button(
+                        localized(
+                            "action.cancel",
+                            default: "Cancel",
+                            comment: "Generic action title for canceling a dialog"
+                        )
+                    ) {
+                        dismiss()
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button(
+                        localized(
+                            "action.save",
+                            default: "Save",
+                            comment: "Generic action title for saving data"
+                        )
+                    ) {
+                        save()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
         }
         .padding(16)
-        .frame(minWidth: 540, minHeight: 520)
+        .frame(minWidth: 520, idealWidth: 620, minHeight: 420, idealHeight: 560)
     }
 
     private var promptTemplatesByID: [UUID: PromptTemplate] {
@@ -3130,11 +3199,26 @@ private struct ModelRowView: View {
                     }
                 }
 
+                let languageLabel = entry.languageCount == 1
+                    ? localized(
+                        "settings.models.language.singular",
+                        default: "language",
+                        comment: "Singular language label used in model metadata"
+                    )
+                    : localized(
+                        "settings.models.language.plural",
+                        default: "languages",
+                        comment: "Plural language label used in model metadata"
+                    )
+
                 Text(
-                    localized(
+                    localizedFormat(
                         "settings.models.metadata",
-                        default: "\(entry.sizeMB) MB • \(entry.languageCount) language\(entry.languageCount == 1 ? "" : "s")",
-                        comment: "Model metadata showing size and supported language count"
+                        default: "%d MB • %d %@",
+                        comment: "Model metadata showing size and supported language count",
+                        entry.sizeMB,
+                        entry.languageCount,
+                        languageLabel
                     )
                 )
                     .font(.caption)
@@ -3206,38 +3290,43 @@ struct KeyboardSettingsView: View {
     @State private var validationMessage: String?
 
     var body: some View {
-        Form {
-            HotkeyRecorderView(
-                currentHotkey: currentHotkey,
-                onHotkeyCaptured: { hotkey in
-                    save(hotkey: hotkey)
-                },
-                validationMessage: validationMessage,
-                setValidationMessage: { validationMessage = $0 }
-            )
-
-            Button(
-                localized(
-                    "settings.keyboard.resetDefault",
-                    default: "Reset to Default",
-                    comment: "Action title for resetting global hotkey to default"
+        ScrollView {
+            Form {
+                HotkeyRecorderView(
+                    currentHotkey: currentHotkey,
+                    onHotkeyCaptured: { hotkey in
+                        save(hotkey: hotkey)
+                    },
+                    validationMessage: validationMessage,
+                    setValidationMessage: { validationMessage = $0 }
                 )
-            ) {
-                save(hotkey: .optionSpace)
+
+                Button(
+                    localized(
+                        "settings.keyboard.resetDefault",
+                        default: "Reset to Default",
+                        comment: "Action title for resetting global hotkey to default"
+                    )
+                ) {
+                    save(hotkey: .optionSpace)
+                }
+                .buttonStyle(.bordered)
+
+                Text(
+                    localized(
+                        "settings.keyboard.help",
+                        default: "Shortcuts must include at least one modifier key. Avoid common Spotlight shortcuts like ⌘Space.",
+                        comment: "Help text describing global hotkey requirements"
+                    )
+                )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.bordered)
-
-            Text(
-                localized(
-                    "settings.keyboard.help",
-                    default: "Shortcuts must include at least one modifier key. Avoid common Spotlight shortcuts like ⌘Space.",
-                    comment: "Help text describing global hotkey requirements"
-                )
-            )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal)
+            .padding(.vertical, 6)
         }
-        .padding()
         .onAppear {
             loadStoredHotkey()
         }

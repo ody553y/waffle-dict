@@ -1134,14 +1134,18 @@ struct TranscriptHistoryView: View {
                     lineWidth: isKeyboardFocused ? 1.5 : 0
                 )
         )
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(
+            children: Self.usesCombinedAccessibilityChildren(isExpanded: isExpanded) ? .combine : .contain
+        )
         .accessibilityLabel(transcriptRowAccessibilityLabel(record))
         .accessibilityHint(
-            localized(
-                "history.row.accessibility.hint.expandCollapse",
-                default: "Double-tap to expand transcript",
-                comment: "Accessibility hint for transcript row expand and collapse action"
-            )
+            isExpanded
+                ? "Double-tap to collapse transcript."
+                : localized(
+                    "history.row.accessibility.hint.expandCollapse",
+                    default: "Double-tap to expand transcript",
+                    comment: "Accessibility hint for transcript row expand and collapse action"
+                )
         )
         .accessibilityAddTraits(.isButton)
         .accessibilityAction(
@@ -1816,68 +1820,70 @@ struct TranscriptHistoryView: View {
     }
 
     private var savePromptTemplateSheet: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(
-                localized(
-                    "history.actions.customPrompt.saveTemplate.sheetTitle",
-                    default: "Save Prompt Template",
-                    comment: "Sheet title for saving a custom prompt template"
-                )
-            )
-            .font(.headline)
-
-            TextField(
-                localized(
-                    "history.actions.customPrompt.saveTemplate.name",
-                    default: "Template name",
-                    comment: "Input label for naming a saved custom prompt template"
-                ),
-                text: $savePromptTemplateName
-            )
-            .textFieldStyle(.roundedBorder)
-
-            TextEditor(text: $savePromptTemplatePrompt)
-                .frame(minHeight: 100)
-                .font(.body)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
-                )
-
-            if let savePromptTemplateError {
-                Text(savePromptTemplateError)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            HStack {
-                Spacer()
-
-                Button(
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(
                     localized(
-                        "action.cancel",
-                        default: "Cancel",
-                        comment: "Generic action title for canceling a dialog"
+                        "history.actions.customPrompt.saveTemplate.sheetTitle",
+                        default: "Save Prompt Template",
+                        comment: "Sheet title for saving a custom prompt template"
                     )
-                ) {
-                    dismissPromptTemplateSaveSheet()
-                }
-                .buttonStyle(.bordered)
+                )
+                .font(.headline)
 
-                Button(
+                TextField(
                     localized(
-                        "action.save",
-                        default: "Save",
-                        comment: "Generic action title for saving data"
+                        "history.actions.customPrompt.saveTemplate.name",
+                        default: "Template name",
+                        comment: "Input label for naming a saved custom prompt template"
+                    ),
+                    text: $savePromptTemplateName
+                )
+                .textFieldStyle(.roundedBorder)
+
+                TextEditor(text: $savePromptTemplatePrompt)
+                    .frame(minHeight: 100)
+                    .font(.body)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
                     )
-                ) {
-                    savePromptTemplateFromSheet()
+
+                if let savePromptTemplateError {
+                    Text(savePromptTemplateError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
                 }
-                .buttonStyle(.borderedProminent)
+
+                HStack {
+                    Spacer()
+
+                    Button(
+                        localized(
+                            "action.cancel",
+                            default: "Cancel",
+                            comment: "Generic action title for canceling a dialog"
+                        )
+                    ) {
+                        dismissPromptTemplateSaveSheet()
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button(
+                        localized(
+                            "action.save",
+                            default: "Save",
+                            comment: "Generic action title for saving data"
+                        )
+                    ) {
+                        savePromptTemplateFromSheet()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
         }
         .padding(16)
-        .frame(minWidth: 420, minHeight: 260)
+        .frame(minWidth: 420, idealWidth: 520, minHeight: 260, idealHeight: 340)
     }
 
     private func loadPromptTemplates() {
@@ -3187,6 +3193,10 @@ struct TranscriptHistoryView: View {
         formatter.timeStyle = .short
         return formatter
     }()
+
+    nonisolated static func usesCombinedAccessibilityChildren(isExpanded: Bool) -> Bool {
+        isExpanded == false
+    }
 
     private static let speakerPalette: [Color] = [
         .blue,

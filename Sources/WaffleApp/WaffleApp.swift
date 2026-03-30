@@ -33,12 +33,21 @@ struct WaffleApp: App {
                 onUpdateHotkey: { appDelegate.updateHotkey($0) },
                 onLMStudioConfigurationChanged: { appDelegate.refreshLMStudioClientConfiguration() },
                 onAppVisibilityChanged: { appDelegate.setShowInDockAndAppSwitcher($0) },
+                onReopenOnboarding: { openWindow(id: "onboarding") },
                 transcriptStore: appDelegate.transcriptStore,
                 modelStore: appDelegate.modelStore,
                 updaterSettings: appDelegate.updaterSettings
             )
         }
         .defaultSize(width: 900, height: 620)
+
+        Window("Welcome to Waffle", id: "onboarding") {
+            OnboardingView(
+                onComplete: { appDelegate.markOnboardingCompleted() },
+                modelStore: appDelegate.modelStore
+            )
+        }
+        .defaultSize(width: 560, height: 360)
 
         Window(
             localized(

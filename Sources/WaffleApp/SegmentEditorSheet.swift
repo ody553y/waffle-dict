@@ -141,7 +141,7 @@ struct SegmentEditorSheet: View {
             }
         }
         .padding(16)
-        .frame(minWidth: 680, minHeight: 520)
+        .frame(minWidth: 560, idealWidth: 720, minHeight: 420, idealHeight: 560)
         .navigationTitle(
             localized(
                 "history.segmentEditor.title",
@@ -174,7 +174,7 @@ struct SegmentEditorSheet: View {
                         )
                     )
                     .textFieldStyle(.roundedBorder)
-                    .frame(width: 180)
+                    .frame(minWidth: 140, idealWidth: 180, maxWidth: 240)
                     .onSubmit {
                         segment.wrappedValue.speaker = EditableSegment.normalizedSpeaker(segment.wrappedValue.speaker)
                         editingSpeakerSegmentID = nil

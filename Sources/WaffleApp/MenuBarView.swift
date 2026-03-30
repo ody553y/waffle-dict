@@ -295,6 +295,7 @@ struct MenuBarView: View {
             Button(reviewQueueMenuState.reviewButtonTitle) {
                 reviewQueueMenuState.isQueuePresented = true
             }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
             .disabled(transcriptStore == nil)
             .help("Review Queue (\u{2318}\u{21E7}R)")
 

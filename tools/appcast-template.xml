@@ -3,13 +3,13 @@
   <channel>
     <title>Waffle Updates</title>
     <item>
-      <title>Version {VERSION}</title>
-      <sparkle:version>{BUILD_NUMBER}</sparkle:version>
-      <sparkle:shortVersionString>{VERSION}</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <title>Version {SHORT_VERSION}</title>
+      <sparkle:version>{VERSION}</sparkle:version>
+      <sparkle:shortVersionString>{SHORT_VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>{MINIMUM_SYSTEM_VERSION}</sparkle:minimumSystemVersion>
       <pubDate>{DATE}</pubDate>
       <enclosure
-        url="https://updates.waffle.app/releases/Waffle-{VERSION}.dmg"
+        url="{DMG_URL}"
         sparkle:edSignature="{ED_SIGNATURE}"
         length="{LENGTH}"
         type="application/octet-stream" />
