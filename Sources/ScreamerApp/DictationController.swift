@@ -318,6 +318,7 @@ final class DictationController: ObservableObject {
         modelID: String,
         languageHint: String?
     ) async {
+        let transcriptionStartedAt = DispatchTime.now().uptimeNanoseconds
         state = .transcribing
 
         do {
@@ -327,7 +328,8 @@ final class DictationController: ObservableObject {
                     modelID: modelID,
                     filePath: recordingURL.path,
                     languageHint: languageHint,
-                    translateToEnglish: false
+                    translateToEnglish: false,
+                    diarize: false
                 )
             )
 
@@ -337,7 +339,7 @@ final class DictationController: ObservableObject {
                 languageHint: languageHint,
                 durationSeconds: audioCaptureService.recordingDurationSeconds(for: recordingURL),
                 segments: response.segments?.map {
-                    TranscriptSegment(start: $0.start, end: $0.end, text: $0.text)
+                    TranscriptSegment(start: $0.start, end: $0.end, text: $0.text, speaker: $0.speaker)
                 }
             )
 
@@ -370,6 +372,10 @@ final class DictationController: ObservableObject {
             clearPendingRetryTranscription(cleanupFile: false)
             lastDeliveryMessage = deliveryMessage(for: pasteResult)
             state = .success(response.text)
+            PerformanceMetrics.shared.record(
+                "dictation.transcription.e2e",
+                durationSeconds: elapsedDurationSeconds(since: transcriptionStartedAt)
+            )
             scheduleResultAutoClear()
         } catch {
             pendingRetryTranscription = PendingRetryTranscription(
@@ -456,5 +462,11 @@ final class DictationController: ObservableObject {
                 print("[Screamer] Failed to save transcript history: \(error)")
             }
         }
+    }
+
+    private func elapsedDurationSeconds(since startedAt: UInt64) -> Double {
+        let now = DispatchTime.now().uptimeNanoseconds
+        guard now > startedAt else { return 0 }
+        return Double(now - startedAt) / 1_000_000_000
     }
 }

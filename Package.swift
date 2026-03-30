@@ -14,6 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift", from: "7.0.0"),
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
     ],
     targets: [
         .target(
@@ -27,7 +28,14 @@ let package = Package(
         ),
         .executableTarget(
             name: "ScreamerApp",
-            dependencies: ["ScreamerCore"]
+            dependencies: [
+                "ScreamerCore",
+                .product(name: "Sparkle", package: "Sparkle"),
+            ],
+            exclude: [
+                "Info.plist",
+                "ScreamerApp.entitlements",
+            ]
         ),
         .testTarget(
             name: "ScreamerCoreTests",

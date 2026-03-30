@@ -30,6 +30,8 @@ struct TranscriptHistoryView: View {
     @State private var previousActionsExpandedByRecordID: [Int64: Bool] = [:]
     @State private var expandedPreviousActionResultIDs: Set<Int64> = []
     @State private var timelineEnabledRecordIDs: Set<Int64> = []
+    @State private var isDiarizationAvailable = false
+    @State private var requestDiarizationForImports = false
 
     init(transcriptStore: TranscriptStore, modelStore: ModelStore) {
         self._modelStore = ObservedObject(wrappedValue: modelStore)
@@ -41,6 +43,10 @@ struct TranscriptHistoryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             dropZone
+
+            if isDiarizationAvailable {
+                importDiarizationOptionView
+            }
 
             TextField("Search transcripts", text: $viewModel.searchQuery)
                 .textFieldStyle(.roundedBorder)
@@ -135,6 +141,7 @@ struct TranscriptHistoryView: View {
             modelStore.refreshCatalog()
             viewModel.loadInitial()
             await refreshLMStudioReachability()
+            await refreshDiarizationAvailability()
         }
         .task(id: lmStudioConnectionSignature) {
             await refreshLMStudioReachability()
@@ -180,11 +187,24 @@ struct TranscriptHistoryView: View {
             viewModel.enqueueImportedFiles(
                 droppedURLs,
                 selectedModelID: modelStore.resolvedSelectedModelID,
-                languageHint: nil
+                languageHint: nil,
+                requestDiarization: requestDiarizationForImports
             )
             return true
         } isTargeted: { isTargeted in
             isDropTargeted = isTargeted
+        }
+    }
+
+    private var importDiarizationOptionView: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Toggle("Speaker identification", isOn: $requestDiarizationForImports)
+                .toggleStyle(.checkbox)
+                .font(.caption)
+            Text("Adds speaker labels to imported-file timelines and exports.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Spacer()
         }
     }
 
@@ -238,7 +258,8 @@ struct TranscriptHistoryView: View {
         viewModel.enqueueImportedFiles(
             panel.urls,
             selectedModelID: modelStore.resolvedSelectedModelID,
-            languageHint: nil
+            languageHint: nil,
+            requestDiarization: requestDiarizationForImports
         )
     }
 
@@ -273,9 +294,21 @@ struct TranscriptHistoryView: View {
                 Divider()
 
                 if let recordID = record.id, let segments = record.segments, segments.isEmpty == false {
-                    Toggle("Timeline", isOn: timelineEnabledBinding(for: recordID))
-                        .toggleStyle(.switch)
-                        .font(.caption)
+                    HStack(spacing: 8) {
+                        Toggle("Timeline", isOn: timelineEnabledBinding(for: recordID))
+                            .toggleStyle(.switch)
+                            .font(.caption)
+
+                        if let speakerCount = speakerCount(in: segments), speakerCount > 0 {
+                            Text("Speakers: \(speakerCount)")
+                                .font(.caption2)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3)
+                                .background(Color.accentColor.opacity(0.14), in: Capsule())
+                        }
+
+                        Spacer()
+                    }
 
                     if timelineEnabledRecordIDs.contains(recordID) {
                         timelineView(for: segments)
@@ -664,6 +697,19 @@ struct TranscriptHistoryView: View {
         }
     }
 
+    private func refreshDiarizationAvailability() async {
+        do {
+            let status = try await WorkerClient().fetchDiarizationStatus()
+            isDiarizationAvailable = status.available
+        } catch {
+            isDiarizationAvailable = false
+        }
+
+        if isDiarizationAvailable == false {
+            requestDiarizationForImports = false
+        }
+    }
+
     private func makeLMStudioClient() -> LMStudioClient? {
         let host = lmStudioHost.trimmingCharacters(in: .whitespacesAndNewlines)
         guard host.isEmpty == false else { return nil }
@@ -694,6 +740,9 @@ struct TranscriptHistoryView: View {
         streamingRecordIDs.insert(recordID)
 
         streamTaskByRecordID[recordID] = Task {
+            let actionStartedAt = DispatchTime.now().uptimeNanoseconds
+            let completionStartedAt = DispatchTime.now().uptimeNanoseconds
+            var didRecordTimeToFirstToken = false
             var completeText = ""
             do {
                 let stream = service.performStreaming(
@@ -703,11 +752,24 @@ struct TranscriptHistoryView: View {
                 )
                 for try await delta in stream {
                     completeText.append(delta)
+
+                    if didRecordTimeToFirstToken == false {
+                        didRecordTimeToFirstToken = true
+                        PerformanceMetrics.shared.record(
+                            "llm.action.ttft",
+                            durationSeconds: elapsedDurationSeconds(since: actionStartedAt)
+                        )
+                    }
+
                     await MainActor.run {
                         waitingForFirstTokenRecordIDs.remove(recordID)
                         streamingTextByRecordID[recordID, default: ""].append(delta)
                     }
                 }
+                PerformanceMetrics.shared.record(
+                    "llm.action.completion",
+                    durationSeconds: elapsedDurationSeconds(since: completionStartedAt)
+                )
 
                 await MainActor.run {
                     waitingForFirstTokenRecordIDs.remove(recordID)
@@ -724,6 +786,10 @@ struct TranscriptHistoryView: View {
                     }
                 }
             } catch {
+                PerformanceMetrics.shared.record(
+                    "llm.action.completion",
+                    durationSeconds: elapsedDurationSeconds(since: completionStartedAt)
+                )
                 let nsError = error as NSError
                 if error is CancellationError || nsError.code == NSURLErrorCancelled {
                     await MainActor.run {
@@ -817,9 +883,18 @@ struct TranscriptHistoryView: View {
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.secondary)
 
-                        Text(segment.text)
-                            .font(.body)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let speaker = normalizedSpeakerLabel(segment.speaker) {
+                                Text("\(speaker):")
+                                    .font(.system(.caption, design: .rounded))
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(colorForSpeaker(speaker))
+                            }
+
+                            Text(segment.text)
+                                .font(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                 }
             }
@@ -828,11 +903,41 @@ struct TranscriptHistoryView: View {
         .frame(maxHeight: 180)
     }
 
+    private func speakerCount(in segments: [TranscriptSegment]) -> Int? {
+        let speakers = Set(segments.compactMap { normalizedSpeakerLabel($0.speaker) })
+        return speakers.isEmpty ? nil : speakers.count
+    }
+
+    private func normalizedSpeakerLabel(_ speaker: String?) -> String? {
+        guard let speaker else { return nil }
+        let trimmed = speaker.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func colorForSpeaker(_ speaker: String) -> Color {
+        let palette = Self.speakerPalette
+        guard palette.isEmpty == false else { return .accentColor }
+
+        var hash: UInt64 = 1469598103934665603
+        for byte in speaker.utf8 {
+            hash ^= UInt64(byte)
+            hash &*= 1099511628211
+        }
+        let index = Int(hash % UInt64(palette.count))
+        return palette[index]
+    }
+
     private func timelineTimestamp(for seconds: Double) -> String {
         let totalSeconds = Int(max(seconds, 0))
         let minutes = totalSeconds / 60
         let remainingSeconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, remainingSeconds)
+    }
+
+    private func elapsedDurationSeconds(since startedAt: UInt64) -> Double {
+        let now = DispatchTime.now().uptimeNanoseconds
+        guard now > startedAt else { return 0 }
+        return Double(now - startedAt) / 1_000_000_000
     }
 
     private func errorMessage(for error: Error) -> String {
@@ -895,6 +1000,17 @@ struct TranscriptHistoryView: View {
         formatter.timeStyle = .short
         return formatter
     }()
+
+    private static let speakerPalette: [Color] = [
+        .blue,
+        .green,
+        .orange,
+        .pink,
+        .teal,
+        .indigo,
+        .red,
+        .brown,
+    ]
 }
 
 private enum TranscriptActionInputMode {
@@ -925,6 +1041,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
         let fileName: String
         let modelID: String
         let languageHint: String?
+        let requestDiarization: Bool
         var status: FileImportStatus
     }
 
@@ -1138,7 +1255,12 @@ final class TranscriptHistoryViewModel: ObservableObject {
         pasteboard.setString(text, forType: .string)
     }
 
-    func enqueueImportedFiles(_ urls: [URL], selectedModelID: String?, languageHint: String?) {
+    func enqueueImportedFiles(
+        _ urls: [URL],
+        selectedModelID: String?,
+        languageHint: String?,
+        requestDiarization: Bool = false
+    ) {
         guard let selectedModelID else {
             errorMessage = "No model installed. Open Settings > Models to download one."
             return
@@ -1153,6 +1275,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
                         fileName: url.lastPathComponent,
                         modelID: selectedModelID,
                         languageHint: languageHint,
+                        requestDiarization: requestDiarization,
                         status: .failed("Unsupported file type. Use WAV, MP3, M4A, FLAC, or OGG.")
                     )
                 )
@@ -1166,6 +1289,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
                     fileName: url.lastPathComponent,
                     modelID: selectedModelID,
                     languageHint: languageHint,
+                    requestDiarization: requestDiarization,
                     status: .queued
                 )
             )
@@ -1191,7 +1315,8 @@ final class TranscriptHistoryViewModel: ObservableObject {
                 let result = try await fileTranscriptionService.transcribe(
                     fileURL: job.fileURL,
                     modelID: job.modelID,
-                    languageHint: job.languageHint
+                    languageHint: job.languageHint,
+                    requestDiarization: job.requestDiarization
                 )
 
                 _ = try transcriptStore.save(

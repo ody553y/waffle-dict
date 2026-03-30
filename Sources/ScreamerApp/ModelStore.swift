@@ -4,6 +4,8 @@ import ScreamerCore
 @MainActor
 final class ModelStore: ObservableObject {
     @Published private(set) var catalog: [ModelCatalogEntry] = []
+    @Published private(set) var catalogSource: ModelCatalogSource = .bundled
+    @Published private(set) var remoteUpdateNotice: String?
     @Published private(set) var installedModelIDs: Set<String> = []
     @Published private(set) var selectedModelID: String?
     @Published private(set) var activeDownloadID: String?
@@ -26,6 +28,7 @@ final class ModelStore: ObservableObject {
         self.defaults = defaults
         self.selectedModelID = defaults.string(forKey: selectedModelIDKey)
         refreshCatalog()
+        refreshCatalogFromRemote()
     }
 
     var installedEntries: [ModelCatalogEntry] {
@@ -48,10 +51,19 @@ final class ModelStore: ObservableObject {
     func refreshCatalog() {
         do {
             catalog = try catalogService.loadCatalog()
+            catalogSource = .bundled
         } catch {
             catalog = []
+            catalogSource = .bundled
         }
+        remoteUpdateNotice = nil
         refreshInstalledState()
+    }
+
+    func refreshCatalogFromRemote() {
+        Task { [weak self] in
+            await self?.refreshCatalogAsync()
+        }
     }
 
     func setSelectedModelID(_ id: String?) {
@@ -119,6 +131,20 @@ final class ModelStore: ObservableObject {
     private func refreshInstalledState() {
         installedModelIDs = Set(catalogService.installedModels())
         normalizeSelectedModelID()
+    }
+
+    private func refreshCatalogAsync() async {
+        let previousIDs = Set(catalog.map(\.id))
+        let result = await catalogService.loadCatalogWithRemoteFallbackResult()
+        catalog = result.entries
+        catalogSource = result.source
+
+        let newIDs = Set(result.entries.map(\.id)).subtracting(previousIDs)
+        remoteUpdateNotice = (result.source == .remote && newIDs.isEmpty == false)
+            ? "Updated model catalog"
+            : nil
+
+        refreshInstalledState()
     }
 
     private func normalizeSelectedModelID() {

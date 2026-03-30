@@ -7,10 +7,11 @@ struct SettingsView: View {
     let onUpdateHotkey: (GlobalHotkey) -> Void
     let onLMStudioConfigurationChanged: () -> Void
     @ObservedObject var modelStore: ModelStore
+    @ObservedObject var updaterSettings: UpdaterSettings
 
     var body: some View {
         TabView {
-            GeneralSettingsView(modelStore: modelStore)
+            GeneralSettingsView(modelStore: modelStore, updaterSettings: updaterSettings)
                 .tabItem { Label("General", systemImage: "gear") }
             ModelsSettingsView(modelStore: modelStore)
                 .tabItem { Label("Models", systemImage: "arrow.down.circle") }
@@ -32,6 +33,8 @@ struct GeneralSettingsView: View {
     private var languageHint = ""
 
     @ObservedObject var modelStore: ModelStore
+    @ObservedObject var updaterSettings: UpdaterSettings
+    private let debugInfoDefaultsKey = "showDebugInfo"
 
     var body: some View {
         Form {
@@ -84,15 +87,115 @@ struct GeneralSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+
+            if shouldShowDebugSection {
+                Section("Debug") {
+                    LabeledContent("Startup") {
+                        Text(metricValue(for: "app.startup"))
+                    }
+
+                    LabeledContent("Transcription Avg") {
+                        Text(combinedMetricValue(for: ["dictation.transcription.e2e", "file.transcription.e2e"]))
+                    }
+
+                    LabeledContent("Worker Health") {
+                        Text(metricValue(for: "worker.health.check"))
+                    }
+
+                    LabeledContent("DB Save") {
+                        Text(metricValue(for: "db.save"))
+                    }
+
+                    LabeledContent("DB Fetch All") {
+                        Text(metricValue(for: "db.fetchAll"))
+                    }
+
+                    LabeledContent("DB Search") {
+                        Text(metricValue(for: "db.search"))
+                    }
+
+                    Button("Copy Report") {
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(PerformanceMetrics.shared.report(), forType: .string)
+                    }
+
+                    Text("Enable with terminal: defaults write com.screamer.app showDebugInfo -bool true")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Updates") {
+                Toggle(
+                    "Check for updates automatically",
+                    isOn: Binding(
+                        get: { updaterSettings.automaticallyChecksForUpdates },
+                        set: { updaterSettings.setAutomaticallyChecksForUpdates($0) }
+                    )
+                )
+                .disabled(updaterSettings.isUpdaterReady == false)
+
+                HStack {
+                    Text("Current Version")
+                    Spacer()
+                    Text(updaterSettings.currentVersion)
+                        .foregroundStyle(.secondary)
+                }
+
+                HStack {
+                    Text("Last Check")
+                    Spacer()
+                    Text(updaterSettings.lastUpdateCheckDescription)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button("Check Now") {
+                    updaterSettings.checkForUpdates()
+                }
+                .disabled(updaterSettings.isUpdaterReady == false)
+            }
         }
         .padding()
         .task {
             modelStore.refreshCatalog()
+            updaterSettings.refresh()
         }
     }
 
     private var isParakeetSelected: Bool {
         modelStore.selectedEntry?.family == .parakeet
+    }
+
+    private var shouldShowDebugSection: Bool {
+        UserDefaults.standard.bool(forKey: debugInfoDefaultsKey)
+    }
+
+    private func metricValue(for label: String) -> String {
+        guard let summary = PerformanceMetrics.shared.summary(for: label) else {
+            return "No samples"
+        }
+        return "\(formatMilliseconds(summary.meanDurationSeconds)) avg (\(summary.sampleCount)x)"
+    }
+
+    private func combinedMetricValue(for labels: [String]) -> String {
+        let summaries = labels.compactMap { PerformanceMetrics.shared.summary(for: $0) }
+        guard summaries.isEmpty == false else {
+            return "No samples"
+        }
+
+        let sampleCount = summaries.reduce(0) { $0 + $1.sampleCount }
+        guard sampleCount > 0 else {
+            return "No samples"
+        }
+
+        let totalDurationSeconds = summaries.reduce(0.0) { $0 + $1.totalDurationSeconds }
+        let meanDurationSeconds = totalDurationSeconds / Double(sampleCount)
+        return "\(formatMilliseconds(meanDurationSeconds)) avg (\(sampleCount)x)"
+    }
+
+    private func formatMilliseconds(_ durationSeconds: Double) -> String {
+        String(format: "%.1fms", durationSeconds * 1_000)
     }
 }
 
@@ -100,9 +203,27 @@ struct ModelsSettingsView: View {
     @ObservedObject var modelStore: ModelStore
 
     var body: some View {
-        List(modelStore.catalog) { entry in
-            ModelRowView(entry: entry, modelStore: modelStore)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Button("Refresh") {
+                    modelStore.refreshCatalogFromRemote()
+                }
+                .buttonStyle(.bordered)
+
+                if let remoteUpdateNotice = modelStore.remoteUpdateNotice {
+                    Text(remoteUpdateNotice)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+            }
+
+            List(modelStore.catalog) { entry in
+                ModelRowView(entry: entry, modelStore: modelStore)
+            }
         }
+        .padding(.horizontal)
         .task {
             modelStore.refreshCatalog()
         }
@@ -194,6 +315,10 @@ struct AISettingsView: View {
                         Text(option.name).tag(option.code)
                     }
                 }
+
+                Text("Speaker identification requires a HuggingFace token configured in the worker.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding()

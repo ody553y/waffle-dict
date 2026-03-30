@@ -7,8 +7,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Mapping
 
+from screamer_worker.backends.diarization import DiarizationPipeline
 from screamer_worker.backends.base import TranscriptionBackend
+from screamer_worker.merge import merge_speakers
 from screamer_worker.models import (
+    DiarizationStatusResponse,
     FileTranscriptionRequest,
     FileTranscriptionResponse,
     HealthResponse,
@@ -21,9 +24,11 @@ class WorkerHTTPServer(ThreadingHTTPServer):
         server_address: tuple[str, int],
         RequestHandlerClass: type[BaseHTTPRequestHandler],
         transcription_backends: Mapping[str, TranscriptionBackend] | None = None,
+        diarization_pipeline: DiarizationPipeline | None = None,
     ) -> None:
         super().__init__(server_address, RequestHandlerClass)
         self.transcription_backends = dict(transcription_backends or {})
+        self.diarization_pipeline = diarization_pipeline
         self.loaded_model_id: str | None = None
 
 
@@ -46,6 +51,22 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
                 HealthResponse(
                     model_loaded=server.loaded_model_id is not None,
                     model_id=server.loaded_model_id,
+                ).to_dict(),
+            )
+            return
+
+        if self.path == "/diarization/status":
+            server = self.server
+            assert isinstance(server, WorkerHTTPServer)
+            diarization_pipeline = server.diarization_pipeline
+            self._write_json(
+                HTTPStatus.OK,
+                DiarizationStatusResponse(
+                    available=(
+                        diarization_pipeline is not None
+                        and diarization_pipeline.is_available()
+                    ),
+                    model=DiarizationPipeline.MODEL_ID,
                 ).to_dict(),
             )
             return
@@ -90,6 +111,24 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
 
             server = self.server
             assert isinstance(server, WorkerHTTPServer)
+            diarization_pipeline = server.diarization_pipeline
+            if request.diarize:
+                if (
+                    diarization_pipeline is None
+                    or diarization_pipeline.is_available() is False
+                ):
+                    self._write_json(
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "error": "diarization_unavailable",
+                            "detail": (
+                                "Speaker diarization requires a HuggingFace token. "
+                                "Set HF_TOKEN or pass --hf-token."
+                            ),
+                        },
+                    )
+                    return
+
             backend = server.transcription_backends.get(request.model_id)
             if backend is None:
                 self._write_json(
@@ -124,11 +163,37 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
                 flush=True,
             )
 
+            segments = transcription_result.segments
+            if request.diarize and segments is not None:
+                assert diarization_pipeline is not None
+                try:
+                    diarization_segments = diarization_pipeline.diarize(request.file_path)
+                except RuntimeError as error:
+                    self._write_json(
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "error": "diarization_unavailable",
+                            "detail": str(error),
+                        },
+                    )
+                    return
+                except Exception as error:
+                    self._write_json(
+                        HTTPStatus.INTERNAL_SERVER_ERROR,
+                        {"error": "diarization_failed", "detail": str(error)},
+                    )
+                    return
+
+                segments = merge_speakers(
+                    transcription_segments=segments,
+                    diarization_segments=diarization_segments,
+                )
+
             response = FileTranscriptionResponse(
                 job_id=request.job_id,
                 backend_id=backend.backend_id,
                 text=transcription_result.text,
-                segments=transcription_result.segments,
+                segments=segments,
             )
             self._write_json(HTTPStatus.OK, response.to_dict())
             return
@@ -166,11 +231,13 @@ def make_server(
     host: str = "127.0.0.1",
     port: int = 8765,
     transcription_backends: Mapping[str, TranscriptionBackend] | None = None,
+    diarization_pipeline: DiarizationPipeline | None = None,
 ) -> WorkerHTTPServer:
     return WorkerHTTPServer(
         (host, port),
         WorkerRequestHandler,
         transcription_backends=transcription_backends,
+        diarization_pipeline=diarization_pipeline,
     )
 
 
@@ -178,11 +245,13 @@ def serve(
     host: str = "127.0.0.1",
     port: int = 8765,
     transcription_backends: Mapping[str, TranscriptionBackend] | None = None,
+    diarization_pipeline: DiarizationPipeline | None = None,
 ) -> None:
     server = make_server(
         host=host,
         port=port,
         transcription_backends=transcription_backends,
+        diarization_pipeline=diarization_pipeline,
     )
     try:
         server.serve_forever()

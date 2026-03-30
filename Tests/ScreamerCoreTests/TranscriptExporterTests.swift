@@ -145,6 +145,71 @@ struct TranscriptExporterTests {
         #expect(output == expected)
     }
 
+    @Test func srtExportPrefixesSpeakerWhenPresent() {
+        let record = makeRecord(
+            text: "caption text",
+            durationSeconds: 12.345,
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
+                TranscriptSegment(start: 1.0, end: 2.0, text: "world", speaker: "SPEAKER_01"),
+            ]
+        )
+
+        let output = TranscriptExporter.exportAsSRT(record, segments: record.segments)
+
+        let expected = """
+        1
+        00:00:00,000 --> 00:00:01,000
+        SPEAKER_00: hello
+
+        2
+        00:00:01,000 --> 00:00:02,000
+        SPEAKER_01: world
+        """
+
+        #expect(output == expected)
+    }
+
+    @Test func markdownExportFormatsDialogueWhenSpeakerLabelsExist() {
+        let record = makeRecord(
+            text: "fallback body",
+            segments: [
+                TranscriptSegment(start: 5.0, end: 6.0, text: "Hello", speaker: "SPEAKER_00"),
+                TranscriptSegment(start: 8.0, end: 9.0, text: "Hi", speaker: "SPEAKER_01"),
+            ]
+        )
+
+        let output = TranscriptExporter.exportAsMarkdown(record)
+
+        #expect(output.contains("**SPEAKER_00** (0:05): Hello"))
+        #expect(output.contains("**SPEAKER_01** (0:08): Hi"))
+    }
+
+    @Test func srtExportDeduplicatesOnlyWhenTextAndSpeakerBothMatch() {
+        let record = makeRecord(
+            text: "caption text",
+            durationSeconds: 12.345,
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
+                TranscriptSegment(start: 1.0, end: 2.0, text: "hello", speaker: "SPEAKER_01"),
+            ]
+        )
+
+        let output = TranscriptExporter.exportAsSRT(record, segments: record.segments)
+
+        let expected = """
+        1
+        00:00:00,000 --> 00:00:01,000
+        SPEAKER_00: hello
+
+        2
+        00:00:01,000 --> 00:00:02,000
+        SPEAKER_01: hello
+        """
+
+        #expect(output == expected)
+    }
+
     @Test func exportDispatcherUsesSegmentsForSRT() throws {
         let record = makeRecord(
             text: "caption text",

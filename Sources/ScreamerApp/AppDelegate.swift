@@ -1,5 +1,6 @@
 import AppKit
 import ScreamerCore
+import Sparkle
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -8,6 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private static let lmStudioPortStorageKey = "lmStudioPort"
 
     private var workerProcess: Process?
+    private var updaterController: SPUStandardUpdaterController?
+    let updaterSettings = UpdaterSettings()
     let modelStore = ModelStore()
     let transcriptStore: TranscriptStore? = try? TranscriptStore()
     private(set) var lmStudioClient = LMStudioClient(
@@ -29,12 +32,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var activeHotkey = AppDelegate.loadStoredHotkey()
     private lazy var hotkeyService: HotkeyServiceProtocol = HotkeyService(hotkey: activeHotkey)
     private var hotkeyPermissionMonitorTask: Task<Void, Never>?
+    private var startupBeganAtUptimeNanos: UInt64?
+    private var didLogStartupCompletion = false
 
     var hotkeyDisplayValue: String {
         activeHotkey.displayValue
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        startupBeganAtUptimeNanos = DispatchTime.now().uptimeNanoseconds
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+        updaterSettings.attach(updaterController: updaterController)
+
         dictationPanelController.bind(to: dictationController)
         startHotkeyPermissionMonitoring()
 
@@ -48,6 +61,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeyPermissionMonitorTask = nil
         hotkeyService.stop()
         dictationPanelController.teardown()
+        updaterSettings.attach(updaterController: nil)
+        updaterController = nil
         workerProcess?.terminate()
     }
 
@@ -105,6 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             let wp = WorkerProcess()
             workerProcess = try await wp.start()
+            recordStartupCompletionIfNeeded()
             return true
         } catch {
             print("[Screamer] Worker failed to start: \(error)")
@@ -133,5 +149,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let port = Int(storedPort) ?? 1234
 
         return LMStudioConfiguration(host: host, port: port)
+    }
+
+    private func recordStartupCompletionIfNeeded() {
+        guard didLogStartupCompletion == false else { return }
+        guard let startupBeganAtUptimeNanos else { return }
+
+        let now = DispatchTime.now().uptimeNanoseconds
+        guard now > startupBeganAtUptimeNanos else { return }
+
+        didLogStartupCompletion = true
+        let startupDurationSeconds = Double(now - startupBeganAtUptimeNanos) / 1_000_000_000
+        PerformanceMetrics.shared.record("app.startup", durationSeconds: startupDurationSeconds)
+
+        let startupMilliseconds = Int((startupDurationSeconds * 1_000).rounded())
+        print("[screamer] startup completed in \(startupMilliseconds)ms")
     }
 }

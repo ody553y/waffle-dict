@@ -1,6 +1,11 @@
 .build/
+build/
 .swiftpm/xcode/package.xcworkspace/xcuserdata/
 .swiftpm/xcode/xcuserdata/
 .claude/settings.local.json
 __pycache__/
 *.pyc
+worker/benchmarks/fixtures/*
+!worker/benchmarks/fixtures/.gitkeep
+worker/benchmarks/results/*
+!worker/benchmarks/results/.gitkeep

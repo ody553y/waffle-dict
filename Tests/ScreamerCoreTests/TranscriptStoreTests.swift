@@ -239,8 +239,8 @@ struct TranscriptStoreTests {
             durationSeconds: 3.0,
             text: "hello world",
             segments: [
-                TranscriptSegment(start: 0.0, end: 1.0, text: "hello"),
-                TranscriptSegment(start: 1.0, end: 2.2, text: "world"),
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
+                TranscriptSegment(start: 1.0, end: 2.2, text: "world", speaker: "SPEAKER_01"),
             ]
         )
 
@@ -270,5 +270,17 @@ struct TranscriptStoreTests {
 
         let fetched = try #require(try store.fetchOne(id: id))
         #expect(fetched.segments == nil)
+    }
+
+    @Test func transcriptSegmentJSONRoundTripsWithAndWithoutSpeaker() throws {
+        let segments = [
+            TranscriptSegment(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
+            TranscriptSegment(start: 1.0, end: 2.0, text: "world", speaker: nil),
+        ]
+
+        let encoded = try JSONEncoder().encode(segments)
+        let decoded = try JSONDecoder().decode([TranscriptSegment].self, from: encoded)
+
+        #expect(decoded == segments)
     }
 }

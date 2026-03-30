@@ -9,6 +9,10 @@ struct WorkerClientTests {
 
         #expect(configuration.baseURL.absoluteString == "http://127.0.0.1:8765")
         #expect(configuration.healthURL.absoluteString == "http://127.0.0.1:8765/health")
+        #expect(
+            configuration.diarizationStatusURL.absoluteString
+                == "http://127.0.0.1:8765/diarization/status"
+        )
     }
 
     @Test func fetchHealthDecodesWorkerPayload() async throws {
@@ -70,6 +74,7 @@ struct WorkerClientTests {
             #expect((payload["file_path"] as? String) == "/tmp/demo.wav")
             #expect((payload["language_hint"] as? String) == "en")
             #expect((payload["translate_to_english"] as? Bool) == false)
+            #expect((payload["diarize"] as? Bool) == false)
 
             let response = HTTPURLResponse(
                 url: request.url ?? URL(string: "http://127.0.0.1")!,
@@ -125,6 +130,23 @@ struct WorkerClientTests {
         #expect(response.backendID == "parakeet")
         #expect(response.text == "hello")
         #expect(response.segments == nil)
+    }
+
+    @Test func fetchDiarizationStatusDecodesPayload() async throws {
+        let payload = """
+        {"available":true,"model":"pyannote/speaker-diarization-3.1"}
+        """
+
+        let session = URLSession.makeMockingSession(
+            statusCode: 200,
+            body: Data(payload.utf8)
+        )
+        let client = WorkerClient(session: session)
+
+        let status = try await client.fetchDiarizationStatus()
+
+        #expect(status.available == true)
+        #expect(status.model == "pyannote/speaker-diarization-3.1")
     }
 }
 

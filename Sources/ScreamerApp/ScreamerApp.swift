@@ -18,7 +18,8 @@ struct ScreamerApp: App {
             SettingsView(
                 onUpdateHotkey: { appDelegate.updateHotkey($0) },
                 onLMStudioConfigurationChanged: { appDelegate.refreshLMStudioClientConfiguration() },
-                modelStore: appDelegate.modelStore
+                modelStore: appDelegate.modelStore,
+                updaterSettings: appDelegate.updaterSettings
             )
         }
 

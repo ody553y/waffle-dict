@@ -38,6 +38,7 @@ class FileTranscriptionRequest:
     file_path: str
     language_hint: str | None = None
     translate_to_english: bool = False
+    diarize: bool = False
 
 
 @dataclass(frozen=True)
@@ -48,7 +49,15 @@ class FileTranscriptionResponse:
     segments: list["TranscriptionSegment"] | None = None
 
     def to_dict(self) -> dict[str, object]:
-        return asdict(self)
+        payload: dict[str, object] = {
+            "job_id": self.job_id,
+            "backend_id": self.backend_id,
+            "text": self.text,
+            "segments": None,
+        }
+        if self.segments is not None:
+            payload["segments"] = [segment.to_dict() for segment in self.segments]
+        return payload
 
 
 @dataclass(frozen=True)
@@ -56,6 +65,33 @@ class TranscriptionSegment:
     start: float
     end: float
     text: str
+    speaker: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        payload: dict[str, object] = {
+            "start": self.start,
+            "end": self.end,
+            "text": self.text,
+        }
+        if self.speaker is not None:
+            payload["speaker"] = self.speaker
+        return payload
+
+
+@dataclass(frozen=True)
+class DiarizationSegment:
+    start: float
+    end: float
+    speaker: str
+
+
+@dataclass(frozen=True)
+class DiarizationStatusResponse:
+    available: bool
+    model: str
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
 
 
 @dataclass(frozen=True)

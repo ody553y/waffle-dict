@@ -64,7 +64,11 @@ public enum TranscriptExporter {
         }
 
         lines.append("")
-        lines.append(record.text)
+        if let dialogueLines = markdownDialogueLines(from: record.segments) {
+            lines.append(contentsOf: dialogueLines)
+        } else {
+            lines.append(record.text)
+        }
 
         return lines.joined(separator: "\n")
     }
@@ -184,7 +188,7 @@ private extension TranscriptExporter {
             return """
             \(index + 1)
             \(start) --> \(end)
-            \(segment.text)
+            \(cueText(for: segment))
             """
         }
         .joined(separator: "\n\n")
@@ -201,11 +205,13 @@ private extension TranscriptExporter {
         for segment in segments {
             let normalizedText = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
             if let last = deduped.last,
-               last.text.trimmingCharacters(in: .whitespacesAndNewlines) == normalizedText {
+               last.text.trimmingCharacters(in: .whitespacesAndNewlines) == normalizedText,
+               normalizedSpeakerLabel(last.speaker) == normalizedSpeakerLabel(segment.speaker) {
                 deduped[deduped.count - 1] = TranscriptSegment(
                     start: last.start,
                     end: max(last.end, segment.end),
-                    text: last.text
+                    text: last.text,
+                    speaker: last.speaker
                 )
             } else {
                 deduped.append(segment)
@@ -213,6 +219,63 @@ private extension TranscriptExporter {
         }
 
         return deduped
+    }
+
+    static func cueText(for segment: TranscriptSegment) -> String {
+        guard let speaker = normalizedSpeakerLabel(segment.speaker) else {
+            return segment.text
+        }
+        return "\(speaker): \(segment.text)"
+    }
+
+    static func normalizedSpeakerLabel(_ speaker: String?) -> String? {
+        guard let speaker else { return nil }
+        let trimmed = speaker.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    static func markdownDialogueLines(from segments: [TranscriptSegment]?) -> [String]? {
+        guard let segments, segments.isEmpty == false else {
+            return nil
+        }
+
+        let hasSpeakers = segments.contains { normalizedSpeakerLabel($0.speaker) != nil }
+        guard hasSpeakers else {
+            return nil
+        }
+
+        var lines: [String] = []
+        for segment in segments {
+            let text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard text.isEmpty == false else { continue }
+            let timestamp = markdownDialogueTimestamp(for: segment.start)
+
+            if let speaker = normalizedSpeakerLabel(segment.speaker) {
+                lines.append("**\(speaker)** (\(timestamp)): \(text)")
+            } else {
+                lines.append("(\(timestamp)): \(text)")
+            }
+            lines.append("")
+        }
+
+        if lines.last == "" {
+            lines.removeLast()
+        }
+
+        return lines.isEmpty ? nil : lines
+    }
+
+    static func markdownDialogueTimestamp(for seconds: Double) -> String {
+        let totalSeconds = Int(max(seconds, 0))
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let secs = totalSeconds % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, secs)
+        }
+
+        return String(format: "%d:%02d", minutes, secs)
     }
 
     static func formatTime(seconds: Double, separator: String) -> String {

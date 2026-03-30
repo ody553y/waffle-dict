@@ -5,11 +5,13 @@ public struct TranscriptSegment: Codable, Equatable, Sendable {
     public let start: Double
     public let end: Double
     public let text: String
+    public let speaker: String?
 
-    public init(start: Double, end: Double, text: String) {
+    public init(start: Double, end: Double, text: String, speaker: String? = nil) {
         self.start = start
         self.end = end
         self.text = text
+        self.speaker = speaker
     }
 }
 
@@ -161,61 +163,67 @@ public final class TranscriptStore: @unchecked Sendable {
     }
 
     public func save(_ record: TranscriptRecord) throws -> TranscriptRecord {
-        var savedRecord = record
-        savedRecord.id = nil
+        try PerformanceMetrics.shared.measure("db.save") {
+            var savedRecord = record
+            savedRecord.id = nil
 
-        try dbQueue.write { db in
-            try savedRecord.insert(db)
+            try dbQueue.write { db in
+                try savedRecord.insert(db)
 
-            guard let id = savedRecord.id else {
-                throw TranscriptStoreError.insertedRecordMissingID
+                guard let id = savedRecord.id else {
+                    throw TranscriptStoreError.insertedRecordMissingID
+                }
+
+                try db.execute(
+                    sql: "INSERT INTO transcripts_fts(rowid, text) VALUES (?, ?)",
+                    arguments: [id, savedRecord.text]
+                )
             }
 
-            try db.execute(
-                sql: "INSERT INTO transcripts_fts(rowid, text) VALUES (?, ?)",
-                arguments: [id, savedRecord.text]
-            )
+            return savedRecord
         }
-
-        return savedRecord
     }
 
     public func fetchAll(limit: Int, offset: Int = 0) throws -> [TranscriptRecord] {
-        try dbQueue.read { db in
-            try TranscriptRecord.fetchAll(
-                db,
-                sql: """
-                SELECT id, createdAt, sourceType, sourceFileName, modelID, languageHint, durationSeconds, text, segments
-                FROM transcripts
-                ORDER BY createdAt DESC, id DESC
-                LIMIT ? OFFSET ?
-                """,
-                arguments: [max(limit, 0), max(offset, 0)]
-            )
+        try PerformanceMetrics.shared.measure("db.fetchAll") {
+            try dbQueue.read { db in
+                try TranscriptRecord.fetchAll(
+                    db,
+                    sql: """
+                    SELECT id, createdAt, sourceType, sourceFileName, modelID, languageHint, durationSeconds, text, segments
+                    FROM transcripts
+                    ORDER BY createdAt DESC, id DESC
+                    LIMIT ? OFFSET ?
+                    """,
+                    arguments: [max(limit, 0), max(offset, 0)]
+                )
+            }
         }
     }
 
     public func search(query: String, limit: Int) throws -> [TranscriptRecord] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty {
-            return try fetchAll(limit: limit, offset: 0)
-        }
+        try PerformanceMetrics.shared.measure("db.search") {
+            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty {
+                return try fetchAll(limit: limit, offset: 0)
+            }
 
-        let matchQuery = Self.makeFTSMatchQuery(from: trimmed)
+            let matchQuery = Self.makeFTSMatchQuery(from: trimmed)
 
-        return try dbQueue.read { db in
-            try TranscriptRecord.fetchAll(
-                db,
-                sql: """
-                SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments
-                FROM transcripts AS t
-                JOIN transcripts_fts ON transcripts_fts.rowid = t.id
-                WHERE transcripts_fts MATCH ?
-                ORDER BY t.createdAt DESC, t.id DESC
-                LIMIT ?
-                """,
-                arguments: [matchQuery, max(limit, 0)]
-            )
+            return try dbQueue.read { db in
+                try TranscriptRecord.fetchAll(
+                    db,
+                    sql: """
+                    SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments
+                    FROM transcripts AS t
+                    JOIN transcripts_fts ON transcripts_fts.rowid = t.id
+                    WHERE transcripts_fts MATCH ?
+                    ORDER BY t.createdAt DESC, t.id DESC
+                    LIMIT ?
+                    """,
+                    arguments: [matchQuery, max(limit, 0)]
+                )
+            }
         }
     }
 

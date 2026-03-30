@@ -28,6 +28,7 @@ struct FileTranscriptionServiceTests {
         #expect(capturedRequest.filePath == tempFile.path)
         #expect(capturedRequest.languageHint == "en")
         #expect(capturedRequest.translateToEnglish == false)
+        #expect(capturedRequest.diarize == false)
         #expect(capturedRequest.jobID.isEmpty == false)
 
         #expect(result.text == "hello from file")
@@ -43,8 +44,8 @@ struct FileTranscriptionServiceTests {
             backendID: "stub-whisper",
             text: "hello from file",
             segments: [
-                .init(start: 0.0, end: 1.0, text: "hello"),
-                .init(start: 1.0, end: 2.0, text: "from file"),
+                .init(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
+                .init(start: 1.0, end: 2.0, text: "from file", speaker: "SPEAKER_01"),
             ]
         )
 
@@ -63,10 +64,29 @@ struct FileTranscriptionServiceTests {
         #expect(
             result.segments
             == [
-                TranscriptSegment(start: 0.0, end: 1.0, text: "hello"),
-                TranscriptSegment(start: 1.0, end: 2.0, text: "from file"),
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
+                TranscriptSegment(start: 1.0, end: 2.0, text: "from file", speaker: "SPEAKER_01"),
             ]
         )
+    }
+
+    @Test func transcribePropagatesRequestDiarizationFlag() async throws {
+        let workerClient = MockWorkerFileTranscribingClient()
+        let service = FileTranscriptionService(workerClient: workerClient)
+
+        let tempFile = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).txt")
+        try Data("not-audio".utf8).write(to: tempFile)
+        defer { try? FileManager.default.removeItem(at: tempFile) }
+
+        _ = try await service.transcribe(
+            fileURL: tempFile,
+            modelID: "whisper-small",
+            languageHint: "en",
+            requestDiarization: true
+        )
+
+        let capturedRequest = try #require(workerClient.lastRequest)
+        #expect(capturedRequest.diarize == true)
     }
 }
 

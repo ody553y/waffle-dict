@@ -1,6 +1,8 @@
 import argparse
+import os
 import sys
 
+from screamer_worker.backends.diarization import DiarizationPipeline
 from screamer_worker.server import serve
 
 
@@ -8,6 +10,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Screamer worker")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument(
+        "--hf-token",
+        default=None,
+        help="HuggingFace token used for pyannote speaker diarization.",
+    )
     args = parser.parse_args()
 
     backends: dict = {}
@@ -42,7 +49,15 @@ def main() -> None:
     except Exception:
         pass
 
-    serve(host=args.host, port=args.port, transcription_backends=backends)
+    hf_token = args.hf_token or os.getenv("HF_TOKEN")
+    diarization_pipeline = DiarizationPipeline(hf_token=hf_token)
+
+    serve(
+        host=args.host,
+        port=args.port,
+        transcription_backends=backends,
+        diarization_pipeline=diarization_pipeline,
+    )
 
 
 if __name__ == "__main__":

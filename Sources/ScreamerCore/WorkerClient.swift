@@ -20,6 +20,10 @@ public struct WorkerConfiguration: Sendable, Equatable {
     public var fileTranscriptionsURL: URL {
         baseURL.appending(path: "transcriptions/file")
     }
+
+    public var diarizationStatusURL: URL {
+        baseURL.appending(path: "diarization/status")
+    }
 }
 
 public struct WorkerHealth: Decodable, Equatable, Sendable {
@@ -44,19 +48,22 @@ public struct FileTranscriptionRequestPayload: Encodable, Equatable, Sendable {
     public let filePath: String
     public let languageHint: String?
     public let translateToEnglish: Bool
+    public let diarize: Bool
 
     public init(
         jobID: String,
         modelID: String,
         filePath: String,
         languageHint: String?,
-        translateToEnglish: Bool
+        translateToEnglish: Bool,
+        diarize: Bool = false
     ) {
         self.jobID = jobID
         self.modelID = modelID
         self.filePath = filePath
         self.languageHint = languageHint
         self.translateToEnglish = translateToEnglish
+        self.diarize = diarize
     }
 
     enum CodingKeys: String, CodingKey {
@@ -65,6 +72,7 @@ public struct FileTranscriptionRequestPayload: Encodable, Equatable, Sendable {
         case filePath = "file_path"
         case languageHint = "language_hint"
         case translateToEnglish = "translate_to_english"
+        case diarize
     }
 }
 
@@ -73,11 +81,13 @@ public struct FileTranscriptionResponsePayload: Decodable, Equatable, Sendable {
         public let start: Double
         public let end: Double
         public let text: String
+        public let speaker: String?
 
-        public init(start: Double, end: Double, text: String) {
+        public init(start: Double, end: Double, text: String, speaker: String? = nil) {
             self.start = start
             self.end = end
             self.text = text
+            self.speaker = speaker
         }
     }
 
@@ -106,6 +116,16 @@ public struct FileTranscriptionResponsePayload: Decodable, Equatable, Sendable {
     }
 }
 
+public struct DiarizationStatus: Decodable, Equatable, Sendable {
+    public let available: Bool
+    public let model: String?
+
+    public init(available: Bool, model: String? = nil) {
+        self.available = available
+        self.model = model
+    }
+}
+
 public enum WorkerClientError: Error, Equatable {
     case unexpectedStatusCode(Int)
 }
@@ -129,17 +149,19 @@ public final class WorkerClient: Sendable {
     }
 
     public func fetchHealth() async throws -> WorkerHealth {
-        let (data, response) = try await session.data(from: configuration.healthURL)
+        try await PerformanceMetrics.shared.measureAsync("worker.health.check") {
+            let (data, response) = try await session.data(from: configuration.healthURL)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw URLError(.badServerResponse)
+            }
+
+            guard httpResponse.statusCode == 200 else {
+                throw WorkerClientError.unexpectedStatusCode(httpResponse.statusCode)
+            }
+
+            return try decoder.decode(WorkerHealth.self, from: data)
         }
-
-        guard httpResponse.statusCode == 200 else {
-            throw WorkerClientError.unexpectedStatusCode(httpResponse.statusCode)
-        }
-
-        return try decoder.decode(WorkerHealth.self, from: data)
     }
 
     public func transcribeFile(
@@ -161,5 +183,19 @@ public final class WorkerClient: Sendable {
         }
 
         return try decoder.decode(FileTranscriptionResponsePayload.self, from: data)
+    }
+
+    public func fetchDiarizationStatus() async throws -> DiarizationStatus {
+        let (data, response) = try await session.data(from: configuration.diarizationStatusURL)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            throw WorkerClientError.unexpectedStatusCode(httpResponse.statusCode)
+        }
+
+        return try decoder.decode(DiarizationStatus.self, from: data)
     }
 }

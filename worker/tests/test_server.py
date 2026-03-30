@@ -7,7 +7,11 @@ from http.client import HTTPConnection
 from pathlib import Path
 
 from screamer_worker.backends.base import BackendCapabilities
-from screamer_worker.models import BackendTranscriptionResult, TranscriptionSegment
+from screamer_worker.models import (
+    BackendTranscriptionResult,
+    DiarizationSegment,
+    TranscriptionSegment,
+)
 from screamer_worker.server import MAX_REQUEST_BODY_BYTES, make_server
 
 
@@ -51,6 +55,23 @@ class StubNoSegmentsBackend(StubBackend):
             text=f"transcribed:{Path(request.file_path).name}:{request.model_id}",
             segments=None,
         )
+
+
+class StubDiarizationPipeline:
+    def __init__(
+        self,
+        *,
+        available: bool,
+        segments: list[DiarizationSegment] | None = None,
+    ) -> None:
+        self._available = available
+        self._segments = segments or []
+
+    def is_available(self) -> bool:
+        return self._available
+
+    def diarize(self, _file_path: str) -> list[DiarizationSegment]:
+        return list(self._segments)
 
 
 class WorkerServerTests(unittest.TestCase):
@@ -151,6 +172,57 @@ class WorkerServerTests(unittest.TestCase):
         self.assertEqual(response.status, 404)
         self.assertEqual(payload["error"], "not_found")
 
+    def test_diarization_status_endpoint_reports_unavailable_by_default(self) -> None:
+        server = make_server(host="127.0.0.1", port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        time.sleep(0.05)
+
+        try:
+            conn = HTTPConnection("127.0.0.1", server.server_port, timeout=2)
+            conn.request("GET", "/diarization/status")
+            response = conn.getresponse()
+            payload = json.loads(response.read())
+        finally:
+            conn.close()
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.assertEqual(response.status, 200)
+        self.assertEqual(
+            payload,
+            {
+                "available": False,
+                "model": "pyannote/speaker-diarization-3.1",
+            },
+        )
+
+    def test_diarization_status_endpoint_reports_available_when_configured(self) -> None:
+        server = make_server(
+            host="127.0.0.1",
+            port=0,
+            diarization_pipeline=StubDiarizationPipeline(available=True),
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        time.sleep(0.05)
+
+        try:
+            conn = HTTPConnection("127.0.0.1", server.server_port, timeout=2)
+            conn.request("GET", "/diarization/status")
+            response = conn.getresponse()
+            payload = json.loads(response.read())
+        finally:
+            conn.close()
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.assertEqual(response.status, 200)
+        self.assertEqual(payload["available"], True)
+        self.assertEqual(payload["model"], "pyannote/speaker-diarization-3.1")
+
     def test_file_transcription_route_uses_registered_backend(self) -> None:
         temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         temp_file.write(b"RIFF")
@@ -250,6 +322,112 @@ class WorkerServerTests(unittest.TestCase):
         self.assertEqual(payload["job_id"], "job-234")
         self.assertEqual(payload["backend_id"], "stub-whisper")
         self.assertEqual(payload["segments"], None)
+
+    def test_file_transcription_returns_400_when_diarization_requested_without_pipeline(self) -> None:
+        temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        temp_file.write(b"RIFF")
+        temp_file.flush()
+        temp_file.close()
+
+        server = make_server(
+            host="127.0.0.1",
+            port=0,
+            transcription_backends={"stub-whisper": StubBackend()},
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        time.sleep(0.05)
+
+        request_payload = {
+            "job_id": "job-400",
+            "model_id": "stub-whisper",
+            "file_path": temp_file.name,
+            "language_hint": "en",
+            "translate_to_english": False,
+            "diarize": True,
+        }
+
+        try:
+            conn = HTTPConnection("127.0.0.1", server.server_port, timeout=2)
+            conn.request(
+                "POST",
+                "/transcriptions/file",
+                body=json.dumps(request_payload),
+                headers={"Content-Type": "application/json"},
+            )
+            response = conn.getresponse()
+            payload = json.loads(response.read())
+        finally:
+            conn.close()
+            Path(temp_file.name).unlink(missing_ok=True)
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.assertEqual(response.status, 400)
+        self.assertEqual(payload["error"], "diarization_unavailable")
+        self.assertIn("HF_TOKEN", payload["detail"])
+
+    def test_file_transcription_merges_speaker_labels_when_diarization_enabled(self) -> None:
+        temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        temp_file.write(b"RIFF")
+        temp_file.flush()
+        temp_file.close()
+
+        server = make_server(
+            host="127.0.0.1",
+            port=0,
+            transcription_backends={"stub-whisper": StubBackend()},
+            diarization_pipeline=StubDiarizationPipeline(
+                available=True,
+                segments=[
+                    DiarizationSegment(start=0.0, end=0.6, speaker="SPEAKER_00"),
+                    DiarizationSegment(start=0.6, end=2.0, speaker="SPEAKER_01"),
+                ],
+            ),
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        time.sleep(0.05)
+
+        request_payload = {
+            "job_id": "job-merge",
+            "model_id": "stub-whisper",
+            "file_path": temp_file.name,
+            "language_hint": "en",
+            "translate_to_english": False,
+            "diarize": True,
+        }
+
+        try:
+            conn = HTTPConnection("127.0.0.1", server.server_port, timeout=2)
+            conn.request(
+                "POST",
+                "/transcriptions/file",
+                body=json.dumps(request_payload),
+                headers={"Content-Type": "application/json"},
+            )
+            response = conn.getresponse()
+            payload = json.loads(response.read())
+        finally:
+            conn.close()
+            Path(temp_file.name).unlink(missing_ok=True)
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.assertEqual(response.status, 200)
+        self.assertEqual(
+            payload["segments"],
+            [
+                {
+                    "start": 0.0,
+                    "end": 1.0,
+                    "text": f"transcribed:{Path(temp_file.name).name}:stub-whisper",
+                    "speaker": "SPEAKER_00",
+                }
+            ],
+        )
 
     def test_file_transcription_returns_404_when_audio_file_missing(self) -> None:
         server = make_server(

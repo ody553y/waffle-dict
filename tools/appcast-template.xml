@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Screamer Updates</title>
+    <item>
+      <title>Version {VERSION}</title>
+      <sparkle:version>{BUILD_NUMBER}</sparkle:version>
+      <sparkle:shortVersionString>{VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <pubDate>{DATE}</pubDate>
+      <enclosure
+        url="https://updates.screamer.app/releases/Screamer-{VERSION}.dmg"
+        sparkle:edSignature="{ED_SIGNATURE}"
+        length="{LENGTH}"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>

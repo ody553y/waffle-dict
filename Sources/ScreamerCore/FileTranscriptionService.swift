@@ -38,26 +38,30 @@ public final class FileTranscriptionService: @unchecked Sendable {
     public func transcribe(
         fileURL: URL,
         modelID: String,
-        languageHint: String?
+        languageHint: String?,
+        requestDiarization: Bool = false
     ) async throws -> FileTranscriptionResult {
-        let response = try await workerClient.transcribeFile(
-            FileTranscriptionRequestPayload(
-                jobID: UUID().uuidString,
-                modelID: modelID,
-                filePath: fileURL.path,
-                languageHint: languageHint,
-                translateToEnglish: false
+        try await PerformanceMetrics.shared.measureAsync("file.transcription.e2e") {
+            let response = try await workerClient.transcribeFile(
+                FileTranscriptionRequestPayload(
+                    jobID: UUID().uuidString,
+                    modelID: modelID,
+                    filePath: fileURL.path,
+                    languageHint: languageHint,
+                    translateToEnglish: false,
+                    diarize: requestDiarization
+                )
             )
-        )
 
-        return FileTranscriptionResult(
-            text: response.text,
-            durationSeconds: audioDurationSeconds(for: fileURL),
-            backendID: response.backendID,
-            segments: response.segments?.map {
-                TranscriptSegment(start: $0.start, end: $0.end, text: $0.text)
-            }
-        )
+            return FileTranscriptionResult(
+                text: response.text,
+                durationSeconds: audioDurationSeconds(for: fileURL),
+                backendID: response.backendID,
+                segments: response.segments?.map {
+                    TranscriptSegment(start: $0.start, end: $0.end, text: $0.text, speaker: $0.speaker)
+                }
+            )
+        }
     }
 }
 
