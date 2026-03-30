@@ -93,7 +93,7 @@ struct ModelCatalogTests {
         #expect(entries.map(\.id) == ["whisper-small", "whisper-base"])
     }
 
-    @Test func loadCatalogRejectsSignedManifestWhenSignatureIsInvalid() throws {
+    @Test func loadCatalogUsesBundledEntriesWhenSignatureIsInvalid() throws {
         let privateKey = Curve25519.Signing.PrivateKey()
         let publicKeyHex = privateKey.publicKey.rawRepresentation.hexEncodedString()
         let signedManifestData = try makeSignedManifestData(
@@ -114,9 +114,9 @@ struct ModelCatalogTests {
             manifestVerifier: ManifestVerifier(publicKeyHex: publicKeyHex)
         )
 
-        #expect(throws: ManifestVerificationError.invalidSignature) {
-            try service.loadCatalog()
-        }
+        let entries = try service.loadCatalog()
+        #expect(entries.count == 1)
+        #expect(entries.first?.id == "whisper-small")
     }
 
     @Test func signedManifestNormalizationMatchesCanonicalJSONString() throws {
@@ -224,6 +224,81 @@ struct ModelCatalogTests {
         let entries = await service.loadCatalogWithRemoteFallback()
 
         #expect(entries.map(\.id) == ["whisper-small"])
+    }
+
+    @Test func loadCatalogWithRemoteFallbackUsesBundledEntriesWhenBundledSignatureIsInvalidAndRemoteUnavailable()
+        async throws
+    {
+        let tempDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
+
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let publicKeyHex = privateKey.publicKey.rawRepresentation.hexEncodedString()
+        let signedManifestData = try makeSignedManifestData(
+            models: [makeCatalogEntry(id: "whisper-small"), makeCatalogEntry(id: "whisper-medium")],
+            signedAt: "2026-03-30T13:00:00Z",
+            privateKey: privateKey
+        )
+        var payload = try #require(
+            JSONSerialization.jsonObject(with: signedManifestData) as? [String: Any]
+        )
+        payload["signature"] = String(repeating: "f", count: 128)
+        let invalidBundledManifestData = try JSONSerialization.data(withJSONObject: payload)
+        let session = URLSession.makeManifestMockingSession(error: URLError(.networkConnectionLost))
+
+        let service = ModelCatalogService(
+            manifestDataLoader: { invalidBundledManifestData },
+            applicationSupportDirectory: tempDirectory,
+            remoteManifestURL: URL(string: "https://models.waffle.app/v1/manifest.json")!,
+            session: session,
+            manifestVerifier: ManifestVerifier(publicKeyHex: publicKeyHex)
+        )
+
+        let result = await service.loadCatalogWithRemoteFallbackResult()
+
+        #expect(result.entries.map(\.id) == ["whisper-small", "whisper-medium"])
+        #expect(result.source == .bundledUnverified)
+        #expect(result.issues.contains { $0.context == .bundled })
+        #expect(result.issues.contains { $0.context == .remote })
+    }
+
+    @Test func loadCatalogWithRemoteFallbackRejectsCachedManifestWithInvalidSignature() async throws {
+        let tempDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
+
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let publicKeyHex = privateKey.publicKey.rawRepresentation.hexEncodedString()
+        let bundledManifestData = try makeSignedManifestData(
+            models: [makeCatalogEntry(id: "whisper-small")],
+            signedAt: "2026-03-30T13:00:00Z",
+            privateKey: privateKey
+        )
+        let signedCachedManifestData = try makeSignedManifestData(
+            models: [makeCatalogEntry(id: "whisper-medium")],
+            signedAt: "2026-03-30T14:00:00Z",
+            privateKey: privateKey
+        )
+        var cachedPayload = try #require(
+            JSONSerialization.jsonObject(with: signedCachedManifestData) as? [String: Any]
+        )
+        cachedPayload["signature"] = String(repeating: "0", count: 128)
+        let invalidCachedManifestData = try JSONSerialization.data(withJSONObject: cachedPayload)
+        let session = URLSession.makeManifestMockingSession(error: URLError(.notConnectedToInternet))
+
+        let service = ModelCatalogService(
+            manifestDataLoader: { bundledManifestData },
+            applicationSupportDirectory: tempDirectory,
+            remoteManifestURL: URL(string: "https://models.waffle.app/v1/manifest.json")!,
+            session: session,
+            manifestVerifier: ManifestVerifier(publicKeyHex: publicKeyHex)
+        )
+        try invalidCachedManifestData.write(to: service.manifestCacheURL())
+
+        let result = await service.loadCatalogWithRemoteFallbackResult()
+
+        #expect(result.entries.map(\.id) == ["whisper-small"])
+        #expect(result.source == .bundledVerified)
+        #expect(result.issues.contains { $0.context == .cache })
     }
 }
 

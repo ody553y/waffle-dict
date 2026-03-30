@@ -386,6 +386,9 @@ struct TranscriptHistoryView: View {
                 presentImportArchivePanel()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .waffleImportAudioFiles)) { _ in
+            presentImportFilePanel()
+        }
         .onChange(of: speakerMatchThreshold) { _, _ in
             for recordID in expandedRecordIDs {
                 refreshSpeakerSuggestions(for: recordID)

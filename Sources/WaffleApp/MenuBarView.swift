@@ -4,6 +4,7 @@ import WaffleCore
 
 struct MenuBarView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     let hotkeyDisplayValue: String
     let transcriptStore: TranscriptStore?
@@ -102,7 +103,7 @@ struct MenuBarView: View {
                             comment: "Action title that opens the app settings window"
                         )
                     ) {
-                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                        SettingsOpener.open(openSettings: { openSettings() })
                     }
                     .font(.caption)
                 }
@@ -262,7 +263,7 @@ struct MenuBarView: View {
                     comment: "Button title that opens settings from menu bar popover"
                 )
             ) {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                SettingsOpener.open(openSettings: { openSettings() })
             }
             .keyboardShortcut(",")
             .help(

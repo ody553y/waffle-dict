@@ -132,18 +132,41 @@ public struct ManifestVerifier: Sendable {
 }
 
 public enum ModelCatalogSource: String, Sendable {
-    case bundled
+    case bundledVerified = "bundled-verified"
+    case bundledUnverified = "bundled-unverified"
     case remote
     case cache
+}
+
+public enum ModelCatalogIssueContext: String, Sendable, Equatable {
+    case remote
+    case cache
+    case bundled
+}
+
+public struct ModelCatalogLoadIssue: Sendable, Equatable {
+    public let context: ModelCatalogIssueContext
+    public let message: String
+
+    public init(context: ModelCatalogIssueContext, message: String) {
+        self.context = context
+        self.message = message
+    }
 }
 
 public struct ModelCatalogLoadResult: Sendable {
     public let entries: [ModelCatalogEntry]
     public let source: ModelCatalogSource
+    public let issues: [ModelCatalogLoadIssue]
 
-    public init(entries: [ModelCatalogEntry], source: ModelCatalogSource) {
+    public init(
+        entries: [ModelCatalogEntry],
+        source: ModelCatalogSource,
+        issues: [ModelCatalogLoadIssue] = []
+    ) {
         self.entries = entries
         self.source = source
+        self.issues = issues
     }
 }
 
@@ -184,6 +207,23 @@ public final class ModelCatalogService: @unchecked Sendable {
         try loadBundledManifest().entries
     }
 
+    public func loadBundledCatalogResult() -> ModelCatalogLoadResult {
+        do {
+            let bundled = try loadBundledManifest()
+            return ModelCatalogLoadResult(
+                entries: bundled.entries,
+                source: bundled.source,
+                issues: bundled.issues
+            )
+        } catch {
+            return ModelCatalogLoadResult(
+                entries: [],
+                source: .bundledVerified,
+                issues: [ModelCatalogLoadIssue(context: .bundled, message: describe(error: error))]
+            )
+        }
+    }
+
     public func fetchRemoteManifest() async throws -> [ModelCatalogEntry] {
         do {
             let remote = try await fetchRemoteSignedManifest()
@@ -209,6 +249,7 @@ public final class ModelCatalogService: @unchecked Sendable {
 
     public func loadCatalogWithRemoteFallbackResult() async -> ModelCatalogLoadResult {
         let bundled = try? loadBundledManifest()
+        var issues = bundled?.issues ?? []
 
         do {
             let remote = try await fetchRemoteSignedManifest()
@@ -217,26 +258,31 @@ public final class ModelCatalogService: @unchecked Sendable {
             {
                 try? cacheManifestData(remote.data)
                 print("[ModelCatalog] Using remote manifest")
-                return ModelCatalogLoadResult(entries: remote.manifest.models, source: .remote)
+                return ModelCatalogLoadResult(entries: remote.manifest.models, source: .remote, issues: issues)
             }
         } catch {
             print("[ModelCatalog] Remote manifest unavailable: \(error)")
+            issues.append(ModelCatalogLoadIssue(context: .remote, message: describe(error: error)))
         }
 
-        if let cached = try? loadCachedManifest(),
-           shouldPreferRemote(remoteManifest: cached.manifest, bundledManifest: bundled?.signedManifest)
-            || bundled == nil
-        {
-            print("[ModelCatalog] Using cached manifest")
-            return ModelCatalogLoadResult(entries: cached.manifest.models, source: .cache)
+        do {
+            let cached = try loadCachedManifest()
+            if shouldPreferRemote(remoteManifest: cached.manifest, bundledManifest: bundled?.signedManifest)
+                || bundled == nil
+            {
+                print("[ModelCatalog] Using cached manifest")
+                return ModelCatalogLoadResult(entries: cached.manifest.models, source: .cache, issues: issues)
+            }
+        } catch {
+            issues.append(ModelCatalogLoadIssue(context: .cache, message: describe(error: error)))
         }
 
         if let bundled {
             print("[ModelCatalog] Using bundled manifest")
-            return ModelCatalogLoadResult(entries: bundled.entries, source: .bundled)
+            return ModelCatalogLoadResult(entries: bundled.entries, source: bundled.source, issues: issues)
         }
 
-        return ModelCatalogLoadResult(entries: [], source: .bundled)
+        return ModelCatalogLoadResult(entries: [], source: .bundledVerified, issues: issues)
     }
 
     public func installedModels() -> [String] {
@@ -335,7 +381,42 @@ public final class ModelCatalogService: @unchecked Sendable {
     }
 
     private func loadBundledManifest() throws -> ParsedManifest {
-        try parseManifest(data: manifestDataLoader(), allowUnsignedFallback: true)
+        let data = try manifestDataLoader()
+
+        if let signed = try? JSONDecoder().decode(SignedModelManifest.self, from: data) {
+            guard signed.manifestVersion == 2 else {
+                throw ManifestVerificationError.unsupportedVersion
+            }
+            do {
+                _ = try manifestVerifier.verify(manifest: signed)
+                return ParsedManifest(
+                    entries: signed.models,
+                    signedManifest: signed,
+                    source: .bundledVerified,
+                    issues: []
+                )
+            } catch {
+                // Bundled manifests are trusted fallbacks even when signature verification fails.
+                return ParsedManifest(
+                    entries: signed.models,
+                    signedManifest: signed,
+                    source: .bundledUnverified,
+                    issues: [ModelCatalogLoadIssue(context: .bundled, message: describe(error: error))]
+                )
+            }
+        }
+
+        do {
+            let models = try JSONDecoder().decode([ModelCatalogEntry].self, from: data)
+            return ParsedManifest(
+                entries: models,
+                signedManifest: nil,
+                source: .bundledVerified,
+                issues: []
+            )
+        } catch {
+            throw ManifestVerificationError.malformedManifest
+        }
     }
 
     private func fetchRemoteSignedManifest() async throws -> ParsedSignedManifest {
@@ -358,30 +439,6 @@ public final class ModelCatalogService: @unchecked Sendable {
 
     private func cacheManifestData(_ data: Data) throws {
         try data.write(to: manifestCacheURL(), options: .atomic)
-    }
-
-    private func parseManifest(
-        data: Data,
-        allowUnsignedFallback: Bool
-    ) throws -> ParsedManifest {
-        if let signed = try? JSONDecoder().decode(SignedModelManifest.self, from: data) {
-            guard signed.manifestVersion == 2 else {
-                throw ManifestVerificationError.unsupportedVersion
-            }
-            _ = try manifestVerifier.verify(manifest: signed)
-            return ParsedManifest(entries: signed.models, signedManifest: signed)
-        }
-
-        guard allowUnsignedFallback else {
-            throw ManifestVerificationError.malformedManifest
-        }
-
-        do {
-            let models = try JSONDecoder().decode([ModelCatalogEntry].self, from: data)
-            return ParsedManifest(entries: models, signedManifest: nil)
-        } catch {
-            throw ManifestVerificationError.malformedManifest
-        }
     }
 
     private func parseSignedManifest(data: Data) throws -> SignedModelManifest {
@@ -421,6 +478,25 @@ public final class ModelCatalogService: @unchecked Sendable {
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: value)
     }
+
+    private func describe(error: Error) -> String {
+        if let verificationError = error as? ManifestVerificationError {
+            switch verificationError {
+            case .invalidSignature:
+                return "Manifest signature verification failed."
+            case .unsupportedVersion:
+                return "Manifest version is not supported."
+            case .malformedManifest:
+                return "Manifest data is malformed."
+            }
+        }
+
+        if let urlError = error as? URLError {
+            return "Network request failed: \(urlError.localizedDescription)"
+        }
+
+        return error.localizedDescription
+    }
 }
 
 private func defaultApplicationSupportDirectory(fileManager: FileManager) -> URL {
@@ -431,6 +507,8 @@ private func defaultApplicationSupportDirectory(fileManager: FileManager) -> URL
 private struct ParsedManifest {
     let entries: [ModelCatalogEntry]
     let signedManifest: SignedModelManifest?
+    let source: ModelCatalogSource
+    let issues: [ModelCatalogLoadIssue]
 }
 
 private struct ParsedSignedManifest {

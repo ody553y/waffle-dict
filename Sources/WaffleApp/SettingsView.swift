@@ -6,13 +6,18 @@ import WaffleCore
 struct SettingsView: View {
     let onUpdateHotkey: (GlobalHotkey) -> Void
     let onLMStudioConfigurationChanged: () -> Void
+    let onAppVisibilityChanged: (Bool) -> Void
     let transcriptStore: TranscriptStore?
     @ObservedObject var modelStore: ModelStore
     @ObservedObject var updaterSettings: UpdaterSettings
 
     var body: some View {
         TabView {
-            GeneralSettingsView(modelStore: modelStore, updaterSettings: updaterSettings)
+            GeneralSettingsView(
+                onAppVisibilityChanged: onAppVisibilityChanged,
+                modelStore: modelStore,
+                updaterSettings: updaterSettings
+            )
                 .tabItem {
                     Label(
                         localized(
@@ -91,12 +96,14 @@ struct SettingsView: View {
                     )
                 }
         }
-        .frame(width: 540, height: 360)
+        .frame(minWidth: 700, idealWidth: 900, minHeight: 520, idealHeight: 620)
     }
 }
 
 struct GeneralSettingsView: View {
     @Environment(\.openWindow) private var openWindow
+
+    let onAppVisibilityChanged: (Bool) -> Void
 
     @AppStorage("pasteIntoActiveApp") private var pasteIntoActiveApp = true
     @AppStorage("copyToClipboardAsFallback") private var copyToClipboardAsFallback = true
@@ -110,6 +117,8 @@ struct GeneralSettingsView: View {
     private var retainAudioRecordings = false
     @AppStorage("iCloudBackupEnabled")
     private var iCloudBackupEnabled = false
+    @AppStorage("showInDockAndAppSwitcher")
+    private var showInDockAndAppSwitcher = false
 
     @ObservedObject var modelStore: ModelStore
     @ObservedObject var updaterSettings: UpdaterSettings
@@ -189,6 +198,36 @@ struct GeneralSettingsView: View {
             )
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+
+            Section(
+                localized(
+                    "settings.general.appVisibility.section",
+                    default: "App Visibility",
+                    comment: "Section title for app visibility behavior in Dock and App Switcher"
+                )
+            ) {
+                Toggle(
+                    localized(
+                        "settings.general.appVisibility.showDockSwitcher",
+                        default: "Show in Dock and App Switcher",
+                        comment: "Toggle label for showing app in Dock and Cmd+Tab app switcher"
+                    ),
+                    isOn: $showInDockAndAppSwitcher
+                )
+                .onChange(of: showInDockAndAppSwitcher) { _, newValue in
+                    onAppVisibilityChanged(newValue)
+                }
+
+                Text(
+                    localized(
+                        "settings.general.appVisibility.help",
+                        default: "Disable this to keep Waffle menu-bar-only and hidden from Cmd+Tab.",
+                        comment: "Help text explaining menu-bar-first app visibility mode"
+                    )
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
 
             Section(
                 localized(
@@ -615,6 +654,9 @@ struct GeneralSettingsView: View {
                 }
             )
         }
+        .onAppear {
+            onAppVisibilityChanged(showInDockAndAppSwitcher)
+        }
     }
 
     private var isParakeetSelected: Bool {
@@ -994,11 +1036,85 @@ struct ModelsSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Text("Source: \(modelStore.catalogSource.rawValue)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
                 Spacer()
             }
 
-            List(modelStore.catalog) { entry in
-                ModelRowView(entry: entry, modelStore: modelStore)
+            if modelStore.catalogSource == .bundledUnverified {
+                Label(
+                    localized(
+                        "settings.models.unverified.warning",
+                        default: "Using bundled catalog without a valid signature.",
+                        comment: "Warning label shown when using an unverified bundled model manifest"
+                    ),
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
+
+            if modelStore.catalog.isEmpty {
+                ContentUnavailableView(
+                    localized(
+                        "settings.models.empty.title",
+                        default: "Model catalog unavailable",
+                        comment: "Title shown when the model catalog cannot be loaded"
+                    ),
+                    systemImage: "tray",
+                    description: Text(
+                        localized(
+                            "settings.models.empty.description",
+                            default: "Waffle couldn't load any models. Check diagnostics below and retry.",
+                            comment: "Description shown when the model catalog is empty and diagnostics are available"
+                        )
+                    )
+                )
+                .padding(.top, 8)
+
+                HStack(spacing: 10) {
+                    Button("Retry Remote") {
+                        modelStore.refreshCatalogFromRemote()
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button("Reload Bundled") {
+                        modelStore.refreshCatalog()
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                if modelStore.catalogIssues.isEmpty == false {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Diagnostics")
+                            .font(.caption.weight(.semibold))
+                        ForEach(Array(modelStore.catalogIssues.enumerated()), id: \.offset) { _, issue in
+                            Text("• \(issue.context.rawValue): \(issue.message)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
+            } else {
+                if modelStore.catalogIssues.isEmpty == false {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Diagnostics")
+                            .font(.caption.weight(.semibold))
+                        ForEach(Array(modelStore.catalogIssues.enumerated()), id: \.offset) { _, issue in
+                            Text("• \(issue.context.rawValue): \(issue.message)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
+
+                List(modelStore.catalog) { entry in
+                    ModelRowView(entry: entry, modelStore: modelStore)
+                }
             }
         }
         .padding(.horizontal)

@@ -41,6 +41,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotkeyPermissionMonitorTask: Task<Void, Never>?
     private var startupBeganAtUptimeNanos: UInt64?
     private var didLogStartupCompletion = false
+    private var openWindowByID: ((String) -> Void)?
+    private let appVisibilityCoordinator = AppVisibilityCoordinator()
 
     var hotkeyDisplayValue: String {
         activeHotkey.displayValue
@@ -48,6 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         startupBeganAtUptimeNanos = DispatchTime.now().uptimeNanoseconds
+        appVisibilityCoordinator.applyCurrentSetting()
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
             updaterDelegate: nil,
@@ -73,6 +76,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updaterSettings.attach(updaterController: nil)
         updaterController = nil
         workerProcess?.terminate()
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard flag == false else { return false }
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        openWindowByID?("control-center")
+        return true
+    }
+
+    func setWindowOpener(_ handler: @escaping (String) -> Void) {
+        openWindowByID = handler
+    }
+
+    func setShowInDockAndAppSwitcher(_ value: Bool) {
+        appVisibilityCoordinator.update(showInDockAndAppSwitcher: value)
     }
 
     private func startHotkeyPermissionMonitoring() {

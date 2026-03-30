@@ -54,15 +54,37 @@ public final class WorkerProcess: Sendable {
     }
 
     private static func defaultWorkerModulePath() -> String {
+        let fileManager = FileManager.default
+
+        // Development path: when running via `swift run`, currentDirectoryPath is repo root.
+        let workerInCurrentDirectory = URL(fileURLWithPath: fileManager.currentDirectoryPath)
+            .appendingPathComponent("worker", isDirectory: true)
+            .path
+        if fileManager.fileExists(atPath: workerInCurrentDirectory) {
+            return workerInCurrentDirectory
+        }
+
         let bundlePath = Bundle.main.bundlePath
         let workerInBundle = (bundlePath as NSString).appendingPathComponent("Contents/Resources/worker")
-        if FileManager.default.fileExists(atPath: workerInBundle) {
+        if fileManager.fileExists(atPath: workerInBundle) {
             return workerInBundle
         }
-        // Fallback: assume worker/ is next to the Package.swift during development.
-        return (bundlePath as NSString)
-            .deletingLastPathComponent
-            .appending("/worker")
+
+        // Fallback: walk upward from the bundle path and use the first `worker/` directory found.
+        var cursor = URL(fileURLWithPath: bundlePath, isDirectory: false)
+            .deletingLastPathComponent()
+        for _ in 0..<8 {
+            let candidate = cursor.appendingPathComponent("worker", isDirectory: true).path
+            if fileManager.fileExists(atPath: candidate) {
+                return candidate
+            }
+            cursor.deleteLastPathComponent()
+        }
+
+        // Last-resort path for development tooling.
+        return URL(fileURLWithPath: fileManager.currentDirectoryPath)
+            .appendingPathComponent("worker", isDirectory: true)
+            .path
     }
 }
 

@@ -875,6 +875,7 @@ final class DictationController: ObservableObject {
 
 extension Notification.Name {
     static let waffleSelectTranscriptInHistory = Notification.Name("waffle.selectTranscriptInHistory")
+    static let waffleImportAudioFiles = Notification.Name("waffle.importAudioFiles")
     static let waffleImportTranscriptArchive = Notification.Name("waffle.importTranscriptArchive")
     static let waffleOpenReviewQueue = Notification.Name("waffle.openReviewQueue")
 }

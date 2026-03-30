@@ -4,7 +4,8 @@ import WaffleCore
 @MainActor
 final class ModelStore: ObservableObject {
     @Published private(set) var catalog: [ModelCatalogEntry] = []
-    @Published private(set) var catalogSource: ModelCatalogSource = .bundled
+    @Published private(set) var catalogSource: ModelCatalogSource = .bundledVerified
+    @Published private(set) var catalogIssues: [ModelCatalogLoadIssue] = []
     @Published private(set) var remoteUpdateNotice: String?
     @Published private(set) var installedModelIDs: Set<String> = []
     @Published private(set) var selectedModelID: String?
@@ -49,13 +50,10 @@ final class ModelStore: ObservableObject {
     }
 
     func refreshCatalog() {
-        do {
-            catalog = try catalogService.loadCatalog()
-            catalogSource = .bundled
-        } catch {
-            catalog = []
-            catalogSource = .bundled
-        }
+        let result = catalogService.loadBundledCatalogResult()
+        catalog = result.entries
+        catalogSource = result.source
+        catalogIssues = result.issues
         remoteUpdateNotice = nil
         refreshInstalledState()
     }
@@ -138,6 +136,7 @@ final class ModelStore: ObservableObject {
         let result = await catalogService.loadCatalogWithRemoteFallbackResult()
         catalog = result.entries
         catalogSource = result.source
+        catalogIssues = result.issues
 
         let newIDs = Set(result.entries.map(\.id)).subtracting(previousIDs)
         remoteUpdateNotice = (result.source == .remote && newIDs.isEmpty == false)

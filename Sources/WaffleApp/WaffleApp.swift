@@ -7,6 +7,10 @@ struct WaffleApp: App {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
+        let _ = appDelegate.setWindowOpener { id in
+            openWindow(id: id)
+        }
+
         MenuBarExtra(
             localized(
                 "app.menuBar.title",
@@ -28,9 +32,26 @@ struct WaffleApp: App {
             SettingsView(
                 onUpdateHotkey: { appDelegate.updateHotkey($0) },
                 onLMStudioConfigurationChanged: { appDelegate.refreshLMStudioClientConfiguration() },
+                onAppVisibilityChanged: { appDelegate.setShowInDockAndAppSwitcher($0) },
                 transcriptStore: appDelegate.transcriptStore,
                 modelStore: appDelegate.modelStore,
                 updaterSettings: appDelegate.updaterSettings
+            )
+        }
+        .defaultSize(width: 900, height: 620)
+
+        Window(
+            localized(
+                "controlCenter.window.title",
+                default: "Control Center",
+                comment: "Window title for the Dock-facing control center"
+            ),
+            id: "control-center"
+        ) {
+            ControlCenterView(
+                dictationController: appDelegate.dictationController,
+                modelStore: appDelegate.modelStore,
+                transcriptStore: appDelegate.transcriptStore
             )
         }
 
