@@ -232,16 +232,16 @@ Request permissions lazily (on first use), not at launch. Store the HF token in 
 
 **What Codex built (Phase 0 / Spike 3 scaffolding):**
 
-- `Package.swift` — Swift 6.0, macOS 14+ target, `ScreamerCore` library + `ScreamerCoreTests` test target.
-- `Sources/ScreamerCore/WorkerClient.swift` — Swift HTTP client for the Python worker. `WorkerConfiguration` defaults to `127.0.0.1:8765`, exposes `baseURL` and `healthURL`. `WorkerClient.fetchHealth()` calls `GET /health` and decodes `WorkerHealth`. Conforms to Swift 6 `Sendable` constraints.
-- `worker/screamer_worker/server.py` — `ThreadingHTTPServer`-based Python worker, serves `GET /health` and returns `{"service":"screamer-worker","status":"ok","version":"0.1.0"}`. Binds to loopback only.
-- `worker/screamer_worker/models.py` — Data classes: `HealthResponse`, `RecordingConfig`, `LiveSessionConfig`, `FileTranscriptionRequest`.
-- `worker/screamer_worker/backends/base.py` — `TranscriptionBackend` Protocol with all methods from the plan: `prepare_model`, `start_live_session`, `finish_live_session`, `transcribe_file`, `cancel_job`. `BackendCapabilities` dataclass with `supports_translation` and `supports_realtime_preview`.
+- `Package.swift` — Swift 6.0, macOS 14+ target, `WaffleCore` library + `WaffleCoreTests` test target.
+- `Sources/WaffleCore/WorkerClient.swift` — Swift HTTP client for the Python worker. `WorkerConfiguration` defaults to `127.0.0.1:8765`, exposes `baseURL` and `healthURL`. `WorkerClient.fetchHealth()` calls `GET /health` and decodes `WorkerHealth`. Conforms to Swift 6 `Sendable` constraints.
+- `worker/waffle_worker/server.py` — `ThreadingHTTPServer`-based Python worker, serves `GET /health` and returns `{"service":"waffle-worker","status":"ok","version":"0.1.0"}`. Binds to loopback only.
+- `worker/waffle_worker/models.py` — Data classes: `HealthResponse`, `RecordingConfig`, `LiveSessionConfig`, `FileTranscriptionRequest`.
+- `worker/waffle_worker/backends/base.py` — `TranscriptionBackend` Protocol with all methods from the plan: `prepare_model`, `start_live_session`, `finish_live_session`, `transcribe_file`, `cancel_job`. `BackendCapabilities` dataclass with `supports_translation` and `supports_realtime_preview`.
 - `worker/tests/test_server.py` — Two Python unit tests covering `/health` (200 + correct payload) and unknown routes (404 + `error: not_found`). Both pass.
 
 **Bug fixed by Claude (second pass):**
 
-- `Tests/ScreamerCoreTests/WorkerClientTests.swift` was still using `import XCTest` / `XCTestCase` — the migration documented below had not been applied. Migrated to **Swift Testing** (`import Testing`, `@Suite struct`, `@Test func`, `#expect(...)`, `await #expect(throws:)`). The `MockURLProtocol` / `URLSession.makeMockingSession` mock infrastructure is unchanged. `swift build` now succeeds with CLI Tools only.
+- `Tests/WaffleCoreTests/WorkerClientTests.swift` was still using `import XCTest` / `XCTestCase` — the migration documented below had not been applied. Migrated to **Swift Testing** (`import Testing`, `@Suite struct`, `@Test func`, `#expect(...)`, `await #expect(throws:)`). The `MockURLProtocol` / `URLSession.makeMockingSession` mock infrastructure is unchanged. `swift build` now succeeds with CLI Tools only.
 
 **Known environment constraint:**
 
@@ -257,39 +257,39 @@ Request permissions lazily (on first use), not at launch. Store the HF token in 
 
 **FasterWhisperBackend (Python):**
 
-- `worker/screamer_worker/backends/faster_whisper.py` — Concrete `TranscriptionBackend` implementation backed by `faster-whisper`. Lazy-loads models on first `transcribe_file` call. Uses `device="cpu"`, `compute_type="int8"` per plan. Gracefully raises `RuntimeError` when the `faster-whisper` pip package is not installed.
+- `worker/waffle_worker/backends/faster_whisper.py` — Concrete `TranscriptionBackend` implementation backed by `faster-whisper`. Lazy-loads models on first `transcribe_file` call. Uses `device="cpu"`, `compute_type="int8"` per plan. Gracefully raises `RuntimeError` when the `faster-whisper` pip package is not installed.
 
 **WorkerProcess (Swift):**
 
-- `Sources/ScreamerCore/WorkerProcess.swift` — Spawns the Python worker as a `Process`, passes `--host`/`--port` args, polls `/health` every 200ms until ready or timeout (default 10s). Resolves `worker/` path from the app bundle (`Contents/Resources/worker`) or falls back to the dev-layout sibling directory.
+- `Sources/WaffleCore/WorkerProcess.swift` — Spawns the Python worker as a `Process`, passes `--host`/`--port` args, polls `/health` every 200ms until ready or timeout (default 10s). Resolves `worker/` path from the app bundle (`Contents/Resources/worker`) or falls back to the dev-layout sibling directory.
 
 **CLI args for worker:**
 
-- `worker/screamer_worker/__main__.py` — Now accepts `--host` and `--port` via `argparse` (required by `WorkerProcess`). Auto-registers `FasterWhisperBackend` if the import succeeds.
+- `worker/waffle_worker/__main__.py` — Now accepts `--host` and `--port` via `argparse` (required by `WorkerProcess`). Auto-registers `FasterWhisperBackend` if the import succeeds.
 
 **Spike 2 benchmark script:**
 
 - `worker/benchmarks/spike2_faster_whisper.py` — Standalone script that loads a `faster-whisper` model, transcribes a clip (or auto-generated 10s silence), and reports RTF + pass/fail against plan criteria (RTF ≤ 0.15, latency ≤ 2s for ≤ 10s clip). Run with: `python3 worker/benchmarks/spike2_faster_whisper.py --audio clip.wav --model small`.
 
-**macOS App Target (`ScreamerApp`):**
+**macOS App Target (`WaffleApp`):**
 
-- `Package.swift` — Added `executableTarget("ScreamerApp")` depending on `ScreamerCore`.
-- `Sources/ScreamerApp/ScreamerApp.swift` — `@main` SwiftUI app with `MenuBarExtra` (mic icon, `.window` style) + `Settings` scene.
-- `Sources/ScreamerApp/AppDelegate.swift` — Spawns the Python worker via `WorkerProcess` on launch, terminates on quit.
-- `Sources/ScreamerApp/MenuBarView.swift` — Menu bar popover showing worker status (green/yellow/red dot), start/stop recording button, settings + quit. Polls `/health` on appear.
-- `Sources/ScreamerApp/SettingsView.swift` — Tabbed settings: General (paste/clipboard toggles), Models (placeholder), Keyboard (placeholder).
+- `Package.swift` — Added `executableTarget("WaffleApp")` depending on `WaffleCore`.
+- `Sources/WaffleApp/WaffleApp.swift` — `@main` SwiftUI app with `MenuBarExtra` (mic icon, `.window` style) + `Settings` scene.
+- `Sources/WaffleApp/AppDelegate.swift` — Spawns the Python worker via `WorkerProcess` on launch, terminates on quit.
+- `Sources/WaffleApp/MenuBarView.swift` — Menu bar popover showing worker status (green/yellow/red dot), start/stop recording button, settings + quit. Polls `/health` on appear.
+- `Sources/WaffleApp/SettingsView.swift` — Tabbed settings: General (paste/clipboard toggles), Models (placeholder), Keyboard (placeholder).
 
 **AudioCaptureService:**
 
-- `Sources/ScreamerCore/AudioCaptureService.swift` — Manages mic recording lifecycle. Lists input devices via `AVCaptureDevice.DiscoverySession`. Records 16kHz mono WAV to `~/Library/Application Support/Screamer/Scratch/` with UUID+timestamp filenames for crash recovery. Provides `startRecording()`, `stopRecording()`, `cancelRecording()`, `recoverOrphanedRecordings()`, and `cleanupScratchFile()`.
+- `Sources/WaffleCore/AudioCaptureService.swift` — Manages mic recording lifecycle. Lists input devices via `AVCaptureDevice.DiscoverySession`. Records 16kHz mono WAV to `~/Library/Application Support/Waffle/Scratch/` with UUID+timestamp filenames for crash recovery. Provides `startRecording()`, `stopRecording()`, `cancelRecording()`, `recoverOrphanedRecordings()`, and `cleanupScratchFile()`.
 
 **PermissionsService:**
 
-- `Sources/ScreamerCore/PermissionsService.swift` — Checks Accessibility (`AXIsProcessTrusted`) and Microphone (`AVCaptureDevice.authorizationStatus`) permissions. `promptAccessibility()` triggers the system dialog pointing to Privacy & Security. Works around Swift 6 strict concurrency for the `kAXTrustedCheckOptionPrompt` global.
+- `Sources/WaffleCore/PermissionsService.swift` — Checks Accessibility (`AXIsProcessTrusted`) and Microphone (`AVCaptureDevice.authorizationStatus`) permissions. `promptAccessibility()` triggers the system dialog pointing to Privacy & Security. Works around Swift 6 strict concurrency for the `kAXTrustedCheckOptionPrompt` global.
 
 **Status:**
 
-- `swift build` passes — all targets (ScreamerCore, ScreamerApp, ScreamerCoreTests) compile cleanly.
+- `swift build` passes — all targets (WaffleCore, WaffleApp, WaffleCoreTests) compile cleanly.
 - All 3 Python tests pass (`PYTHONPATH=worker python3 -m unittest discover -s worker/tests`).
 - Spike 2 benchmark requires `pip install faster-whisper` to run.
 

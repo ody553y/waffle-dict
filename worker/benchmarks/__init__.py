@@ -1,2 +1,2 @@
-"""Benchmark tools for Screamer worker performance profiling."""
+"""Benchmark tools for Waffle worker performance profiling."""
 

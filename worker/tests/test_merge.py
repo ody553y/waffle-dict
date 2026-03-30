@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from screamer_worker.merge import merge_speakers
-from screamer_worker.models import DiarizationSegment, TranscriptionSegment
+from waffle_worker.merge import merge_speakers
+from waffle_worker.models import DiarizationSegment, TranscriptionSegment
 
 
 class MergeSpeakersTests(unittest.TestCase):

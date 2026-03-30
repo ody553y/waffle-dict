@@ -360,7 +360,7 @@ def _format_table(rows: list[list[str]]) -> str:
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Benchmark Screamer worker performance.")
+    parser = argparse.ArgumentParser(description="Benchmark Waffle worker performance.")
     parser.add_argument("--host", default="127.0.0.1", help="Worker host")
     parser.add_argument("--port", type=int, default=8765, help="Worker port")
     parser.add_argument("--model", help="Model ID to benchmark")

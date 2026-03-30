@@ -6,13 +6,13 @@ import unittest
 from http.client import HTTPConnection
 from pathlib import Path
 
-from screamer_worker.backends.base import BackendCapabilities
-from screamer_worker.models import (
+from waffle_worker.backends.base import BackendCapabilities
+from waffle_worker.models import (
     BackendTranscriptionResult,
     DiarizationSegment,
     TranscriptionSegment,
 )
-from screamer_worker.server import MAX_REQUEST_BODY_BYTES, make_server
+from waffle_worker.server import MAX_REQUEST_BODY_BYTES, make_server
 
 
 class StubBackend:
@@ -104,7 +104,7 @@ class WorkerServerTests(unittest.TestCase):
         self.assertEqual(
             payload,
             {
-                "service": "screamer-worker",
+                "service": "waffle-worker",
                 "status": "ok",
                 "version": "0.1.0",
                 "model_loaded": False,

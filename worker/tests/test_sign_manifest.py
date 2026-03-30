@@ -23,7 +23,7 @@ class SignManifestToolTests(unittest.TestCase):
                             "languages": ["multilingual"],
                             "supports_live": False,
                             "supports_translation": True,
-                            "download_url": "https://models.screamer.app/v1/models/whisper-small.tar.gz",
+                            "download_url": "https://models.waffle.app/v1/models/whisper-small.tar.gz",
                             "sha256_checksum": "abc123",
                             "available": True,
                         }
@@ -77,7 +77,7 @@ class SignManifestToolTests(unittest.TestCase):
                             "languages": ["multilingual"],
                             "supports_live": False,
                             "supports_translation": True,
-                            "download_url": "https://models.screamer.app/v1/models/whisper-small.tar.gz",
+                            "download_url": "https://models.waffle.app/v1/models/whisper-small.tar.gz",
                             "sha256_checksum": "abc123",
                             "available": True,
                         }

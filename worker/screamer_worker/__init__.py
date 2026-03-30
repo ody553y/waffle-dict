@@ -1,1 +1,0 @@
-"""Screamer local worker package."""

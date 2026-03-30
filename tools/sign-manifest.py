@@ -117,7 +117,7 @@ def command_verify(manifest_path: Path, public_key_path: Path) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Sign and verify Screamer model manifests.")
+    parser = argparse.ArgumentParser(description="Sign and verify Waffle model manifests.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     generate_parser = subparsers.add_parser("generate-keys", help="Generate a new Ed25519 key pair.")

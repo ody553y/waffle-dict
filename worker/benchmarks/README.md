@@ -8,7 +8,7 @@ The benchmark suite measures transcription latency, memory usage, and realtime f
 
 ```bash
 cd worker
-python -m screamer_worker --host 127.0.0.1 --port 8765
+python -m waffle_worker --host 127.0.0.1 --port 8765
 ```
 
 2. Generate local WAV fixtures (do not commit large audio files):

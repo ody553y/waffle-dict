@@ -2,15 +2,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "Screamer",
+    name: "Waffle",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
     ],
     products: [
         .library(
-            name: "ScreamerCore",
-            targets: ["ScreamerCore"]
+            name: "WaffleCore",
+            targets: ["WaffleCore"]
         ),
     ],
     dependencies: [
@@ -19,7 +19,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ScreamerCore",
+            name: "WaffleCore",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
@@ -28,24 +28,31 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "ScreamerApp",
+            name: "WaffleApp",
             dependencies: [
-                "ScreamerCore",
+                "WaffleCore",
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
             exclude: [
                 "Info.plist",
-                "ScreamerApp.entitlements",
+                "WaffleApp.entitlements",
             ],
             resources: [
                 .process("Localizable.xcstrings"),
             ]
         ),
         .testTarget(
-            name: "ScreamerCoreTests",
-            dependencies: ["ScreamerCore"],
+            name: "WaffleCoreTests",
+            dependencies: ["WaffleCore"],
             resources: [
                 .process("Fixtures"),
+            ]
+        ),
+        .testTarget(
+            name: "WaffleAppTests",
+            dependencies: [
+                "WaffleApp",
+                "WaffleCore",
             ]
         ),
     ]

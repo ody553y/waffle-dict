@@ -3,10 +3,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_NAME="Screamer"
+APP_NAME="Waffle"
 APP_DIR="$REPO_ROOT/build/${APP_NAME}.app"
-ENTITLEMENTS="$REPO_ROOT/Sources/ScreamerApp/ScreamerApp.entitlements"
-INFO_PLIST_SOURCE="$REPO_ROOT/Sources/ScreamerApp/Info.plist"
+ENTITLEMENTS="$REPO_ROOT/Sources/WaffleApp/WaffleApp.entitlements"
+INFO_PLIST_SOURCE="$REPO_ROOT/Sources/WaffleApp/Info.plist"
 
 if [[ -z "${SIGNING_IDENTITY:-}" ]]; then
   echo "error: SIGNING_IDENTITY is required (Developer ID Application certificate)." >&2
@@ -25,10 +25,10 @@ fi
 
 cd "$REPO_ROOT"
 
-echo "[release] Building ScreamerApp in release mode..."
-swift build -c release --product ScreamerApp --disable-sandbox
+echo "[release] Building WaffleApp in release mode..."
+swift build -c release --product WaffleApp --disable-sandbox
 BIN_DIR="$(swift build -c release --show-bin-path)"
-BINARY="$BIN_DIR/ScreamerApp"
+BINARY="$BIN_DIR/WaffleApp"
 
 if [[ ! -x "$BINARY" ]]; then
   echo "error: expected built binary at $BINARY" >&2
@@ -39,25 +39,25 @@ rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources" "$APP_DIR/Contents/Frameworks"
 
 echo "[release] Assembling app bundle at $APP_DIR"
-cp "$BINARY" "$APP_DIR/Contents/MacOS/ScreamerApp"
+cp "$BINARY" "$APP_DIR/Contents/MacOS/WaffleApp"
 cp "$INFO_PLIST_SOURCE" "$APP_DIR/Contents/Info.plist"
 
 if [[ -d "$REPO_ROOT/worker" ]]; then
   cp -R "$REPO_ROOT/worker" "$APP_DIR/Contents/Resources/worker"
 fi
 
-CORE_BUNDLE="$(find "$BIN_DIR" -maxdepth 1 -type d -name '*_ScreamerCore.bundle' -print -quit || true)"
+CORE_BUNDLE="$(find "$BIN_DIR" -maxdepth 1 -type d -name '*_WaffleCore.bundle' -print -quit || true)"
 if [[ -n "$CORE_BUNDLE" ]]; then
   cp -R "$CORE_BUNDLE" "$APP_DIR/Contents/Resources/"
 else
-  echo "warning: ScreamerCore resource bundle not found in $BIN_DIR" >&2
+  echo "warning: WaffleCore resource bundle not found in $BIN_DIR" >&2
 fi
 
 while IFS= read -r framework_path; do
   cp -R "$framework_path" "$APP_DIR/Contents/Frameworks/"
 done < <(find "$BIN_DIR" -maxdepth 1 -type d -name '*.framework' | sort)
 
-APP_BINARY="$APP_DIR/Contents/MacOS/ScreamerApp"
+APP_BINARY="$APP_DIR/Contents/MacOS/WaffleApp"
 if ! otool -l "$APP_BINARY" | grep -q "@executable_path/../Frameworks"; then
   install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP_BINARY" || true
 fi

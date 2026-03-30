@@ -10,11 +10,11 @@ if [[ -z "${SPARKLE_PRIVATE_KEY_PATH:-}" ]]; then
 fi
 
 if [[ -z "${VERSION:-}" ]]; then
-  echo "error: VERSION is required to locate build/Screamer-\${VERSION}.dmg." >&2
+  echo "error: VERSION is required to locate build/Waffle-\${VERSION}.dmg." >&2
   exit 1
 fi
 
-DMG_PATH="$REPO_ROOT/build/Screamer-${VERSION}.dmg"
+DMG_PATH="$REPO_ROOT/build/Waffle-${VERSION}.dmg"
 if [[ ! -f "$DMG_PATH" ]]; then
   echo "error: release archive not found at $DMG_PATH" >&2
   exit 1

@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 from dataclasses import asdict
 
-from screamer_worker.backends.diarization import DiarizationPipeline
-from screamer_worker.models import DiarizationSegment
+from waffle_worker.backends.diarization import DiarizationPipeline
+from waffle_worker.models import DiarizationSegment
 
 
 class _FakeTimeSegment:

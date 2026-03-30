@@ -6,9 +6,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from screamer_worker.backends.base import BackendCapabilities
-from screamer_worker.models import BackendTranscriptionResult
-from screamer_worker.server import make_server
+from waffle_worker.backends.base import BackendCapabilities
+from waffle_worker.models import BackendTranscriptionResult
+from waffle_worker.server import make_server
 
 
 class ParakeetModelLoadFailureTest(unittest.TestCase):
@@ -18,7 +18,7 @@ class ParakeetModelLoadFailureTest(unittest.TestCase):
         with patch.dict("sys.modules", {"nemo": None, "nemo.collections": None, "nemo.collections.asr": None}):
             # Re-import with NeMo mocked away to force _HAS_NEMO = False
             import importlib
-            import screamer_worker.backends.parakeet as parakeet_mod
+            import waffle_worker.backends.parakeet as parakeet_mod
 
             original_has_nemo = parakeet_mod._HAS_NEMO
             parakeet_mod._HAS_NEMO = False

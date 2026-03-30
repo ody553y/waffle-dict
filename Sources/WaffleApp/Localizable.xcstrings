@@ -1,0 +1,6906 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "action.ask": {
+      "comment": "Action title for submitting transcript question",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聞く"
+          }
+        }
+      }
+    },
+    "action.cancel": {
+      "comment": "Generic action title for canceling a dialog",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stornieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
+        }
+      }
+    },
+    "action.collapse": {
+      "comment": "Action title for collapsing expanded content",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusammenbruch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "崩壊"
+          }
+        }
+      }
+    },
+    "action.copy": {
+      "comment": "Generic action title for copying text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピー"
+          }
+        }
+      }
+    },
+    "action.delete": {
+      "comment": "Action title for deleting an item",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消去"
+          }
+        }
+      }
+    },
+    "action.dismiss": {
+      "comment": "Generic action title for dismissing a prompt",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückweisen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "却下する"
+          }
+        }
+      }
+    },
+    "action.download": {
+      "comment": "Action title for starting model download",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herunterladen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロード"
+          }
+        }
+      }
+    },
+    "action.expand": {
+      "comment": "Action title for expanding truncated content",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expandieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拡大する"
+          }
+        }
+      }
+    },
+    "action.export": {
+      "comment": "Action title for exporting transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸出"
+          }
+        }
+      }
+    },
+    "action.openSettings": {
+      "comment": "Action title that opens the app settings window",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie Einstellungen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を開く"
+          }
+        }
+      }
+    },
+    "action.quit": {
+      "comment": "Action title that quits the app",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufhören"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "やめる"
+          }
+        }
+      }
+    },
+    "action.remove": {
+      "comment": "Action title for removing an installed model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取り除く"
+          }
+        }
+      }
+    },
+    "action.retry": {
+      "comment": "Action title to retry a failed transcription",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リトライ"
+          }
+        }
+      }
+    },
+    "action.run": {
+      "comment": "Action title for executing custom prompt",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laufen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走る"
+          }
+        }
+      }
+    },
+    "action.stop": {
+      "comment": "Action title for stopping an in-progress AI action stream",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        }
+      }
+    },
+    "app.menuBar.title": {
+      "comment": "Menu bar extra title for the Waffle app",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schreihals"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スクリーマー"
+          }
+        }
+      }
+    },
+    "dictation.panel.accessibility.error": {
+      "comment": "Accessibility label for dictation panel when dictation fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Diktat ist fehlgeschlagen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーションに失敗しました"
+          }
+        }
+      }
+    },
+    "dictation.panel.accessibility.idle": {
+      "comment": "Accessibility label for dictation panel when idle",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation panel idle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktierpanel im Leerlauf"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーション パネルのアイドル状態"
+          }
+        }
+      }
+    },
+    "dictation.panel.accessibility.recording": {
+      "comment": "Accessibility label for dictation panel when recording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording in progress"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme läuft"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音中です"
+          }
+        }
+      }
+    },
+    "dictation.panel.accessibility.success": {
+      "comment": "Accessibility label for dictation panel when dictation succeeds",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation completed successfully"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktat erfolgreich abgeschlossen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーションが正常に完了しました"
+          }
+        }
+      }
+    },
+    "dictation.panel.accessibility.transcribing": {
+      "comment": "Accessibility label for dictation panel when transcribing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription in progress"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkription läuft"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし中です"
+          }
+        }
+      }
+    },
+    "dictation.panel.announcement.error": {
+      "comment": "VoiceOver announcement when transcription fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation failed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Diktat ist fehlgeschlagen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーションに失敗しました。"
+          }
+        }
+      }
+    },
+    "dictation.panel.announcement.recording": {
+      "comment": "VoiceOver announcement when recording begins",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording started."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme gestartet."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音が開始されました。"
+          }
+        }
+      }
+    },
+    "dictation.panel.announcement.success": {
+      "comment": "VoiceOver announcement when transcription succeeds",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation completed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktat abgeschlossen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーションが完了しました。"
+          }
+        }
+      }
+    },
+    "dictation.panel.announcement.transcribing": {
+      "comment": "VoiceOver announcement when transcription begins",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing recording."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme transkribieren."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし録音。"
+          }
+        }
+      }
+    },
+    "dictation.panel.recording.escapeHint": {
+      "comment": "Hint shown in dictation panel while recording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press Esc to cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drücken Sie Esc, um den Vorgang abzubrechen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセルするにはEscを押してください"
+          }
+        }
+      }
+    },
+    "dictation.panel.state.done": {
+      "comment": "Dictation panel state label shown after successful transcription",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erledigt"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終わり"
+          }
+        }
+      }
+    },
+    "dictation.panel.state.error": {
+      "comment": "Dictation panel state label shown when dictation fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete dictation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Diktat konnte nicht abgeschlossen werden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーションを完了できませんでした"
+          }
+        }
+      }
+    },
+    "dictation.panel.state.recording": {
+      "comment": "Dictation panel state label shown while actively recording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音中…"
+          }
+        }
+      }
+    },
+    "dictation.panel.state.transcribing": {
+      "comment": "Dictation panel state label shown while transcribing audio",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkribieren…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし中…"
+          }
+        }
+      }
+    },
+    "error.connectionTestFailed": {
+      "comment": "Error shown when LM Studio connection test fails for an unknown reason",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection test failed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungstest fehlgeschlagen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続テストに失敗しました。"
+          }
+        }
+      }
+    },
+    "error.copy.failed": {
+      "comment": "Error message when transcription succeeds but clipboard copy fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribed, but copy failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkribiert, aber das Kopieren ist fehlgeschlagen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "転記できましたが、コピーに失敗しました"
+          }
+        }
+      }
+    },
+    "error.history.deleteActionResultFailed": {
+      "comment": "Error shown when deleting transcript AI action result fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete AI action result."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Ergebnis der KI-Aktion konnte nicht gelöscht werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIアクション結果の削除に失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.deleteConfirmationFailed": {
+      "comment": "Error shown when preparing delete confirmation fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to prepare delete confirmation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Löschbestätigung konnte nicht vorbereitet werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除確認の準備に失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.deleteSelectionFailed": {
+      "comment": "Error shown when deleting multiple transcripts fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete selected transcripts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die ausgewählten Transkripte konnten nicht gelöscht werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したトランスクリプトを削除できませんでした。"
+          }
+        }
+      }
+    },
+    "error.history.deleteSingleFailed": {
+      "comment": "Error shown when deleting a single transcript fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete transcript."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript konnte nicht gelöscht werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトの削除に失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.exportSelectionFailed": {
+      "comment": "Error shown when batch transcript export fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to export selected transcripts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählte Transkripte konnten nicht exportiert werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したトランスクリプトをエクスポートできませんでした。"
+          }
+        }
+      }
+    },
+    "error.history.exportSingleFailed": {
+      "comment": "Error shown when single transcript export fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to export transcript."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript konnte nicht exportiert werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトのエクスポートに失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.loadFailed": {
+      "comment": "Error shown when transcript history fetch fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load transcript history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Transkriptverlauf konnte nicht geladen werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプト履歴のロードに失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.loadPreviousActionsFailed": {
+      "comment": "Error shown when loading previous transcript AI actions fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load previous AI actions."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorherige KI-Aktionen konnten nicht geladen werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以前の AI アクションをロードできませんでした。"
+          }
+        }
+      }
+    },
+    "error.history.saveActionResultFailed": {
+      "comment": "Error shown when saving transcript AI action result fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save AI action result."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Ergebnis der KI-Aktion konnte nicht gespeichert werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIアクション結果の保存に失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.saveNotesFailed": {
+      "comment": "Error shown when persisting transcript notes fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save notes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen konnten nicht gespeichert werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモの保存に失敗しました。"
+          }
+        }
+      }
+    },
+    "error.history.saveSpeakerNamesFailed": {
+      "comment": "Error shown when persisting custom speaker names fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save speaker names."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprechernamen konnten nicht gespeichert werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "発言者の名前を保存できませんでした。"
+          }
+        }
+      }
+    },
+    "error.hotkey.saveFailed": {
+      "comment": "Error shown when global hotkey cannot be saved",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save this shortcut."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Verknüpfung konnte nicht gespeichert werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このショートカットを保存できませんでした。"
+          }
+        }
+      }
+    },
+    "error.import.transcriptionFailed": {
+      "comment": "Error shown when file import transcription fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription failed. Please try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Transkription ist fehlgeschlagen. Bitte versuchen Sie es erneut."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "転写に失敗しました。もう一度試してください。"
+          }
+        }
+      }
+    },
+    "error.import.unsupportedFileType": {
+      "comment": "Error shown when importing unsupported audio file type",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported file type. Use WAV, MP3, M4A, FLAC, or OGG."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht unterstützter Dateityp. Verwenden Sie WAV, MP3, M4A, FLAC oder OGG."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サポートされていないファイル形式です。 WAV、MP3、M4A、FLAC、または OGG を使用します。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.contextTooLong": {
+      "comment": "Error shown when transcript exceeds model context limits",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript is too long for the selected model."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Transkript ist für das ausgewählte Modell zu lang."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したモデルに対してトランスクリプトが長すぎます。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.emptyResponse": {
+      "comment": "Error shown when transcript AI action returns empty result",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model returned an empty response. Try again or select a different model."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Modell hat eine leere Antwort zurückgegeben. Versuchen Sie es erneut oder wählen Sie ein anderes Modell."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルは空の応答を返しました。もう一度試すか、別のモデルを選択してください。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.invalidHostPort": {
+      "comment": "Error shown when LM Studio host or port values are invalid",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid LM Studio host or port."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiger LM Studio-Host oder -Port."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効な LM Studio ホストまたはポートです。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.noModelsLoaded": {
+      "comment": "Error shown when LM Studio has no loaded models for transcript AI actions",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No models loaded in LM Studio. Load a model first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Modelle in LM Studio geladen. Laden Sie zuerst ein Modell."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio にモデルがロードされていません。最初にモデルをロードします。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.notAvailableActions": {
+      "comment": "Error shown when transcript AI action service cannot be used",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio is not available for AI actions."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio ist für KI-Aktionen nicht verfügbar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio は AI アクションには使用できません。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.notConfigured": {
+      "comment": "Error shown when transcript AI action is requested without LM Studio configuration",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio is not configured."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio ist nicht konfiguriert."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio が設定されていません。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.notRunning": {
+      "comment": "Error shown when LM Studio is offline while running transcript AI actions",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio is not running. Start LM Studio to use AI features."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio läuft nicht. Starten Sie LM Studio, um KI-Funktionen zu nutzen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studioが起動していません。 AI 機能を使用するには、LM Studio を起動します。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.statusCode": {
+      "comment": "Error shown when LM Studio returns an unexpected HTTP status code",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio returned status code %d."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio hat den Statuscode %d zurückgegeben."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio はステータス コード %d を返しました。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.streamUnreadable": {
+      "comment": "Error shown when streamed LM Studio response cannot be parsed",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received an unreadable streaming response from LM Studio."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe eine unlesbare Streaming-Antwort von LM Studio erhalten."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio から読み取り不能なストリーミング応答を受信しました。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.unexpectedResponse": {
+      "comment": "Error shown when LM Studio returns an unexpected response",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio returned an unexpected response."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio hat eine unerwartete Antwort zurückgegeben."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio が予期しない応答を返しました。"
+          }
+        }
+      }
+    },
+    "error.lmStudio.unreachable": {
+      "comment": "Error shown when LM Studio cannot be reached",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio is not running or unreachable."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio läuft nicht oder ist nicht erreichbar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio が実行されていないか、アクセスできません。"
+          }
+        }
+      }
+    },
+    "error.microphone.blocked": {
+      "comment": "Error shown when microphone permission is blocked",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone access is blocked. Enable it in System Settings to record."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Mikrofonzugriff ist blockiert. Aktivieren Sie es in den Systemeinstellungen, um aufzunehmen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マイクへのアクセスがブロックされています。録画するにはシステム設定で有効にしてください。"
+          }
+        }
+      }
+    },
+    "error.microphone.noInputDevice": {
+      "comment": "Error shown when no microphone input device is detected",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No microphone input device is available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ist kein Mikrofon-Eingabegerät verfügbar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マイク入力デバイスは使用できません。"
+          }
+        }
+      }
+    },
+    "error.microphone.required": {
+      "comment": "Error shown when microphone permission is denied",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone access is required to start recording."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Starten der Aufnahme ist ein Mikrofonzugriff erforderlich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音を開始するにはマイクへのアクセスが必要です。"
+          }
+        }
+      }
+    },
+    "error.model.missing": {
+      "comment": "Error shown when importing files without an installed model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No model installed. Open Settings > Models to download one."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Modell installiert. Öffnen Sie Einstellungen > Modelle, um eines herunterzuladen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルがインストールされていません。 [設定] > [モデル] を開いてダウンロードします。"
+          }
+        }
+      }
+    },
+    "error.paste.failed": {
+      "comment": "Error shown when transcription succeeds but paste into active app fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribed, but could not paste into the active app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkribiert, konnte aber nicht in die aktive App eingefügt werden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "転写されましたが、アクティブなアプリに貼り付けることができませんでした。"
+          }
+        }
+      }
+    },
+    "error.recording.failedWithDetail": {
+      "comment": "Error shown when recording fails with a detailed message",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording failed: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme fehlgeschlagen: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録に失敗しました: %@"
+          }
+        }
+      }
+    },
+    "error.recording.noneActive": {
+      "comment": "Error shown when stop is requested without an active recording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active recording was found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es wurde keine aktive Aufnahme gefunden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブな録音が見つかりませんでした。"
+          }
+        }
+      }
+    },
+    "error.transcription.timeout": {
+      "comment": "Error shown when transcription request times out",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription timed out. Try a shorter recording."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitüberschreitung bei der Transkription. Versuchen Sie es mit einer kürzeren Aufnahme."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こしがタイムアウトしました。より短い録音を試してください。"
+          }
+        }
+      }
+    },
+    "error.worker.crashedRestartFailed": {
+      "comment": "Error shown when worker restart attempt fails",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker crashed. Restart failed. Restart Waffle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeiter stürzte ab. Neustart fehlgeschlagen. Starten Sie Waffle neu."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業員が墜落した。再起動に失敗しました。スクリーマーを再起動します。"
+          }
+        }
+      }
+    },
+    "error.worker.crashedRestarting": {
+      "comment": "Error status shown while restarting crashed worker",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker crashed. Restarting…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeiter stürzte ab. Neustart..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業員が墜落した。再起動中…"
+          }
+        }
+      }
+    },
+    "error.worker.modelLoading": {
+      "comment": "Error shown when worker model is still loading",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model is still loading. Try again in a moment."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Modell wird noch geladen. Versuchen Sie es gleich noch einmal."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルはまだロード中です。しばらくしてからもう一度試してください。"
+          }
+        }
+      }
+    },
+    "error.worker.modelUnavailable": {
+      "comment": "Error shown when selected model cannot be used by worker",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected model is not available in the worker."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ausgewählte Modell ist im Worker nicht verfügbar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したモデルはワーカーでは使用できません。"
+          }
+        }
+      }
+    },
+    "error.worker.notRunning": {
+      "comment": "Error shown when worker cannot be reached over the network",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker is not running. Restart Waffle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker läuft nicht. Starten Sie Waffle neu."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワーカーが実行されていません。スクリーマーを再起動します。"
+          }
+        }
+      }
+    },
+    "error.worker.requestFailed": {
+      "comment": "Error shown when worker request fails with status code",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker request failed (%d)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker-Anfrage fehlgeschlagen (%d)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワーカー要求が失敗しました (%d)。"
+          }
+        }
+      }
+    },
+    "history.actions.askQuestion": {
+      "comment": "Button title to ask a question about transcript via AI",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask a Question"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Frage stellen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "質問する"
+          }
+        }
+      }
+    },
+    "history.actions.askQuestion.accessibility": {
+      "comment": "Accessibility label for ask-question AI action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask a question about transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stellen Sie eine Frage zum Transkript"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成績証明書について質問する"
+          }
+        }
+      }
+    },
+    "history.actions.askQuestion.placeholder": {
+      "comment": "Placeholder for transcript question input",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask a question about this transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stellen Sie eine Frage zu diesem Transkript"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このトランスクリプトについて質問する"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt": {
+      "comment": "Button title to run a custom prompt on transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom Prompt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benutzerdefinierte Eingabeaufforderung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタムプロンプト"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.accessibility": {
+      "comment": "Accessibility label for custom-prompt AI action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run custom prompt on transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führen Sie eine benutzerdefinierte Eingabeaufforderung für das Transkript aus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトでカスタム プロンプトを実行する"
+          }
+        }
+      }
+    },
+    "history.actions.customPrompt.placeholder": {
+      "comment": "Placeholder for transcript custom prompt input",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom prompt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benutzerdefinierte Eingabeaufforderung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタムプロンプト"
+          }
+        }
+      }
+    },
+    "history.actions.lmStudio.checking": {
+      "comment": "Status line while checking LM Studio connectivity for transcript actions",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking LM Studio status…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio-Status wird überprüft…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio のステータスを確認しています…"
+          }
+        }
+      }
+    },
+    "history.actions.lmStudio.chooseDefaultModel": {
+      "comment": "Error shown when transcript AI action is requested without default model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a default model in Settings > AI."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie unter „Einstellungen“ > „KI“ ein Standardmodell aus."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[設定] > [AI] でデフォルトのモデルを選択します。"
+          }
+        }
+      }
+    },
+    "history.actions.lmStudio.noModels": {
+      "comment": "Status line when LM Studio is reachable but has no loaded model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No models loaded in LM Studio. Load a model first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Modelle in LM Studio geladen. Laden Sie zuerst ein Modell."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio にモデルがロードされていません。最初にモデルをロードします。"
+          }
+        }
+      }
+    },
+    "history.actions.previous.empty": {
+      "comment": "Message shown when transcript has no prior AI actions",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No previous actions yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine vorherigen Aktionen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以前のアクションはまだありません。"
+          }
+        }
+      }
+    },
+    "history.actions.previous.section": {
+      "comment": "Disclosure title for previous AI actions",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous Actions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorherige Aktionen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以前のアクション"
+          }
+        }
+      }
+    },
+    "history.actions.summarise": {
+      "comment": "Button title to summarize a transcript via AI",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summarise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusammenfassen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要約する"
+          }
+        }
+      }
+    },
+    "history.actions.summarise.accessibility": {
+      "comment": "Accessibility label for transcript summarization action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summarise transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript zusammenfassen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトを要約する"
+          }
+        }
+      }
+    },
+    "history.actions.translate": {
+      "comment": "Button title to confirm transcript translation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻訳する"
+          }
+        }
+      }
+    },
+    "history.actions.translate.accessibility": {
+      "comment": "Accessibility label for transcript translation action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript übersetzen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトを翻訳する"
+          }
+        }
+      }
+    },
+    "history.actions.translate.language": {
+      "comment": "Picker label for translation target language",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語"
+          }
+        }
+      }
+    },
+    "history.actions.type.custom": {
+      "comment": "Label for previously saved custom prompt AI action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brauch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタム"
+          }
+        }
+      }
+    },
+    "history.actions.type.question": {
+      "comment": "Label for previously saved question AI action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frage"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "質問"
+          }
+        }
+      }
+    },
+    "history.actions.type.summary": {
+      "comment": "Label for previously saved summary AI action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusammenfassung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まとめ"
+          }
+        }
+      }
+    },
+    "history.actions.type.translate": {
+      "comment": "Label for previously saved translation AI action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻訳する"
+          }
+        }
+      }
+    },
+    "history.actions.waitingResponse": {
+      "comment": "Status text while waiting for first streamed AI token",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for response…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warten auf Antwort…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "応答を待っています…"
+          }
+        }
+      }
+    },
+    "history.delete.alert.actionLabel.plural": {
+      "comment": "Plural phrase for associated AI actions in delete confirmation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI actions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Aktionen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIのアクション"
+          }
+        }
+      }
+    },
+    "history.delete.alert.actionLabel.singular": {
+      "comment": "Singular phrase for one associated AI action in delete confirmation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI action"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Aktion"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIアクション"
+          }
+        }
+      }
+    },
+    "history.delete.alert.message": {
+      "comment": "Delete confirmation message including cascade deletion count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone. %d associated %@ will also be deleted."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Aktion kann nicht rückgängig gemacht werden. Der zugehörige %d %@ wird ebenfalls gelöscht."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この操作は元に戻すことができません。 %d に関連付けられた %@ も削除されます。"
+          }
+        }
+      }
+    },
+    "history.delete.alert.title": {
+      "comment": "Delete confirmation title showing transcript count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %d transcripts?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d-Transkripte löschen?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d トランスクリプトを削除しますか?"
+          }
+        }
+      }
+    },
+    "history.delete.alert.title.fallback": {
+      "comment": "Fallback delete confirmation alert title",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete transcripts?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkripte löschen?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトを削除しますか?"
+          }
+        }
+      }
+    },
+    "history.empty.description": {
+      "comment": "Empty-state description when no transcripts exist",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a dictation or import audio to build your history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starten Sie ein Diktat oder importieren Sie Audio, um Ihren Verlauf zu erstellen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーションを開始するか、音声をインポートして履歴を構築します。"
+          }
+        }
+      }
+    },
+    "history.empty.noResults.description": {
+      "comment": "Empty-state description when search has no matches",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different search term."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versuchen Sie es mit einem anderen Suchbegriff."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別の検索語を試してください。"
+          }
+        }
+      }
+    },
+    "history.empty.noResults.title": {
+      "comment": "Empty-state title when search filters return no results",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Ergebnisse"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結果はありません"
+          }
+        }
+      }
+    },
+    "history.empty.title": {
+      "comment": "Empty-state title when transcript history has no items",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No transcripts yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Transkripte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだトランスクリプトはありません"
+          }
+        }
+      }
+    },
+    "history.export.format.label": {
+      "comment": "Label shown in export save panel for selecting export format",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形式："
+          }
+        }
+      }
+    },
+    "history.filters.activeCount": {
+      "comment": "Accessibility value announcing count of active filters",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d filters active"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d Filter aktiv"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d フィルターがアクティブです"
+          }
+        }
+      }
+    },
+    "history.filters.button": {
+      "comment": "Button title that expands and collapses transcript filters",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルター"
+          }
+        }
+      }
+    },
+    "history.filters.button.accessibility": {
+      "comment": "Accessibility label for filters button",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルター"
+          }
+        }
+      }
+    },
+    "history.filters.clear": {
+      "comment": "Action title to clear all transcript filters",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Filters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter löschen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルターをクリアする"
+          }
+        }
+      }
+    },
+    "history.filters.from": {
+      "comment": "Label for start date filter",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "から"
+          }
+        }
+      }
+    },
+    "history.filters.hasSpeakers": {
+      "comment": "Toggle label for filtering transcripts with speaker diarization",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Has speakers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hat Lautsprecher"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スピーカーあり"
+          }
+        }
+      }
+    },
+    "history.filters.model": {
+      "comment": "Picker label for transcript model filter",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル"
+          }
+        }
+      }
+    },
+    "history.filters.model.all": {
+      "comment": "Option label for including all models in filter",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Models"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Modelle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全モデル"
+          }
+        }
+      }
+    },
+    "history.filters.source": {
+      "comment": "Picker label for transcript source filter",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソース"
+          }
+        }
+      }
+    },
+    "history.filters.source.option.all": {
+      "comment": "Filter option label for all transcript sources",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全て"
+          }
+        }
+      }
+    },
+    "history.filters.source.option.dictation": {
+      "comment": "Filter option label for dictation transcript source",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーション"
+          }
+        }
+      }
+    },
+    "history.filters.source.option.imported": {
+      "comment": "Filter option label for imported-file transcript source",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importiert"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入品"
+          }
+        }
+      }
+    },
+    "history.filters.to": {
+      "comment": "Label for end date filter",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "に"
+          }
+        }
+      }
+    },
+    "history.import.diarization.description": {
+      "comment": "Description for diarization import toggle",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adds speaker labels to imported-file timelines and exports."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fügt Sprecherbezeichnungen zu Zeitleisten und Exporten importierter Dateien hinzu."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インポートされたファイルのタイムラインとエクスポートにスピーカー ラベルを追加します。"
+          }
+        }
+      }
+    },
+    "history.import.diarization.toggle": {
+      "comment": "Toggle label to request diarization when importing files",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker identification"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identifizierung des Sprechers"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "話者の識別"
+          }
+        }
+      }
+    },
+    "history.import.dropZone.description": {
+      "comment": "Description under audio file drop zone",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imports are processed one file at a time and saved to history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importe werden jeweils dateiweise verarbeitet und im Verlauf gespeichert."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インポートは一度に 1 ファイルずつ処理され、履歴に保存されます。"
+          }
+        }
+      }
+    },
+    "history.import.dropZone.formats": {
+      "comment": "Supported file format hint for drop zone",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV, MP3, M4A, FLAC, OGG"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV, MP3, M4A, FLAC, OGG"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WAV、MP3、M4A、FLAC、OGG"
+          }
+        }
+      }
+    },
+    "history.import.dropZone.title": {
+      "comment": "Title for audio file drop zone in transcript history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drop audio files here"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legen Sie Audiodateien hier ab"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ここに音声ファイルをドロップします"
+          }
+        }
+      }
+    },
+    "history.import.job.failed": {
+      "comment": "Status line for failed transcript import job",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import failed: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import fehlgeschlagen: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インポートに失敗しました: %@"
+          }
+        }
+      }
+    },
+    "history.import.job.queued": {
+      "comment": "Status line for queued transcript import job",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queued: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Warteschlange: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キューに登録されました: %@"
+          }
+        }
+      }
+    },
+    "history.import.job.transcribing": {
+      "comment": "Status line for in-progress transcript import job",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkribieren: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし: %@"
+          }
+        }
+      }
+    },
+    "history.menu.copyTranscript": {
+      "comment": "Command menu item for copying selected transcript text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Transcript Text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkripttext kopieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトテキストをコピーする"
+          }
+        }
+      }
+    },
+    "history.menu.deleteTranscript": {
+      "comment": "Command menu item for deleting selected transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript löschen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトの削除"
+          }
+        }
+      }
+    },
+    "history.menu.exportTranscript": {
+      "comment": "Command menu item for exporting selected transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript exportieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトのエクスポート"
+          }
+        }
+      }
+    },
+    "history.menu.find": {
+      "comment": "Command menu item for focusing search",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探す"
+          }
+        }
+      }
+    },
+    "history.menu.openHistory": {
+      "comment": "Command menu item for opening transcript history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie den Verlauf"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴を開く"
+          }
+        }
+      }
+    },
+    "history.menu.selectAll": {
+      "comment": "Command menu item for selecting all visible transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select All"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie „Alle“ aus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて選択"
+          }
+        }
+      }
+    },
+    "history.menu.title": {
+      "comment": "Command menu title for history actions",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschichte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歴史"
+          }
+        }
+      }
+    },
+    "history.notes.placeholder": {
+      "comment": "Placeholder text for transcript notes editor",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add notes…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen hinzufügen…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモを追加…"
+          }
+        }
+      }
+    },
+    "history.notes.section": {
+      "comment": "Section title for transcript notes editor",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注意事項"
+          }
+        }
+      }
+    },
+    "history.parakeet.wavHint": {
+      "comment": "Hint shown when Parakeet model is selected",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet currently works best with WAV files for imported audio."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet funktioniert derzeit am besten mit WAV-Dateien für importiertes Audio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet は現在、インポートされたオーディオの WAV ファイルで最適に動作します。"
+          }
+        }
+      }
+    },
+    "history.row.accessibility.action.collapse": {
+      "comment": "Accessibility action name for collapsing an expanded transcript row",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusammenbruch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "崩壊"
+          }
+        }
+      }
+    },
+    "history.row.accessibility.action.expand": {
+      "comment": "Accessibility action name for expanding a transcript row",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expandieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拡大する"
+          }
+        }
+      }
+    },
+    "history.row.accessibility.hint.expandCollapse": {
+      "comment": "Accessibility hint for transcript row expand and collapse action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to expand transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppeltippen, um das Transkript zu erweitern"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダブルタップしてトランスクリプトを展開します"
+          }
+        }
+      }
+    },
+    "history.row.accessibility.label": {
+      "comment": "Accessibility label for a transcript history row including date, source, and word count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript from %@, %@, %d words"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript aus %@, %@, %d Wörtern"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@、%@、%d の単語の転写"
+          }
+        }
+      }
+    },
+    "history.row.speakers.count": {
+      "comment": "Badge showing count of unique speakers in transcript",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speakers: %d"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprecher: %d"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スピーカー: %d"
+          }
+        }
+      }
+    },
+    "history.row.timeline.toggle": {
+      "comment": "Toggle label for switching transcript row to timeline mode",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timeline"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitleiste"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイムライン"
+          }
+        }
+      }
+    },
+    "history.search.accessibility": {
+      "comment": "Accessibility label for transcript history search field",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search transcripts"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkripte durchsuchen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトの検索"
+          }
+        }
+      }
+    },
+    "history.search.placeholder": {
+      "comment": "Placeholder text for transcript history search field",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search transcripts"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkripte durchsuchen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトの検索"
+          }
+        }
+      }
+    },
+    "history.source.dictation": {
+      "comment": "Accessibility source name for dictation transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーション"
+          }
+        }
+      }
+    },
+    "history.source.importedFile": {
+      "comment": "Accessibility source name for imported transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported File"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importierte Datei"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インポートされたファイル"
+          }
+        }
+      }
+    },
+    "history.speakers.rename.placeholder": {
+      "comment": "Placeholder for custom speaker display name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名前"
+          }
+        }
+      }
+    },
+    "history.speakers.rename.reset": {
+      "comment": "Action title to clear custom speaker names",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Names"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namen zurücksetzen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名前のリセット"
+          }
+        }
+      }
+    },
+    "history.speakers.rename.section": {
+      "comment": "Disclosure title for transcript speaker renaming controls",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename Speakers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lautsprecher umbenennen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スピーカーの名前を変更する"
+          }
+        }
+      }
+    },
+    "history.storage.localOnly": {
+      "comment": "Informational text about transcript history being stored locally",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All transcript history is stored locally on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der gesamte Transkriptverlauf wird lokal auf diesem Gerät gespeichert."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのトランスクリプト履歴はこのデバイスにローカルに保存されます。"
+          }
+        }
+      }
+    },
+    "history.timeline.segment.accessibility": {
+      "comment": "Accessibility label for a timeline transcript segment",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@: %@"
+          }
+        }
+      }
+    },
+    "history.timeline.speaker.unknown": {
+      "comment": "Fallback speaker label for timeline accessibility",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown speaker"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannter Sprecher"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明な話者"
+          }
+        }
+      }
+    },
+    "history.tip.multiSelect": {
+      "comment": "Tip text describing multi-select behavior and keyboard shortcut location",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip: Command-click transcript rows to multi-select for batch export and delete. Keyboard shortcuts are listed in Settings > General."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipp: Klicken Sie bei gedrückter Befehlstaste auf Transkriptzeilen, um eine Mehrfachauswahl für den Stapelexport und das Löschen vorzunehmen. Tastaturkürzel werden unter „Einstellungen“ > „Allgemein“ aufgeführt."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒント: コマンドを押しながらトランスクリプト行をクリックして、一括エクスポートと削除を複数選択します。キーボード ショートカットは、[設定] > [一般] にリストされています。"
+          }
+        }
+      }
+    },
+    "history.toolbar.copyText": {
+      "comment": "Toolbar button title for copying selected transcript text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text kopieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストをコピーする"
+          }
+        }
+      }
+    },
+    "history.toolbar.copyText.help": {
+      "comment": "Tooltip for copy text toolbar button with shortcut",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Text (\\u{2318}C)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text kopieren (\\u{2318}C)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストをコピー (\\u{2318}C)"
+          }
+        }
+      }
+    },
+    "history.toolbar.delete.help": {
+      "comment": "Tooltip for delete toolbar button with shortcut",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete (\\u{2318}\\u{232b})"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen (\\u{2318}\\u{232b})"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除 (\\u{2318}\\u{232b})"
+          }
+        }
+      }
+    },
+    "history.toolbar.export.help": {
+      "comment": "Tooltip for export toolbar button with shortcut",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export (\\u{2318}E)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportieren (\\u{2318}E)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エクスポート (\\u{2318}E)"
+          }
+        }
+      }
+    },
+    "history.toolbar.importFile": {
+      "comment": "Toolbar button title for importing audio files",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import File…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datei importieren…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルをインポート…"
+          }
+        }
+      }
+    },
+    "history.toolbar.importFile.help": {
+      "comment": "Tooltip for import file toolbar button",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import File"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datei importieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インポートファイル"
+          }
+        }
+      }
+    },
+    "history.unavailable.description": {
+      "comment": "Description shown when transcript history database cannot be opened",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle could not open the transcript history database."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffle konnte die Transkript-Verlaufsdatenbank nicht öffnen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スクリーマーはトランスクリプト履歴データベースを開けませんでした。"
+          }
+        }
+      }
+    },
+    "history.unavailable.title": {
+      "comment": "Title shown when transcript history database cannot be opened",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History Unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf nicht verfügbar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴は利用できません"
+          }
+        }
+      }
+    },
+    "history.window.title": {
+      "comment": "Window title for transcript history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschichte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歴史"
+          }
+        }
+      }
+    },
+    "menu.accessibilityPrompt.body": {
+      "comment": "Message prompting the user to grant macOS Accessibility permission",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To paste directly into the active app, enable Accessibility access for Waffle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um direkt in die aktive App einzufügen, aktivieren Sie den barrierefreien Zugriff für Waffle."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブなアプリに直接貼り付けるには、Waffle のアクセシビリティ アクセスを有効にします。"
+          }
+        }
+      }
+    },
+    "menu.accessibilityPrompt.openSettings": {
+      "comment": "Action title that opens macOS Accessibility privacy settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Accessibility Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie die Barrierefreiheitseinstellungen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセシビリティ設定を開く"
+          }
+        }
+      }
+    },
+    "menu.history.button": {
+      "comment": "Button title that opens transcript history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschichte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歴史"
+          }
+        }
+      }
+    },
+    "menu.history.help": {
+      "comment": "Tooltip for history button including keyboard shortcut",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History (\\u{2318}H)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschichte (\\u{2318}H)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歴史 (\\u{2318}H)"
+          }
+        }
+      }
+    },
+    "menu.hotkey.inactive": {
+      "comment": "Message shown when the global hotkey is inactive",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global hotkey %@ is inactive. Enable Accessibility access to use it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der globale Hotkey %@ ist inaktiv. Aktivieren Sie den barrierefreien Zugriff, um ihn zu verwenden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバル ホットキー %@ は非アクティブです。使用するには、アクセシビリティ アクセスを有効にしてください。"
+          }
+        }
+      }
+    },
+    "menu.microphoneSettings.open": {
+      "comment": "Action title to open macOS microphone privacy settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Microphone Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie die Mikrofoneinstellungen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マイク設定を開く"
+          }
+        }
+      }
+    },
+    "menu.model.hint": {
+      "comment": "Accessibility hint for the model row in menu bar",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currently selected transcription model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derzeit ausgewähltes Transkriptionsmodell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在選択されている転写モデル"
+          }
+        }
+      }
+    },
+    "menu.model.missing": {
+      "comment": "Guidance shown in menu bar when no models are installed",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No model installed. Open Settings -> Models to download one."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Modell installiert. Öffnen Sie Einstellungen -> Modelle, um eines herunterzuladen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルがインストールされていません。 [設定] -> [モデル] を開いてダウンロードします。"
+          }
+        }
+      }
+    },
+    "menu.model.noneInstalled": {
+      "comment": "Placeholder shown when no models are installed",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None installed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine installiert"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何もインストールされていません"
+          }
+        }
+      }
+    },
+    "menu.model.title": {
+      "comment": "Model label shown in menu bar popover",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル："
+          }
+        }
+      }
+    },
+    "menu.preview.duration.unknown": {
+      "comment": "Duration label shown when preview duration is unavailable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown duration"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannte Dauer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期間不明"
+          }
+        }
+      }
+    },
+    "menu.preview.metadata": {
+      "comment": "Transcript preview metadata line: words, duration, model, and timestamp",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d words • %@ • %@ • %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d Wörter • %@ • %@ • %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 単語 • %@ • %@ • %@"
+          }
+        }
+      }
+    },
+    "menu.preview.openHistory": {
+      "comment": "Button title in menu preview card to open the transcript in history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Verlauf öffnen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴で開く"
+          }
+        }
+      }
+    },
+    "menu.recording.accessibility.start": {
+      "comment": "Accessibility label for record button while idle",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start recording"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starten Sie die Aufnahme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音を開始する"
+          }
+        }
+      }
+    },
+    "menu.recording.accessibility.stop": {
+      "comment": "Accessibility label for record button while recording is active",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop recording"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppen Sie die Aufnahme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音を停止する"
+          }
+        }
+      }
+    },
+    "menu.recording.accessibility.transcribing": {
+      "comment": "Accessibility label for record button while transcription is running",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkribieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし"
+          }
+        }
+      }
+    },
+    "menu.recording.start": {
+      "comment": "Button title to start recording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Recording"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starten Sie die Aufnahme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音を開始する"
+          }
+        }
+      }
+    },
+    "menu.recording.stop": {
+      "comment": "Button title to stop an active recording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Recording"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppen Sie die Aufnahme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音を停止する"
+          }
+        }
+      }
+    },
+    "menu.settings.button": {
+      "comment": "Button title that opens settings from menu bar popover",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定…"
+          }
+        }
+      }
+    },
+    "menu.settings.help": {
+      "comment": "Tooltip for settings button including keyboard shortcut",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings (\\u{2318},)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen (\\u{2318},)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定 (\\u{2318},)"
+          }
+        }
+      }
+    },
+    "menu.transcribing.accessibility": {
+      "comment": "Accessibility label for transcribing status row",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription in progress"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkription läuft"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし中です"
+          }
+        }
+      }
+    },
+    "menu.worker.accessibility.running": {
+      "comment": "Accessibility label when background worker is healthy",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker running"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeiter läuft"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走っている労働者"
+          }
+        }
+      }
+    },
+    "menu.worker.accessibility.stopped": {
+      "comment": "Accessibility label when background worker is unavailable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker stopped"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeiter blieb stehen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業員が停止しました"
+          }
+        }
+      }
+    },
+    "menu.worker.state.checking": {
+      "comment": "Worker health state shown while checking worker health",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überprüfung…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チェック中…"
+          }
+        }
+      }
+    },
+    "menu.worker.state.modelLoading": {
+      "comment": "Worker health state shown while model is loading",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model loading…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell wird geladen…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルを読み込み中…"
+          }
+        }
+      }
+    },
+    "menu.worker.state.offline": {
+      "comment": "Worker health state shown when worker is unavailable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オフライン"
+          }
+        }
+      }
+    },
+    "menu.worker.state.ok": {
+      "comment": "Worker health state shown when worker is ready",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "わかりました"
+          }
+        }
+      }
+    },
+    "menu.worker.status": {
+      "comment": "Worker status line shown in menu bar popover",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeiter: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業者: %@"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.accessibility.connected": {
+      "comment": "Accessibility label for connected LM Studio status indicator",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio connected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio verbunden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LMスタジオが接続されました"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.accessibility.notConnected": {
+      "comment": "Accessibility label for disconnected LM Studio status indicator",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio not connected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio nicht verbunden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LMスタジオが接続されていません"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.connected": {
+      "comment": "Connection status when LM Studio is reachable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続済み"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.enterHost": {
+      "comment": "Connection status prompting for host input",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a host to connect."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geben Sie einen Host ein, um eine Verbindung herzustellen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続するホストを入力します。"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.host": {
+      "comment": "Text field placeholder for LM Studio host",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gastgeber"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ホスト"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.invalidPort": {
+      "comment": "Connection status error for invalid LM Studio port",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Port must be a valid number."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Port muss eine gültige Nummer sein."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポートは有効な番号である必要があります。"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.noModels": {
+      "comment": "Connection status shown when LM Studio is reachable but has no loaded models",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected, but no models are loaded in LM Studio."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden, aber in LM Studio sind keine Modelle geladen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続されていますが、LM Studio にモデルがロードされていません。"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.notConnected": {
+      "comment": "Connection status when LM Studio is unreachable",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not connected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verbunden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続されていません"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.port": {
+      "comment": "Text field placeholder for LM Studio port",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Port"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hafen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポート"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.section": {
+      "comment": "Section title for LM Studio connection settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio Connection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio-Verbindung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LMスタジオ接続"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.success": {
+      "comment": "Connection status shown when LM Studio test succeeds",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection successful."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung erfolgreich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続に成功しました。"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.test": {
+      "comment": "Action title to test LM Studio connection",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test Connection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testverbindung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テスト接続"
+          }
+        }
+      }
+    },
+    "settings.ai.connection.test.hint": {
+      "comment": "Accessibility hint for LM Studio test-connection button",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tests connection to LM Studio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testet die Verbindung zu LM Studio"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studioへの接続をテストします"
+          }
+        }
+      }
+    },
+    "settings.ai.defaultModel.help": {
+      "comment": "Help text below default model picker",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models are managed in LM Studio. Load a model there to use it here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelle werden in LM Studio verwaltet. Laden Sie dort ein Modell, um es hier zu verwenden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルは LM Studio で管理されます。ここで使用するには、そこにモデルをロードします。"
+          }
+        }
+      }
+    },
+    "settings.ai.defaultModel.noneLoaded": {
+      "comment": "Placeholder option shown when LM Studio has no loaded models",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No models loaded"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Modelle geladen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルがロードされていません"
+          }
+        }
+      }
+    },
+    "settings.ai.defaultModel.picker": {
+      "comment": "Picker label for default LM Studio model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル"
+          }
+        }
+      }
+    },
+    "settings.ai.defaultModel.section": {
+      "comment": "Section title for default LM Studio model selection",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default Model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardmodell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトのモデル"
+          }
+        }
+      }
+    },
+    "settings.ai.defaults.diarizationHint": {
+      "comment": "Help text for diarization prerequisites",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaker identification requires a HuggingFace token configured in the worker."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für die Sprecheridentifizierung ist ein im Worker konfiguriertes HuggingFace-Token erforderlich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "話者の識別には、ワーカーに構成された HuggingFace トークンが必要です。"
+          }
+        }
+      }
+    },
+    "settings.ai.defaults.section": {
+      "comment": "Section title for AI default preferences",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defaults"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardeinstellungen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルト"
+          }
+        }
+      }
+    },
+    "settings.ai.defaults.streaming": {
+      "comment": "Toggle label for using streaming LM Studio responses",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use streaming responses"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwenden Sie Streaming-Antworten"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ストリーミング応答を使用する"
+          }
+        }
+      }
+    },
+    "settings.ai.defaults.translationLanguage": {
+      "comment": "Picker label for default translation target language",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default translation language"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardübersetzungssprache"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトの翻訳言語"
+          }
+        }
+      }
+    },
+    "settings.general.copyFallback": {
+      "comment": "Toggle label for clipboard fallback when paste cannot run",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy to clipboard as fallback"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Ersatz in die Zwischenablage kopieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フォールバックとしてクリップボードにコピーします"
+          }
+        }
+      }
+    },
+    "settings.general.debug.copyReport": {
+      "comment": "Action title to copy performance report to clipboard",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Report"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht kopieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レポートのコピー"
+          }
+        }
+      }
+    },
+    "settings.general.debug.dbFetchAll": {
+      "comment": "Debug metric row label for database fetch-all timing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB Fetch All"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB-Alles abrufen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB すべてフェッチ"
+          }
+        }
+      }
+    },
+    "settings.general.debug.dbSave": {
+      "comment": "Debug metric row label for database save timing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB Save"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB-Speichern"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB保存"
+          }
+        }
+      }
+    },
+    "settings.general.debug.dbSearch": {
+      "comment": "Debug metric row label for database search timing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB Search"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB-Suche"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DB検索"
+          }
+        }
+      }
+    },
+    "settings.general.debug.enableHint": {
+      "comment": "Hint explaining how to enable debug section through defaults",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable with terminal: defaults write com.waffle.app showDebugInfo -bool true"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Terminal aktivieren: Standardwerte schreiben com.waffle.app showDebugInfo -bool true"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ターミナルで有効にする: デフォルトは com.waffle.app showDebugInfo -bool true を書き込みます"
+          }
+        }
+      }
+    },
+    "settings.general.debug.metricValue": {
+      "comment": "Formatted debug metric value showing average duration and sample count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ avg (%dx)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Durchschnitt (%dx)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 平均 (%dx)"
+          }
+        }
+      }
+    },
+    "settings.general.debug.metricValue.combined": {
+      "comment": "Formatted debug metric value showing average duration and sample count",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ avg (%dx)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Durchschnitt (%dx)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 平均 (%dx)"
+          }
+        }
+      }
+    },
+    "settings.general.debug.noSamples": {
+      "comment": "Fallback text when no performance metric samples are available",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No samples"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Proben"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルはありません"
+          }
+        }
+      }
+    },
+    "settings.general.debug.section": {
+      "comment": "Section title for performance debug metrics",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debuggen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバッグ"
+          }
+        }
+      }
+    },
+    "settings.general.debug.startup": {
+      "comment": "Debug metric row label for app startup timing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start-up"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起動する"
+          }
+        }
+      }
+    },
+    "settings.general.debug.transcriptionAvg": {
+      "comment": "Debug metric row label for average transcription timing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Avg"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkription Durchschn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こしの平均"
+          }
+        }
+      }
+    },
+    "settings.general.debug.workerHealth": {
+      "comment": "Debug metric row label for worker health check timing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worker Health"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesundheit der Arbeitnehmer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "労働者の健康"
+          }
+        }
+      }
+    },
+    "settings.general.languageHint.autoDetect": {
+      "comment": "Option label for automatic language detection",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-detect"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Erkennung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動検出"
+          }
+        }
+      }
+    },
+    "settings.general.languageHint.help": {
+      "comment": "Help text explaining language hint behavior",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-detect sends no language hint. Selecting a language sends its ISO 639-1 code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die automatische Erkennung sendet keinen Sprachhinweis. Wenn Sie eine Sprache auswählen, wird deren ISO 639-1-Code gesendet."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動検出では言語ヒントは送信されません。言語を選択すると、その ISO 639-1 コードが送信されます。"
+          }
+        }
+      }
+    },
+    "settings.general.languageHint.parakeetOnly": {
+      "comment": "Help text when Parakeet model is selected and language hint is locked to English",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet supports English only. Waffle will send \"en\" while Parakeet is selected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet unterstützt nur Englisch. Waffle sendet „en“, während Sittich ausgewählt ist."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インコは英語のみをサポートしています。 Parakeet が選択されている間、Waffle は「en」を送信します。"
+          }
+        }
+      }
+    },
+    "settings.general.languageHint.picker": {
+      "comment": "Picker label for selecting language hint",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語"
+          }
+        }
+      }
+    },
+    "settings.general.languageHint.section": {
+      "comment": "Section title for dictation language hint settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Hint"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachhinweis"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語のヒント"
+          }
+        }
+      }
+    },
+    "settings.general.pasteIntoActiveApp": {
+      "comment": "Toggle label for auto-paste behavior after dictation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste into active app after transcription"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach der Transkription in die aktive App einfügen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし後にアクティブなアプリに貼り付けます"
+          }
+        }
+      }
+    },
+    "settings.general.previewAutoDismissHint": {
+      "comment": "Help text for preview auto-dismiss stepper",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set to 0 to keep the preview visible until dismissed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf 0 setzen, um die Vorschau sichtbar zu halten, bis sie verworfen wird."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 に設定すると、プレビューが閉じられるまで表示されたままになります。"
+          }
+        }
+      }
+    },
+    "settings.general.previewAutoDismissSeconds": {
+      "comment": "Stepper label controlling transcript preview auto-dismiss seconds",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview auto-dismiss (seconds): %d"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau automatisch schließen (Sekunden): %d"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレビューの自動終了 (秒): %d"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.copyTranscript": {
+      "comment": "Shortcut row label for copying transcript text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Transcript"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript kopieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成績証明書のコピー"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.deleteSelected": {
+      "comment": "Shortcut row label for deleting selected transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Selected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählte löschen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したものを削除"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.export": {
+      "comment": "Shortcut row label for exporting transcripts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸出"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.find": {
+      "comment": "Shortcut row label for find action in history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finden"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探す"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.globalHotkey": {
+      "comment": "Displayed shortcut value for global record hotkey",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global hotkey"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Globaler Hotkey"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバルホットキー"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.listNavigation": {
+      "comment": "Shortcut row label for keyboard list navigation keys",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List Navigation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listennavigation"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リストナビゲーション"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.openHistory": {
+      "comment": "Shortcut row label for opening transcript history",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie den Verlauf"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴を開く"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.openSettings": {
+      "comment": "Shortcut row label for opening settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie Einstellungen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を開く"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.recordStop": {
+      "comment": "Shortcut row label for record/stop action",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record / Stop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme / Stopp"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音/停止"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.section": {
+      "comment": "Section title listing keyboard shortcuts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard Shortcuts"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastaturkürzel"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーボードショートカット"
+          }
+        }
+      }
+    },
+    "settings.general.shortcuts.selectAllVisible": {
+      "comment": "Shortcut row label for selecting all visible transcript rows",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select All Visible"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie „Alle sichtbar“ aus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示されているすべてを選択"
+          }
+        }
+      }
+    },
+    "settings.general.showPreviewAfterDictation": {
+      "comment": "Toggle label for showing menu bar transcript preview after dictation",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show preview after dictation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau nach dem Diktat anzeigen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディクテーション後にプレビューを表示する"
+          }
+        }
+      }
+    },
+    "settings.general.transcriptionModel.empty": {
+      "comment": "Message shown when no transcription models are installed",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No installed models yet. Open the Models tab to download one."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine installierten Modelle. Öffnen Sie die Registerkarte „Modelle“, um eines herunterzuladen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだインストールされているモデルはありません。 「モデル」タブを開いてダウンロードします。"
+          }
+        }
+      }
+    },
+    "settings.general.transcriptionModel.hint": {
+      "comment": "Help text below transcription model picker",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The next transcription will use the selected installed model."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei der nächsten Transkription wird das ausgewählte installierte Modell verwendet."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次回の転写では、選択したインストール済みモデルが使用されます。"
+          }
+        }
+      }
+    },
+    "settings.general.transcriptionModel.picker": {
+      "comment": "Picker label for selecting installed transcription model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkriptionsmodell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "転写モデル"
+          }
+        }
+      }
+    },
+    "settings.general.transcriptionModel.section": {
+      "comment": "Section title for selecting the transcription model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkriptionsmodell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "転写モデル"
+          }
+        }
+      }
+    },
+    "settings.general.updates.autoCheck": {
+      "comment": "Toggle label controlling automatic update checks",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for updates automatically"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchen Sie automatisch nach Updates"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを自動的にチェックする"
+          }
+        }
+      }
+    },
+    "settings.general.updates.checkNow": {
+      "comment": "Action title to manually check for updates",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt prüfen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐチェック"
+          }
+        }
+      }
+    },
+    "settings.general.updates.currentVersion": {
+      "comment": "Label for currently installed app version",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Version"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Version"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のバージョン"
+          }
+        }
+      }
+    },
+    "settings.general.updates.lastCheck": {
+      "comment": "Label for last time update check was run",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Check"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Check"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終チェック"
+          }
+        }
+      }
+    },
+    "settings.general.updates.section": {
+      "comment": "Section title for app update preferences",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisierungen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデート"
+          }
+        }
+      }
+    },
+    "settings.keyboard.globalHotkey": {
+      "comment": "Label for currently configured global hotkey",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global Hotkey"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Globaler Hotkey"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバルホットキー"
+          }
+        }
+      }
+    },
+    "settings.keyboard.globalHotkey.value": {
+      "comment": "Accessibility label describing the current global hotkey value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current global hotkey %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktueller globaler Hotkey %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のグローバル ホットキー %@"
+          }
+        }
+      }
+    },
+    "settings.keyboard.help": {
+      "comment": "Help text describing global hotkey requirements",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcuts must include at least one modifier key. Avoid common Spotlight shortcuts like ⌘Space."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastenkombinationen müssen mindestens eine Sondertaste enthalten. Vermeiden Sie gängige Spotlight-Verknüpfungen wie ⌘Leertaste."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットには少なくとも 1 つの修飾キーが含まれている必要があります。 ⌘Space などの一般的な Spotlight ショートカットは避けてください。"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.delete": {
+      "comment": "Display label for Delete key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消去"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.down": {
+      "comment": "Display label for down arrow key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Down"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.escape": {
+      "comment": "Display label for Escape key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esc"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESC"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.forwardDelete": {
+      "comment": "Display label for Forward Delete key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Del"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Del"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デル"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.generic": {
+      "comment": "Fallback key label when a key code has no friendly name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key%d"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel%d"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キー%d"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.left": {
+      "comment": "Display label for left arrow key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.return": {
+      "comment": "Display label for Return key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückkehren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戻る"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.right": {
+      "comment": "Display label for right arrow key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Right"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechts"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.space": {
+      "comment": "Display label for Space key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raum"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空間"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.tab": {
+      "comment": "Display label for Tab key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タブ"
+          }
+        }
+      }
+    },
+    "settings.keyboard.keyLabel.up": {
+      "comment": "Display label for up arrow key in hotkey recorder",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上"
+          }
+        }
+      }
+    },
+    "settings.keyboard.recordingButton.change": {
+      "comment": "Button title to start changing the global hotkey",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変化…"
+          }
+        }
+      }
+    },
+    "settings.keyboard.recordingButton.recording": {
+      "comment": "Button title while waiting for hotkey capture",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press your shortcut…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drücken Sie Ihre Tastenkombination ..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットを押して…"
+          }
+        }
+      }
+    },
+    "settings.keyboard.recordingPrompt": {
+      "comment": "Prompt shown while waiting for user to press a new hotkey",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press your shortcut…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drücken Sie Ihre Tastenkombination ..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットを押して…"
+          }
+        }
+      }
+    },
+    "settings.keyboard.resetDefault": {
+      "comment": "Action title for resetting global hotkey to default",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to Default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf Standard zurücksetzen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトにリセット"
+          }
+        }
+      }
+    },
+    "settings.keyboard.validation.modifierRequired": {
+      "comment": "Validation message shown when captured shortcut has no required modifiers",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcut must include at least one modifier (⌘, ⌥, ⌃, ⇧)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verknüpfung muss mindestens einen Modifikator enthalten (⌘, ⌥, ⌃, ⇧)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットには少なくとも 1 つの修飾子 (⌘、⌥、⌃、⇧) を含める必要があります。"
+          }
+        }
+      }
+    },
+    "settings.keyboard.validation.systemConflict": {
+      "comment": "Validation message shown when captured shortcut likely conflicts with system shortcuts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That shortcut likely conflicts with a system shortcut. Try a different combo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Verknüpfung steht wahrscheinlich im Konflikt mit einer Systemverknüpfung. Versuchen Sie es mit einer anderen Kombination."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "そのショートカットはシステム ショートカットと競合する可能性があります。別のコンボを試してください。"
+          }
+        }
+      }
+    },
+    "settings.language.arabic": {
+      "comment": "Language option label for Arabic",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arabic"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arabisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アラビア語"
+          }
+        }
+      }
+    },
+    "settings.language.chinese": {
+      "comment": "Language option label for Chinese",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chinese"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chinesisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国語"
+          }
+        }
+      }
+    },
+    "settings.language.english": {
+      "comment": "Language option label for English",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Englisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英語"
+          }
+        }
+      }
+    },
+    "settings.language.french": {
+      "comment": "Language option label for French",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "French"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Französisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フランス語"
+          }
+        }
+      }
+    },
+    "settings.language.german": {
+      "comment": "Language option label for German",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "German"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドイツ語"
+          }
+        }
+      }
+    },
+    "settings.language.hindi": {
+      "comment": "Language option label for Hindi",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒンディー語"
+          }
+        }
+      }
+    },
+    "settings.language.italian": {
+      "comment": "Language option label for Italian",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Italian"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Italienisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "イタリア語"
+          }
+        }
+      }
+    },
+    "settings.language.japanese": {
+      "comment": "Language option label for Japanese",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Japanese"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "japanisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        }
+      }
+    },
+    "settings.language.korean": {
+      "comment": "Language option label for Korean",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korean"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koreanisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "韓国人"
+          }
+        }
+      }
+    },
+    "settings.language.portuguese": {
+      "comment": "Language option label for Portuguese",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portuguese"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portugiesisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポルトガル語"
+          }
+        }
+      }
+    },
+    "settings.language.russian": {
+      "comment": "Language option label for Russian",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Russian"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Russisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロシア"
+          }
+        }
+      }
+    },
+    "settings.language.spanish": {
+      "comment": "Language option label for Spanish",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spanish"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spanisch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スペイン語"
+          }
+        }
+      }
+    },
+    "settings.models.badge.comingSoon": {
+      "comment": "Badge shown for a model that is not downloadable yet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coming Soon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demnächst erhältlich"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近日公開"
+          }
+        }
+      }
+    },
+    "settings.models.badge.inUse": {
+      "comment": "Badge shown for the currently selected model",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Einsatz"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用中"
+          }
+        }
+      }
+    },
+    "settings.models.badge.installed": {
+      "comment": "Badge shown for a model installed on disk",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installiert"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インストール済み"
+          }
+        }
+      }
+    },
+    "settings.models.catalog.updated": {
+      "comment": "Notice shown when remote model catalog update adds new models",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updated model catalog"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisierter Modellkatalog"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルカタログを更新しました"
+          }
+        }
+      }
+    },
+    "settings.models.downloadState.installed": {
+      "comment": "Accessibility label announcing installed model state",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model installed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell installiert"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搭載モデル"
+          }
+        }
+      }
+    },
+    "settings.models.downloadState.progress": {
+      "comment": "Accessibility label describing model download progress",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading %@, %d percent"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download %@, %d Prozent"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@、%d パーセントをダウンロードしています"
+          }
+        }
+      }
+    },
+    "settings.models.downloadState.unavailable": {
+      "comment": "Accessibility label announcing unavailable model state",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell nicht verfügbar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルが利用できません"
+          }
+        }
+      }
+    },
+    "settings.models.refresh": {
+      "comment": "Action title to refresh model catalog in settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisieren"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リフレッシュ"
+          }
+        }
+      }
+    },
+    "settings.tab.ai": {
+      "comment": "Settings tab title for LM Studio AI configuration",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI"
+          }
+        }
+      }
+    },
+    "settings.tab.general": {
+      "comment": "Settings tab title for general preferences",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allgemein"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般的な"
+          }
+        }
+      }
+    },
+    "settings.tab.keyboard": {
+      "comment": "Settings tab title for keyboard shortcut configuration",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastatur"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーボード"
+          }
+        }
+      }
+    },
+    "settings.tab.models": {
+      "comment": "Settings tab title for model downloads and management",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル"
+          }
+        }
+      }
+    },
+    "settings.updates.currentVersion.dev": {
+      "comment": "Fallback app version string used in development builds",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dev"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwickler"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開発者"
+          }
+        }
+      }
+    },
+    "settings.updates.lastCheck.never": {
+      "comment": "Fallback text when no update check has been run yet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niemals"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一度もない"
+          }
+        }
+      }
+    },
+    "status.copiedToClipboard": {
+      "comment": "Status message when transcript is only copied to clipboard",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied to clipboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In die Zwischenablage kopiert"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードにコピーされました"
+          }
+        }
+      }
+    },
+    "status.pastedIntoApp": {
+      "comment": "Status message when transcript is pasted into the active app",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasted into app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In App eingefügt"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリに貼り付けられました"
+          }
+        }
+      }
+    },
+    "status.transcribing": {
+      "comment": "Status text shown while a recording is transcribing",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkribieren…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし中…"
+          }
+        }
+      }
+    },
+    "status.unavailable": {
+      "comment": "Status text for models that cannot be downloaded",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verfügbar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用不可"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

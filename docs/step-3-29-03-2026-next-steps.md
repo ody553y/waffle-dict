@@ -30,16 +30,16 @@ We're at the **end of Phase 0 / beginning of Phase 1**. The foundation is solid:
 Each task below is a self-contained unit of work. Tasks are ordered by dependency — later tasks build on earlier ones. Each should be committed separately.
 
 ### Task 1: Build the Paste Helper
-**Target:** `Sources/ScreamerCore/PasteHelper.swift`
+**Target:** `Sources/WaffleCore/PasteHelper.swift`
 
-Create a new `PasteHelper` in ScreamerCore that:
+Create a new `PasteHelper` in WaffleCore that:
 - Writes a given string to `NSPasteboard.general`
 - Checks Accessibility permission via `PermissionsService`
 - If granted, synthesises `Cmd+V` via `CGEvent` to paste into the active app
 - Returns a structured result enum: `.pastedAndCopied`, `.copiedOnly`, `.copyFailed`
 - Must be testable with injected side effects (protocol for pasteboard + event posting)
 
-**Tests:** `Tests/ScreamerCoreTests/PasteHelperTests.swift`
+**Tests:** `Tests/WaffleCoreTests/PasteHelperTests.swift`
 - Accessibility granted → paste succeeds
 - Accessibility missing → clipboard-only
 - Clipboard write failure → `.copyFailed`
@@ -50,7 +50,7 @@ Create a new `PasteHelper` in ScreamerCore that:
 ---
 
 ### Task 2: Wire the End-to-End MVP Flow in MenuBarView
-**Target:** `Sources/ScreamerApp/MenuBarView.swift`
+**Target:** `Sources/WaffleApp/MenuBarView.swift`
 
 Update MenuBarView to coordinate the full dictation flow:
 
@@ -71,7 +71,7 @@ Update MenuBarView to coordinate the full dictation flow:
 ---
 
 ### Task 3: Handle Microphone Permission in the Recording Flow
-**Target:** `Sources/ScreamerApp/MenuBarView.swift`, `Sources/ScreamerCore/AudioCaptureService.swift`
+**Target:** `Sources/WaffleApp/MenuBarView.swift`, `Sources/WaffleCore/AudioCaptureService.swift`
 
 Currently the recording start doesn't check microphone permission status. Wire it up:
 
@@ -85,7 +85,7 @@ Currently the recording start doesn't check microphone permission status. Wire i
 ---
 
 ### Task 4: Accessibility Permission Prompt on First Paste
-**Target:** `Sources/ScreamerCore/PasteHelper.swift`, `Sources/ScreamerApp/MenuBarView.swift`
+**Target:** `Sources/WaffleCore/PasteHelper.swift`, `Sources/WaffleApp/MenuBarView.swift`
 
 When the first transcription completes and Accessibility is not granted:
 
@@ -102,7 +102,7 @@ When the first transcription completes and Accessibility is not granted:
 ---
 
 ### Task 5: Worker File Transcription Endpoint — Robustness
-**Target:** `worker/screamer_worker/server.py`, `worker/tests/test_server.py`
+**Target:** `worker/waffle_worker/server.py`, `worker/tests/test_server.py`
 
 Harden the `/transcriptions/file` endpoint:
 
@@ -119,7 +119,7 @@ Harden the `/transcriptions/file` endpoint:
 ---
 
 ### Task 6: Worker Health — Report Model Readiness
-**Target:** `worker/screamer_worker/server.py`, `worker/screamer_worker/models.py`
+**Target:** `worker/waffle_worker/server.py`, `worker/waffle_worker/models.py`
 
 Extend `/health` to report whether a model is loaded and ready:
 
@@ -134,7 +134,7 @@ Extend `/health` to report whether a model is loaded and ready:
 ---
 
 ### Task 7: Transcription Result Display Polish
-**Target:** `Sources/ScreamerApp/MenuBarView.swift`
+**Target:** `Sources/WaffleApp/MenuBarView.swift`
 
 Improve the post-transcription UI:
 

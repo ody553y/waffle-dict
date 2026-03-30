@@ -3,8 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_PATH="${1:-$REPO_ROOT/build/Screamer.app}"
-ZIP_PATH="$REPO_ROOT/build/Screamer.zip"
+APP_PATH="${1:-$REPO_ROOT/build/Waffle.app}"
+ZIP_PATH="$REPO_ROOT/build/Waffle.zip"
 
 if [[ -z "${APPLE_ID:-}" ]]; then
   echo "error: APPLE_ID is required for notarization." >&2

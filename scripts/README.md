@@ -1,6 +1,6 @@
 # Release Scripts
 
-This directory contains the production release workflow for Screamer:
+This directory contains the production release workflow for Waffle:
 
 1. Build and sign a hardened-runtime `.app` bundle
 2. (Optional) Submit for notarization and staple the ticket
@@ -12,7 +12,7 @@ This directory contains the production release workflow for Screamer:
 - Apple Developer account with a valid **Developer ID Application** certificate
 - Xcode command-line tools (`codesign`, `notarytool`, `stapler`, `hdiutil`)
 - Sparkle signing key pair (for appcast archive signatures)
-- Access to publish files on `updates.screamer.app`
+- Access to publish files on `updates.waffle.app`
 
 ## Required Environment Variables
 
@@ -21,7 +21,7 @@ This directory contains the production release workflow for Screamer:
 - `SIGNING_IDENTITY`
   - Example: `Developer ID Application: Example, Inc. (ABCDE12345)`
 - `VERSION` (optional)
-  - Defaults to `CFBundleShortVersionString` from `Sources/ScreamerApp/Info.plist`
+  - Defaults to `CFBundleShortVersionString` from `Sources/WaffleApp/Info.plist`
 
 ### Notarization (required only when `NOTARIZE=1`)
 
@@ -34,7 +34,7 @@ This directory contains the production release workflow for Screamer:
 - `SPARKLE_PRIVATE_KEY_PATH`
   - Path to the private EdDSA key generated with Sparkle's `generate_keys`
 - `VERSION`
-  - Used to locate `build/Screamer-${VERSION}.dmg`
+  - Used to locate `build/Waffle-${VERSION}.dmg`
 
 ## Build and Sign
 
@@ -46,8 +46,8 @@ VERSION="1.0.0" \
 
 Outputs:
 
-- `build/Screamer.app`
-- `build/Screamer-<version>.dmg`
+- `build/Waffle.app`
+- `build/Waffle-<version>.dmg`
 
 ## Build, Notarize, Staple, and Create DMG
 
@@ -68,7 +68,7 @@ The script invokes `./scripts/notarize.sh` when `NOTARIZE=1`.
 After DMG creation, generate Sparkle metadata:
 
 ```bash
-SPARKLE_PRIVATE_KEY_PATH="$HOME/.config/screamer/sparkle-private-key.pem" \
+SPARKLE_PRIVATE_KEY_PATH="$HOME/.config/waffle/sparkle-private-key.pem" \
 VERSION="1.0.0" \
 ./scripts/sign-update.sh
 ```
