@@ -8,6 +8,7 @@ import UniformTypeIdentifiers
 struct TranscriptHistoryView: View {
     @ObservedObject private var modelStore: ModelStore
     @StateObject private var viewModel: TranscriptHistoryViewModel
+    @StateObject private var audioPlayer = AudioPlayerService()
     @State private var expandedRecordIDs: Set<Int64> = []
     @State private var isDropTargeted = false
 
@@ -16,6 +17,7 @@ struct TranscriptHistoryView: View {
     @AppStorage("lmStudioModelID") private var lmStudioModelID = ""
     @AppStorage("lmStudioDefaultTranslationLanguage")
     private var lmStudioDefaultTranslationLanguage = AppLanguageOption.defaultCode
+    @AppStorage("speakerMatchThreshold") private var speakerMatchThreshold = 0.85
 
     @State private var lmStudioReachabilityStatus: LMStudioReachabilityStatus = .unknown
     @State private var actionInputModeByRecordID: [Int64: TranscriptActionInputMode] = [:]
@@ -32,17 +34,34 @@ struct TranscriptHistoryView: View {
     @State private var expandedPreviousActionResultIDs: Set<Int64> = []
     @State private var timelineEnabledRecordIDs: Set<Int64> = []
     @State private var speakerNameDraftsByRecordID: [Int64: [String: String]] = [:]
+    @State private var speakerSuggestionsByRecordID: [Int64: [TranscriptHistoryViewModel.SpeakerSuggestion]] = [:]
+    @State private var dismissedSuggestionLabelsByRecordID: [Int64: Set<String>] = [:]
+    @State private var speakerProfileSaveFeedbackByRecordID: [Int64: [String: String]] = [:]
     @State private var notesDraftByRecordID: [Int64: String] = [:]
     @State private var notesSaveTaskByRecordID: [Int64: Task<Void, Never>] = [:]
     @State private var pendingBatchDeleteSummary: TranscriptHistoryViewModel.DeleteSelectionSummary?
+    @State private var archiveImportSummary: TranscriptArchiveImportResult?
+    @State private var archiveImportErrorMessage: String?
     @State private var pendingExternalSelectionID: Int64?
     @State private var isDiarizationAvailable = false
     @State private var requestDiarizationForImports = false
     @State private var keyboardFocusedRecordID: Int64?
+    @State private var loadedAudioRecordID: Int64?
+    @State private var audioScrubberTime: Double = 0
+    @State private var isAudioScrubbing = false
+    @State private var audioErrorByRecordID: [Int64: String] = [:]
+    @State private var promptTemplates: [PromptTemplate] = []
+    @State private var isSavePromptTemplateSheetPresented = false
+    @State private var savePromptTemplateTargetRecordID: Int64?
+    @State private var savePromptTemplateName = ""
+    @State private var savePromptTemplatePrompt = ""
+    @State private var savePromptTemplateError: String?
+    @State private var customPromptTemplateFeedbackByRecordID: [Int64: String] = [:]
     @State private var keyDownMonitor: Any?
     @FocusState private var focusedSpeakerField: SpeakerRenameField?
     @FocusState private var focusedNotesRecordID: Int64?
     @FocusState private var historyKeyboardFocus: HistoryKeyboardFocus?
+    private let promptTemplateStore = PromptTemplateStore()
 
     init(transcriptStore: TranscriptStore, modelStore: ModelStore) {
         self._modelStore = ObservedObject(wrappedValue: modelStore)
@@ -153,24 +172,33 @@ struct TranscriptHistoryView: View {
                     )
                 )
             } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 10) {
-                        ForEach(Array(viewModel.records.enumerated()), id: \.offset) { index, record in
-                            transcriptRow(record)
-                                .onAppear {
-                                    viewModel.loadMoreIfNeeded(currentIndex: index)
-                                }
-                        }
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 10) {
+                            ForEach(Array(viewModel.records.enumerated()), id: \.offset) { index, record in
+                                transcriptRow(record)
+                                    .id(rowScrollID(for: record, index: index))
+                                    .onAppear {
+                                        viewModel.loadMoreIfNeeded(currentIndex: index)
+                                    }
+                            }
 
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                            }
                         }
                     }
-                }
-                .onTapGesture {
-                    historyKeyboardFocus = .list
+                    .onChange(of: keyboardFocusedRecordID) { _, newValue in
+                        guard let newValue else { return }
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            proxy.scrollTo(rowScrollID(for: newValue), anchor: .center)
+                        }
+                    }
+                    .onTapGesture {
+                        historyKeyboardFocus = .list
+                    }
                 }
             }
         }
@@ -192,6 +220,23 @@ struct TranscriptHistoryView: View {
                         "history.toolbar.importFile.help",
                         default: "Import File",
                         comment: "Tooltip for import file toolbar button"
+                    )
+                )
+
+                Button(
+                    localized(
+                        "history.toolbar.importArchive",
+                        default: "Import Archive…",
+                        comment: "Toolbar button title for importing transcript archive files"
+                    )
+                ) {
+                    presentImportArchivePanel()
+                }
+                .help(
+                    localized(
+                        "history.toolbar.importArchive.help",
+                        default: "Import transcript archive",
+                        comment: "Tooltip for import archive toolbar button"
                     )
                 )
 
@@ -233,6 +278,24 @@ struct TranscriptHistoryView: View {
 
                 Button(
                     localized(
+                        "history.toolbar.share",
+                        default: "Share",
+                        comment: "Toolbar button title for sharing selected transcripts as an archive"
+                    )
+                ) {
+                    viewModel.shareSelection()
+                }
+                .disabled(viewModel.selectedRecords.isEmpty)
+                .help(
+                    localized(
+                        "history.toolbar.share.help",
+                        default: "Share selected transcripts as a Screamer archive",
+                        comment: "Tooltip for share toolbar button"
+                    )
+                )
+
+                Button(
+                    localized(
                         "action.delete",
                         default: "Delete",
                         comment: "Action title for deleting selected transcripts"
@@ -259,14 +322,19 @@ struct TranscriptHistoryView: View {
         .task {
             modelStore.refreshCatalog()
             viewModel.loadInitial()
+            loadPromptTemplates()
             await refreshLMStudioReachability()
             await refreshDiarizationAvailability()
         }
         .onAppear {
             installKeyDownMonitorIfNeeded()
+            loadPromptTemplates()
             if historyKeyboardFocus == nil {
                 historyKeyboardFocus = .list
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
+            loadPromptTemplates()
         }
         .task(id: lmStudioConnectionSignature) {
             await refreshLMStudioReachability()
@@ -295,6 +363,7 @@ struct TranscriptHistoryView: View {
             pruneAIState(validRecordIDs: validIDs)
             pruneSpeakerDraftState(validRecordIDs: validIDs)
             pruneNotesState(validRecordIDs: validIDs)
+            pruneAudioState(validRecordIDs: validIDs)
             if let keyboardFocusedRecordID, validIDs.contains(keyboardFocusedRecordID) == false {
                 self.keyboardFocusedRecordID = nil
             }
@@ -308,9 +377,18 @@ struct TranscriptHistoryView: View {
                 self.pendingExternalSelectionID = nil
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .screamerImportTranscriptArchive)) { _ in
+            presentImportArchivePanel()
+        }
+        .onChange(of: speakerMatchThreshold) { _, _ in
+            for recordID in expandedRecordIDs {
+                refreshSpeakerSuggestions(for: recordID)
+            }
+        }
         .onChange(of: focusedSpeakerField) { oldValue, newValue in
             guard oldValue != newValue, let oldValue else { return }
             persistSpeakerNameDraft(for: oldValue.recordID, speaker: oldValue.speaker)
+            refreshSpeakerSuggestions(for: oldValue.recordID)
         }
         .onChange(of: focusedNotesRecordID) { oldValue, newValue in
             guard oldValue != newValue, let oldValue else { return }
@@ -320,6 +398,7 @@ struct TranscriptHistoryView: View {
             cancelAllStreamingTasks()
             flushAllNotesSaves()
             removeKeyDownMonitor()
+            pauseAndResetAudioPlayer()
         }
         .focusedValue(
             \.historySelectionActions,
@@ -335,6 +414,9 @@ struct TranscriptHistoryView: View {
                 }
             )
         )
+        .sheet(isPresented: $isSavePromptTemplateSheetPresented) {
+            savePromptTemplateSheet
+        }
         .alert(
             pendingBatchDeleteSummary?.alertTitle
                 ?? localized(
@@ -342,14 +424,7 @@ struct TranscriptHistoryView: View {
                     default: "Delete transcripts?",
                     comment: "Fallback delete confirmation alert title"
                 ),
-            isPresented: Binding(
-                get: { pendingBatchDeleteSummary != nil },
-                set: { isPresented in
-                    if isPresented == false {
-                        pendingBatchDeleteSummary = nil
-                    }
-                }
-            )
+            isPresented: batchDeleteAlertBinding
         ) {
             Button(
                 localized(
@@ -378,6 +453,93 @@ struct TranscriptHistoryView: View {
                 Text(summary.alertMessage)
             }
         }
+        .alert(
+            localized(
+                "history.importArchive.summary.title",
+                default: "Archive Import Complete",
+                comment: "Title for transcript archive import summary alert"
+            ),
+            isPresented: archiveImportSummaryAlertBinding
+        ) {
+            Button(
+                localized(
+                    "action.ok",
+                    default: "OK",
+                    comment: "Generic action title for confirming an alert"
+                )
+            ) {
+                archiveImportSummary = nil
+            }
+        } message: {
+            if let summary = archiveImportSummary {
+                Text(
+                    localizedFormat(
+                        "history.importArchive.summary.message",
+                        default: "Imported %d transcripts with %d AI actions. Skipped %d duplicates.",
+                        comment: "Summary message shown after importing transcript archives",
+                        summary.importedTranscriptCount,
+                        summary.importedActionCount,
+                        summary.skippedDuplicateCount
+                    )
+                )
+            }
+        }
+        .alert(
+            localized(
+                "history.importArchive.error.title",
+                default: "Import Failed",
+                comment: "Title for archive import failure alert"
+            ),
+            isPresented: archiveImportErrorAlertBinding
+        ) {
+            Button(
+                localized(
+                    "action.ok",
+                    default: "OK",
+                    comment: "Generic action title for confirming an alert"
+                ),
+                role: .cancel
+            ) {
+                archiveImportErrorMessage = nil
+            }
+        } message: {
+            if let archiveImportErrorMessage {
+                Text(archiveImportErrorMessage)
+            }
+        }
+    }
+
+    private var batchDeleteAlertBinding: Binding<Bool> {
+        Binding(
+            get: { pendingBatchDeleteSummary != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    pendingBatchDeleteSummary = nil
+                }
+            }
+        )
+    }
+
+    private var archiveImportSummaryAlertBinding: Binding<Bool> {
+        Binding(
+            get: { archiveImportSummary != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    archiveImportSummary = nil
+                }
+            }
+        )
+    }
+
+    private var archiveImportErrorAlertBinding: Binding<Bool> {
+        Binding(
+            get: { archiveImportErrorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    archiveImportErrorMessage = nil
+                }
+            }
+        )
     }
 
     private var dropZone: some View {
@@ -424,17 +586,8 @@ struct TranscriptHistoryView: View {
                     style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
                 )
         )
-        .dropDestination(for: URL.self) { droppedURLs, _ in
-            guard droppedURLs.isEmpty == false else { return false }
-            viewModel.enqueueImportedFiles(
-                droppedURLs,
-                selectedModelID: modelStore.resolvedSelectedModelID,
-                languageHint: nil,
-                requestDiarization: requestDiarizationForImports
-            )
-            return true
-        } isTargeted: { isTargeted in
-            isDropTargeted = isTargeted
+        .onDrop(of: [UTType.fileURL], isTargeted: $isDropTargeted) { providers in
+            handleDroppedFileProviders(providers)
         }
     }
 
@@ -733,6 +886,132 @@ struct TranscriptHistoryView: View {
         )
     }
 
+    private func presentImportArchivePanel() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = TranscriptHistoryViewModel.supportedArchiveContentTypes
+
+        guard panel.runModal() == .OK else { return }
+        importArchiveURLs(panel.urls)
+    }
+
+    private func handleDroppedFileProviders(_ providers: [NSItemProvider]) -> Bool {
+        let fileURLProviders = providers.filter {
+            $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+        }
+        guard fileURLProviders.isEmpty == false else { return false }
+
+        loadDroppedFileURLs(from: fileURLProviders) { urls in
+            handleDroppedFileURLs(urls)
+        }
+        return true
+    }
+
+    private func loadDroppedFileURLs(
+        from providers: [NSItemProvider],
+        completion: @escaping ([URL]) -> Void
+    ) {
+        final class URLAccumulator: @unchecked Sendable {
+            private let lock = NSLock()
+            private var urls: [URL] = []
+
+            func append(_ url: URL) {
+                lock.lock()
+                urls.append(url)
+                lock.unlock()
+            }
+
+            func snapshot() -> [URL] {
+                lock.lock()
+                defer { lock.unlock() }
+                return urls
+            }
+        }
+
+        let group = DispatchGroup()
+        let accumulator = URLAccumulator()
+
+        for provider in providers {
+            group.enter()
+            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                defer { group.leave() }
+
+                let droppedURL: URL?
+                if let url = item as? URL {
+                    droppedURL = url
+                } else if let data = item as? Data {
+                    droppedURL = URL(dataRepresentation: data, relativeTo: nil)
+                } else if let string = item as? String {
+                    droppedURL = URL(string: string)
+                } else {
+                    droppedURL = nil
+                }
+
+                guard let droppedURL else { return }
+                accumulator.append(droppedURL)
+            }
+        }
+
+        group.notify(queue: .main) {
+            completion(accumulator.snapshot())
+        }
+    }
+
+    private func handleDroppedFileURLs(_ urls: [URL]) {
+        guard urls.isEmpty == false else { return }
+
+        let archiveURLs = urls.filter { TranscriptHistoryViewModel.isSupportedArchiveFile($0) }
+        let audioURLs = urls.filter { TranscriptHistoryViewModel.isSupportedAudioFile($0) }
+
+        if archiveURLs.isEmpty == false {
+            importArchiveURLs(archiveURLs)
+        }
+
+        if audioURLs.isEmpty == false {
+            viewModel.enqueueImportedFiles(
+                audioURLs,
+                selectedModelID: modelStore.resolvedSelectedModelID,
+                languageHint: nil,
+                requestDiarization: requestDiarizationForImports
+            )
+        }
+    }
+
+    private func importArchiveURLs(_ urls: [URL]) {
+        guard urls.isEmpty == false else { return }
+
+        var aggregate = TranscriptArchiveImportResult(
+            importedTranscriptCount: 0,
+            importedActionCount: 0,
+            skippedDuplicateCount: 0,
+            firstImportedTranscriptID: nil
+        )
+
+        do {
+            for url in urls {
+                let result = try viewModel.importArchive(from: url)
+                aggregate.importedTranscriptCount += result.importedTranscriptCount
+                aggregate.importedActionCount += result.importedActionCount
+                aggregate.skippedDuplicateCount += result.skippedDuplicateCount
+                if aggregate.firstImportedTranscriptID == nil {
+                    aggregate.firstImportedTranscriptID = result.firstImportedTranscriptID
+                }
+            }
+
+            archiveImportSummary = aggregate
+            archiveImportErrorMessage = nil
+
+            if let firstImportedID = aggregate.firstImportedTranscriptID {
+                selectTranscriptFromExternalNavigation(firstImportedID)
+            }
+        } catch {
+            archiveImportSummary = nil
+            archiveImportErrorMessage = error.localizedDescription
+        }
+    }
+
     @ViewBuilder
     private func transcriptRow(_ record: TranscriptRecord) -> some View {
         let isExpanded = record.id.map { expandedRecordIDs.contains($0) } ?? false
@@ -763,6 +1042,10 @@ struct TranscriptHistoryView: View {
 
             if isExpanded {
                 Divider()
+
+                if let recordID = record.id, record.audioFilePath != nil {
+                    audioPlaybackSection(record: record, recordID: recordID)
+                }
 
                 if let recordID = record.id, let segments = record.segments, segments.isEmpty == false {
                     HStack(spacing: 8) {
@@ -796,7 +1079,7 @@ struct TranscriptHistoryView: View {
                     }
 
                     if timelineEnabledRecordIDs.contains(recordID) {
-                        timelineView(for: record, segments: segments)
+                        timelineView(for: record, recordID: recordID, segments: segments)
                     } else {
                         Text(record.text)
                             .font(.body)
@@ -813,6 +1096,7 @@ struct TranscriptHistoryView: View {
                 }
 
                 if let recordID = record.id {
+                    transcriptTransferSection(recordID: recordID)
                     transcriptNotesSection(record: record, recordID: recordID)
                 }
 
@@ -872,6 +1156,57 @@ struct TranscriptHistoryView: View {
             historyKeyboardFocus = .list
             toggleTranscriptExpansion(recordID)
         }
+        .contextMenu {
+            if let recordID = record.id {
+                Button(
+                    localized(
+                        "history.row.contextMenu.share",
+                        default: "Share…",
+                        comment: "Context menu action for sharing a transcript archive"
+                    )
+                ) {
+                    viewModel.shareRecord(id: recordID)
+                }
+
+                Button(
+                    localized(
+                        "history.row.contextMenu.export",
+                        default: "Export…",
+                        comment: "Context menu action for exporting a transcript"
+                    )
+                ) {
+                    viewModel.exportRecord(id: recordID)
+                }
+            }
+        }
+    }
+
+    private func transcriptTransferSection(recordID: Int64) -> some View {
+        HStack(spacing: 8) {
+            Button(
+                localized(
+                    "history.row.export",
+                    default: "Export…",
+                    comment: "Button title for exporting a single expanded transcript"
+                )
+            ) {
+                viewModel.exportRecord(id: recordID)
+            }
+            .buttonStyle(.bordered)
+
+            Button(
+                localized(
+                    "history.row.share",
+                    default: "Share…",
+                    comment: "Button title for sharing a single expanded transcript archive"
+                )
+            ) {
+                viewModel.shareRecord(id: recordID)
+            }
+            .buttonStyle(.bordered)
+
+            Spacer()
+        }
     }
 
     private func transcriptRowAccessibilityLabel(_ record: TranscriptRecord) -> String {
@@ -890,12 +1225,128 @@ struct TranscriptHistoryView: View {
 
     private func toggleTranscriptExpansion(_ recordID: Int64) {
         if expandedRecordIDs.contains(recordID) {
-            expandedRecordIDs.remove(recordID)
-            stopStreaming(for: recordID)
+            collapseTranscript(recordID)
         } else {
-            expandedRecordIDs.insert(recordID)
-            viewModel.loadActions(for: recordID)
+            expandTranscript(recordID)
         }
+    }
+
+    private func expandTranscript(_ recordID: Int64) {
+        if let loadedAudioRecordID, loadedAudioRecordID != recordID {
+            pauseAndResetAudioPlayer()
+        }
+        expandedRecordIDs.insert(recordID)
+        viewModel.loadActions(for: recordID)
+        refreshSpeakerSuggestions(for: recordID)
+        loadAudioForExpandedTranscript(recordID)
+    }
+
+    private func collapseTranscript(_ recordID: Int64) {
+        expandedRecordIDs.remove(recordID)
+        stopStreaming(for: recordID)
+        speakerProfileSaveFeedbackByRecordID[recordID] = nil
+        if loadedAudioRecordID == recordID {
+            pauseAndResetAudioPlayer()
+        }
+    }
+
+    @ViewBuilder
+    private func audioPlaybackSection(record: TranscriptRecord, recordID: Int64) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let audioError = audioErrorByRecordID[recordID] {
+                HStack(spacing: 8) {
+                    Text(audioError)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Button(
+                        localized(
+                            "action.dismiss",
+                            default: "Dismiss",
+                            comment: "Action title for dismissing inline status messages"
+                        )
+                    ) {
+                        audioErrorByRecordID[recordID] = nil
+                    }
+                    .buttonStyle(.link)
+                    .font(.caption)
+                }
+            } else if loadedAudioRecordID == recordID, audioPlayer.isLoaded {
+                HStack(spacing: 8) {
+                    Button {
+                        if audioPlayer.isPlaying {
+                            audioPlayer.pause()
+                        } else {
+                            audioPlayer.play()
+                        }
+                    } label: {
+                        Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(
+                        audioPlayer.isPlaying
+                            ? localized(
+                                "history.audio.pause",
+                                default: "Pause audio",
+                                comment: "Accessibility label for pausing transcript audio"
+                            )
+                            : localized(
+                                "history.audio.play",
+                                default: "Play audio",
+                                comment: "Accessibility label for playing transcript audio"
+                            )
+                    )
+
+                    Slider(
+                        value: playbackSliderBinding(for: recordID),
+                        in: 0 ... max(audioPlayer.duration, 0.1),
+                        onEditingChanged: { isEditing in
+                            if isEditing {
+                                isAudioScrubbing = true
+                                audioScrubberTime = audioPlayer.currentTime
+                            } else {
+                                isAudioScrubbing = false
+                                audioPlayer.seek(to: audioScrubberTime)
+                            }
+                        }
+                    )
+
+                    Text(
+                        "\(playbackTimestamp(for: displayedPlaybackTime(for: recordID))) / \(playbackTimestamp(for: audioPlayer.duration))"
+                    )
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                }
+            } else if record.audioFilePath != nil {
+                Text(
+                    localized(
+                        "history.audio.loading",
+                        default: "Loading audio…",
+                        comment: "Status text while loading retained transcript audio"
+                    )
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func playbackSliderBinding(for recordID: Int64) -> Binding<Double> {
+        Binding(
+            get: {
+                guard loadedAudioRecordID == recordID else { return 0 }
+                return isAudioScrubbing ? audioScrubberTime : audioPlayer.currentTime
+            },
+            set: { newValue in
+                audioScrubberTime = newValue
+            }
+        )
+    }
+
+    private func displayedPlaybackTime(for recordID: Int64) -> Double {
+        guard loadedAudioRecordID == recordID else { return 0 }
+        return isAudioScrubbing ? audioScrubberTime : audioPlayer.currentTime
     }
 
     @ViewBuilder
@@ -1062,35 +1513,96 @@ struct TranscriptHistoryView: View {
             }
 
             if actionInputModeByRecordID[recordID] == .customPrompt {
-                HStack(spacing: 8) {
-                    TextField(
-                        localized(
-                            "history.actions.customPrompt.placeholder",
-                            default: "Custom prompt",
-                            comment: "Placeholder for transcript custom prompt input"
-                        ),
-                        text: customPromptBinding(for: recordID)
-                    )
-                        .textFieldStyle(.roundedBorder)
-                    Button(
-                        localized(
-                            "action.run",
-                            default: "Run",
-                            comment: "Action title for executing custom prompt"
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 10) {
+                        Menu(
+                            localized(
+                                "history.actions.customPrompt.useTemplate",
+                                default: "Use template…",
+                                comment: "Menu button title for selecting a saved prompt template"
+                            )
+                        ) {
+                            if promptTemplates.isEmpty {
+                                Text(
+                                    localized(
+                                        "history.actions.customPrompt.noTemplates",
+                                        default: "No templates saved",
+                                        comment: "Empty-state text shown in custom prompt template picker"
+                                    )
+                                )
+                                .disabled(true)
+                            } else {
+                                ForEach(promptTemplates) { template in
+                                    Button(template.name) {
+                                        customPromptInputByRecordID[recordID] = template.prompt
+                                        customPromptTemplateFeedbackByRecordID[recordID] = nil
+                                    }
+                                }
+                            }
+                        }
+
+                        Button(
+                            localized(
+                                "history.actions.customPrompt.saveTemplate",
+                                default: "Save as template…",
+                                comment: "Button title for saving current custom prompt as a template"
+                            )
+                        ) {
+                            preparePromptTemplateSave(for: recordID)
+                        }
+                        .disabled(
+                            customPromptInputByRecordID[recordID, default: ""]
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                                .isEmpty
                         )
-                    ) {
-                        let prompt = customPromptInputByRecordID[recordID, default: ""]
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard prompt.isEmpty == false else { return }
-                        startStreamingAction(
-                            .customPrompt(prompt: prompt),
-                            for: record,
-                            recordID: recordID
-                        )
-                        actionInputModeByRecordID[recordID] = TranscriptActionInputMode.none
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(areTranscriptActionsEnabled == false)
+
+                    TextEditor(text: customPromptBinding(for: recordID))
+                        .frame(minHeight: 84, maxHeight: 160)
+                        .font(.body)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                        )
+
+                    HStack(spacing: 8) {
+                        Button(
+                            localized(
+                                "action.run",
+                                default: "Run",
+                                comment: "Action title for executing custom prompt"
+                            )
+                        ) {
+                            let prompt = customPromptInputByRecordID[recordID, default: ""]
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard prompt.isEmpty == false else { return }
+                            startStreamingAction(
+                                .customPrompt(prompt: prompt),
+                                for: record,
+                                recordID: recordID
+                            )
+                            actionInputModeByRecordID[recordID] = TranscriptActionInputMode.none
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(areTranscriptActionsEnabled == false)
+
+                        Button(
+                            localized(
+                                "action.cancel",
+                                default: "Cancel",
+                                comment: "Generic action title for canceling a dialog"
+                            )
+                        ) {
+                            actionInputModeByRecordID[recordID] = TranscriptActionInputMode.none
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    if let message = customPromptTemplateFeedbackByRecordID[recordID] {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
 
@@ -1273,6 +1785,166 @@ struct TranscriptHistoryView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.secondary.opacity(0.07))
         )
+    }
+
+    private var savePromptTemplateSheet: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(
+                localized(
+                    "history.actions.customPrompt.saveTemplate.sheetTitle",
+                    default: "Save Prompt Template",
+                    comment: "Sheet title for saving a custom prompt template"
+                )
+            )
+            .font(.headline)
+
+            TextField(
+                localized(
+                    "history.actions.customPrompt.saveTemplate.name",
+                    default: "Template name",
+                    comment: "Input label for naming a saved custom prompt template"
+                ),
+                text: $savePromptTemplateName
+            )
+            .textFieldStyle(.roundedBorder)
+
+            TextEditor(text: $savePromptTemplatePrompt)
+                .frame(minHeight: 100)
+                .font(.body)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                )
+
+            if let savePromptTemplateError {
+                Text(savePromptTemplateError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            HStack {
+                Spacer()
+
+                Button(
+                    localized(
+                        "action.cancel",
+                        default: "Cancel",
+                        comment: "Generic action title for canceling a dialog"
+                    )
+                ) {
+                    dismissPromptTemplateSaveSheet()
+                }
+                .buttonStyle(.bordered)
+
+                Button(
+                    localized(
+                        "action.save",
+                        default: "Save",
+                        comment: "Generic action title for saving data"
+                    )
+                ) {
+                    savePromptTemplateFromSheet()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 420, minHeight: 260)
+    }
+
+    private func loadPromptTemplates() {
+        promptTemplates = promptTemplateStore.load()
+    }
+
+    private func preparePromptTemplateSave(for recordID: Int64) {
+        let prompt = customPromptInputByRecordID[recordID, default: ""]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard prompt.isEmpty == false else { return }
+
+        savePromptTemplateTargetRecordID = recordID
+        savePromptTemplatePrompt = prompt
+        savePromptTemplateName = defaultTemplateName(from: prompt)
+        savePromptTemplateError = nil
+        isSavePromptTemplateSheetPresented = true
+    }
+
+    private func dismissPromptTemplateSaveSheet() {
+        isSavePromptTemplateSheetPresented = false
+        savePromptTemplateTargetRecordID = nil
+        savePromptTemplateName = ""
+        savePromptTemplatePrompt = ""
+        savePromptTemplateError = nil
+    }
+
+    private func savePromptTemplateFromSheet() {
+        let trimmedName = savePromptTemplateName
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPrompt = savePromptTemplatePrompt
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard trimmedName.isEmpty == false else {
+            savePromptTemplateError = localized(
+                "history.actions.customPrompt.saveTemplate.error.nameRequired",
+                default: "Template name is required.",
+                comment: "Validation error shown when template name is empty"
+            )
+            return
+        }
+
+        guard trimmedName.count <= 40 else {
+            savePromptTemplateError = localized(
+                "history.actions.customPrompt.saveTemplate.error.nameLength",
+                default: "Template name must be 40 characters or fewer.",
+                comment: "Validation error shown when template name exceeds max length"
+            )
+            return
+        }
+
+        guard trimmedPrompt.isEmpty == false else {
+            savePromptTemplateError = localized(
+                "history.actions.customPrompt.saveTemplate.error.promptRequired",
+                default: "Prompt text is required.",
+                comment: "Validation error shown when prompt template text is empty"
+            )
+            return
+        }
+
+        guard promptTemplates.count < PromptTemplateStore.maxTemplateCount else {
+            savePromptTemplateError = localizedFormat(
+                "history.actions.customPrompt.saveTemplate.error.limit",
+                default: "You can save up to %d templates.",
+                comment: "Validation error shown when prompt template max limit is reached",
+                PromptTemplateStore.maxTemplateCount
+            )
+            return
+        }
+
+        _ = promptTemplateStore.add(name: trimmedName, prompt: trimmedPrompt)
+        loadPromptTemplates()
+
+        if let recordID = savePromptTemplateTargetRecordID {
+            customPromptTemplateFeedbackByRecordID[recordID] = localized(
+                "history.actions.customPrompt.saveTemplate.success",
+                default: "Template saved",
+                comment: "Inline status text shown when a custom prompt template is saved"
+            )
+        }
+
+        dismissPromptTemplateSaveSheet()
+    }
+
+    private func defaultTemplateName(from prompt: String) -> String {
+        let compact = prompt
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard compact.isEmpty == false else {
+            return localized(
+                "history.actions.customPrompt.saveTemplate.defaultName",
+                default: "New Template",
+                comment: "Default name for a newly saved prompt template"
+            )
+        }
+        return String(compact.prefix(30))
     }
 
     private func toggleInputMode(_ mode: TranscriptActionInputMode, for recordID: Int64) {
@@ -1546,6 +2218,9 @@ struct TranscriptHistoryView: View {
         actionInputModeByRecordID = actionInputModeByRecordID.filter { validRecordIDs.contains($0.key) }
         questionInputByRecordID = questionInputByRecordID.filter { validRecordIDs.contains($0.key) }
         customPromptInputByRecordID = customPromptInputByRecordID.filter { validRecordIDs.contains($0.key) }
+        customPromptTemplateFeedbackByRecordID = customPromptTemplateFeedbackByRecordID.filter {
+            validRecordIDs.contains($0.key)
+        }
         translateLanguageCodeByRecordID = translateLanguageCodeByRecordID.filter { validRecordIDs.contains($0.key) }
         streamingTextByRecordID = streamingTextByRecordID.filter { validRecordIDs.contains($0.key) }
         actionErrorByRecordID = actionErrorByRecordID.filter { validRecordIDs.contains($0.key) }
@@ -1560,6 +2235,13 @@ struct TranscriptHistoryView: View {
 
     private func pruneSpeakerDraftState(validRecordIDs: Set<Int64>) {
         speakerNameDraftsByRecordID = speakerNameDraftsByRecordID.filter { validRecordIDs.contains($0.key) }
+        speakerSuggestionsByRecordID = speakerSuggestionsByRecordID.filter { validRecordIDs.contains($0.key) }
+        dismissedSuggestionLabelsByRecordID = dismissedSuggestionLabelsByRecordID.filter {
+            validRecordIDs.contains($0.key)
+        }
+        speakerProfileSaveFeedbackByRecordID = speakerProfileSaveFeedbackByRecordID.filter {
+            validRecordIDs.contains($0.key)
+        }
         if let focusedSpeakerField, validRecordIDs.contains(focusedSpeakerField.recordID) == false {
             self.focusedSpeakerField = nil
         }
@@ -1610,11 +2292,17 @@ struct TranscriptHistoryView: View {
                 default: "Question",
                 comment: "Label for previously saved question AI action"
             )
-        case "custom":
+        case "custom_prompt", "custom":
             return localized(
                 "history.actions.type.custom",
                 default: "Custom",
                 comment: "Label for previously saved custom prompt AI action"
+            )
+        case "auto_summarise":
+            return localized(
+                "history.actions.type.autoSummary",
+                default: "Auto-Summary",
+                comment: "Label for automatically generated transcript summary action"
             )
         default:
             return actionType.capitalized
@@ -1634,35 +2322,124 @@ struct TranscriptHistoryView: View {
             ) {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(speakers, id: \.self) { speaker in
-                        HStack(spacing: 8) {
-                            Text(speaker)
-                                .font(.system(.caption, design: .monospaced))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 120, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 8) {
+                                Text(speaker)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 120, alignment: .leading)
 
-                            Image(systemName: "arrow.right")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                Image(systemName: "arrow.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
 
-                            TextField(
-                                localized(
-                                    "history.speakers.rename.placeholder",
-                                    default: "Name",
-                                    comment: "Placeholder for custom speaker display name"
-                                ),
-                                text: speakerNameBinding(
+                                TextField(
+                                    localized(
+                                        "history.speakers.rename.placeholder",
+                                        default: "Name",
+                                        comment: "Placeholder for custom speaker display name"
+                                    ),
+                                    text: speakerNameBinding(
+                                        for: recordID,
+                                        speaker: speaker,
+                                        currentSpeakerMap: record.speakerMap
+                                    )
+                                )
+                                .textFieldStyle(.roundedBorder)
+                                .focused(
+                                    $focusedSpeakerField,
+                                    equals: SpeakerRenameField(recordID: recordID, speaker: speaker)
+                                )
+                                .onSubmit {
+                                    persistSpeakerNameDraft(for: recordID, speaker: speaker)
+                                    refreshSpeakerSuggestions(for: recordID)
+                                }
+                            }
+
+                            if
+                                let speakerName = currentSpeakerDisplayName(
                                     for: recordID,
                                     speaker: speaker,
                                     currentSpeakerMap: record.speakerMap
+                                ),
+                                viewModel.hasStoredEmbedding(recordID: recordID, speakerLabel: speaker)
+                            {
+                                HStack(spacing: 8) {
+                                    Button(
+                                        localizedFormat(
+                                            "history.speakers.profile.saveFromName",
+                                            default: "Save \"%@\" as speaker profile",
+                                            comment: "Link title for saving a renamed speaker as a reusable speaker profile",
+                                            speakerName
+                                        )
+                                    ) {
+                                        saveSpeakerProfileFromName(
+                                            recordID: recordID,
+                                            speakerLabel: speaker,
+                                            displayName: speakerName
+                                        )
+                                    }
+                                    .buttonStyle(.link)
+                                    .font(.caption2)
+
+                                    if let feedback = speakerProfileSaveFeedbackByRecordID[recordID]?[speaker] {
+                                        Text(feedback)
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    let suggestions = suggestions(for: recordID)
+                    if suggestions.isEmpty == false {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(suggestions) { suggestion in
+                                HStack(spacing: 8) {
+                                    Text(
+                                        localizedFormat(
+                                            "history.speakers.suggestion.row",
+                                            default: "%@ \u{2192} Suggested: %@",
+                                            comment: "Suggestion banner text mapping speaker labels to suggested profile names",
+                                            suggestion.speakerLabel,
+                                            suggestion.profileDisplayName
+                                        )
+                                    )
+                                    .font(.caption)
+
+                                    Spacer()
+
+                                    Button(
+                                        localized(
+                                            "action.accept",
+                                            default: "Accept",
+                                            comment: "Generic action title for accepting a suggestion"
+                                        )
+                                    ) {
+                                        acceptSpeakerSuggestion(recordID: recordID, suggestion: suggestion)
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .controlSize(.mini)
+
+                                    Button(
+                                        localized(
+                                            "action.dismiss",
+                                            default: "Dismiss",
+                                            comment: "Action title for dismissing inline status messages"
+                                        )
+                                    ) {
+                                        dismissSpeakerSuggestion(recordID: recordID, suggestion: suggestion)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.mini)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color.accentColor.opacity(0.10))
                                 )
-                            )
-                            .textFieldStyle(.roundedBorder)
-                            .focused(
-                                $focusedSpeakerField,
-                                equals: SpeakerRenameField(recordID: recordID, speaker: speaker)
-                            )
-                            .onSubmit {
-                                persistSpeakerNameDraft(for: recordID, speaker: speaker)
                             }
                         }
                     }
@@ -1677,6 +2454,7 @@ struct TranscriptHistoryView: View {
                             )
                         ) {
                             resetSpeakerNames(for: recordID)
+                            refreshSpeakerSuggestions(for: recordID)
                         }
                         .disabled((record.speakerMap ?? [:]).isEmpty)
                         .buttonStyle(.link)
@@ -1737,41 +2515,135 @@ struct TranscriptHistoryView: View {
         }
     }
 
-    private func timelineView(for record: TranscriptRecord, segments: [TranscriptSegment]) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
-                    HStack(alignment: .top, spacing: 8) {
-                        Button("[\(timelineTimestamp(for: segment.start))]") {
-                            viewModel.copyActionText(segment.text)
-                        }
-                        .buttonStyle(.plain)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel(
-                            timelineSegmentAccessibilityLabel(segment: segment, record: record)
-                        )
+    private func timelineView(
+        for record: TranscriptRecord,
+        recordID: Int64,
+        segments: [TranscriptSegment]
+    ) -> some View {
+        let highlightedSegmentIndex = currentlyHighlightedSegmentIndex(
+            for: recordID,
+            segments: segments
+        )
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            if let speaker = record.resolvedSpeaker(for: segment) {
-                                Text("\(speaker):")
-                                    .font(.system(.caption, design: .rounded))
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(
-                                        colorForSpeaker(normalizedSpeakerLabel(segment.speaker) ?? speaker)
-                                    )
+        return ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
+                        let isHighlighted = highlightedSegmentIndex == index
+                        HStack(alignment: .top, spacing: 8) {
+                            Button("[\(timelineTimestamp(for: segment.start))]") {
+                                viewModel.copyActionText(segment.text)
                             }
+                            .buttonStyle(.plain)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel(
+                                timelineSegmentAccessibilityLabel(segment: segment, record: record)
+                            )
 
-                            Text(segment.text)
-                                .font(.body)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                if let speaker = record.resolvedSpeaker(for: segment) {
+                                    Text("\(speaker):")
+                                        .font(.system(.caption, design: .rounded))
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(
+                                            colorForSpeaker(normalizedSpeakerLabel(segment.speaker) ?? speaker)
+                                        )
+                                }
+
+                                Text(segment.text)
+                                    .font(.body)
+                                    .fontWeight(isHighlighted ? .semibold : .regular)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 3)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(
+                                    isHighlighted
+                                        ? Color.accentColor.opacity(0.15)
+                                        : Color.clear
+                                )
+                        )
+                        .id(TimelineSegmentID(recordID: recordID, index: index))
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard loadedAudioRecordID == recordID, audioPlayer.isLoaded else { return }
+                            audioPlayer.seek(to: segment.start)
+                            if isAudioScrubbing == false {
+                                audioScrubberTime = audioPlayer.currentTime
+                            }
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .animation(.easeInOut(duration: 0.1), value: highlightedSegmentIndex)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .onChange(of: highlightedSegmentIndex) { _, newIndex in
+                guard let newIndex else { return }
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    proxy.scrollTo(TimelineSegmentID(recordID: recordID, index: newIndex), anchor: .center)
+                }
+            }
         }
         .frame(maxHeight: 180)
+    }
+
+    private func currentlyHighlightedSegmentIndex(
+        for recordID: Int64,
+        segments: [TranscriptSegment]
+    ) -> Int? {
+        guard loadedAudioRecordID == recordID, audioPlayer.isLoaded else { return nil }
+        return TranscriptPlaybackSynchronizer.currentSegmentIndex(for: audioPlayer.currentTime, in: segments)
+    }
+
+    private func loadAudioForExpandedTranscript(_ recordID: Int64) {
+        guard let record = viewModel.record(withID: recordID) else { return }
+        guard let audioFilePath = record.audioFilePath else { return }
+
+        let trimmedPath = audioFilePath.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedPath.isEmpty == false else { return }
+        let fileURL = URL(fileURLWithPath: trimmedPath)
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            audioErrorByRecordID[recordID] = localized(
+                "history.audio.fileNotFound",
+                default: "Audio file not found.",
+                comment: "Inline status shown when linked retained audio file no longer exists"
+            )
+            return
+        }
+
+        do {
+            try audioPlayer.load(url: fileURL)
+            loadedAudioRecordID = recordID
+            audioScrubberTime = audioPlayer.currentTime
+            isAudioScrubbing = false
+            audioErrorByRecordID[recordID] = nil
+        } catch {
+            loadedAudioRecordID = nil
+            audioErrorByRecordID[recordID] = localized(
+                "history.audio.failedToLoad",
+                default: "Could not load audio file.",
+                comment: "Inline status shown when retained audio fails to load"
+            )
+        }
+    }
+
+    private func pauseAndResetAudioPlayer() {
+        audioPlayer.pause()
+        audioPlayer.unload()
+        loadedAudioRecordID = nil
+        audioScrubberTime = 0
+        isAudioScrubbing = false
+    }
+
+    private func pruneAudioState(validRecordIDs: Set<Int64>) {
+        audioErrorByRecordID = audioErrorByRecordID.filter { validRecordIDs.contains($0.key) }
+        if let loadedAudioRecordID, validRecordIDs.contains(loadedAudioRecordID) == false {
+            pauseAndResetAudioPlayer()
+        }
     }
 
     private func speakerCount(in segments: [TranscriptSegment]) -> Int? {
@@ -1781,6 +2653,82 @@ struct TranscriptHistoryView: View {
 
     private func uniqueSpeakers(in segments: [TranscriptSegment]) -> [String] {
         Array(Set(segments.compactMap { normalizedSpeakerLabel($0.speaker) })).sorted()
+    }
+
+    private func suggestions(for recordID: Int64) -> [TranscriptHistoryViewModel.SpeakerSuggestion] {
+        let currentSuggestions = speakerSuggestionsByRecordID[recordID] ?? []
+        guard let record = viewModel.record(withID: recordID) else { return currentSuggestions }
+
+        return currentSuggestions.filter { suggestion in
+            let mappedName = record.speakerMap?[suggestion.speakerLabel]?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return mappedName?.isEmpty != false
+        }
+    }
+
+    private func refreshSpeakerSuggestions(for recordID: Int64) {
+        let dismissed = dismissedSuggestionLabelsByRecordID[recordID] ?? []
+        speakerSuggestionsByRecordID[recordID] = viewModel.loadSpeakerSuggestions(
+            recordID: recordID,
+            threshold: Float(min(max(speakerMatchThreshold, 0.70), 0.99)),
+            dismissedSpeakerLabels: dismissed
+        )
+    }
+
+    private func acceptSpeakerSuggestion(
+        recordID: Int64,
+        suggestion: TranscriptHistoryViewModel.SpeakerSuggestion
+    ) {
+        viewModel.acceptSpeakerSuggestion(recordID: recordID, suggestion: suggestion)
+        speakerNameDraftsByRecordID[recordID, default: [:]][suggestion.speakerLabel] = suggestion.profileDisplayName
+        dismissedSuggestionLabelsByRecordID[recordID, default: []].remove(suggestion.speakerLabel)
+        refreshSpeakerSuggestions(for: recordID)
+    }
+
+    private func dismissSpeakerSuggestion(
+        recordID: Int64,
+        suggestion: TranscriptHistoryViewModel.SpeakerSuggestion
+    ) {
+        dismissedSuggestionLabelsByRecordID[recordID, default: []].insert(suggestion.speakerLabel)
+        refreshSpeakerSuggestions(for: recordID)
+    }
+
+    private func currentSpeakerDisplayName(
+        for recordID: Int64,
+        speaker: String,
+        currentSpeakerMap: [String: String]?
+    ) -> String? {
+        let value = speakerNameDraftsByRecordID[recordID]?[speaker]
+            ?? currentSpeakerMap?[speaker]
+            ?? ""
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func saveSpeakerProfileFromName(
+        recordID: Int64,
+        speakerLabel: String,
+        displayName: String
+    ) {
+        do {
+            try viewModel.createSpeakerProfileFromSpeakerName(
+                recordID: recordID,
+                speakerLabel: speakerLabel,
+                displayName: displayName
+            )
+            speakerProfileSaveFeedbackByRecordID[recordID, default: [:]][speakerLabel] = localized(
+                "history.speakers.profile.saved",
+                default: "Profile saved",
+                comment: "Inline confirmation shown after saving a speaker profile from rename UI"
+            )
+            refreshSpeakerSuggestions(for: recordID)
+        } catch {
+            speakerProfileSaveFeedbackByRecordID[recordID, default: [:]][speakerLabel] = localized(
+                "history.speakers.profile.saveFailed",
+                default: "Could not save profile",
+                comment: "Inline error shown when saving a speaker profile from rename UI fails"
+            )
+        }
     }
 
     private func speakerNameBinding(
@@ -1880,9 +2828,16 @@ struct TranscriptHistoryView: View {
             stopStreaming(for: recordID)
             expandedRecordIDs.remove(recordID)
             speakerNameDraftsByRecordID[recordID] = nil
+            speakerSuggestionsByRecordID[recordID] = nil
+            dismissedSuggestionLabelsByRecordID[recordID] = nil
+            speakerProfileSaveFeedbackByRecordID[recordID] = nil
             notesSaveTaskByRecordID[recordID]?.cancel()
             notesSaveTaskByRecordID[recordID] = nil
             notesDraftByRecordID[recordID] = nil
+            audioErrorByRecordID[recordID] = nil
+            if loadedAudioRecordID == recordID {
+                pauseAndResetAudioPlayer()
+            }
         }
         viewModel.deleteRecords(ids: summary.transcriptIDs)
     }
@@ -1908,9 +2863,19 @@ struct TranscriptHistoryView: View {
         }
         viewModel.selectRecord(id: transcriptID, additive: false)
         keyboardFocusedRecordID = transcriptID
-        expandedRecordIDs.insert(transcriptID)
-        viewModel.loadActions(for: transcriptID)
+        expandTranscript(transcriptID)
         historyKeyboardFocus = .list
+    }
+
+    private func rowScrollID(for record: TranscriptRecord, index: Int) -> String {
+        if let recordID = record.id {
+            return rowScrollID(for: recordID)
+        }
+        return "record-index-\(index)"
+    }
+
+    private func rowScrollID(for recordID: Int64) -> String {
+        "record-\(recordID)"
     }
 
     private func installKeyDownMonitorIfNeeded() {
@@ -1977,11 +2942,9 @@ struct TranscriptHistoryView: View {
         let targetID = keyboardFocusedRecordID ?? viewModel.selectedRecordIDs.sorted().first
         guard let targetID else { return }
         if expandedRecordIDs.contains(targetID) {
-            expandedRecordIDs.remove(targetID)
-            stopStreaming(for: targetID)
+            collapseTranscript(targetID)
         } else {
-            expandedRecordIDs.insert(targetID)
-            viewModel.loadActions(for: targetID)
+            expandTranscript(targetID)
         }
     }
 
@@ -2028,6 +2991,13 @@ struct TranscriptHistoryView: View {
         let minutes = totalSeconds / 60
         let remainingSeconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, remainingSeconds)
+    }
+
+    private func playbackTimestamp(for seconds: Double) -> String {
+        let totalSeconds = Int(max(seconds, 0))
+        let minutes = totalSeconds / 60
+        let remainingSeconds = totalSeconds % 60
+        return String(format: "%d:%02d", minutes, remainingSeconds)
     }
 
     private func elapsedDurationSeconds(since startedAt: UInt64) -> Double {
@@ -2198,6 +3168,11 @@ private struct SpeakerRenameField: Hashable {
     let speaker: String
 }
 
+private struct TimelineSegmentID: Hashable {
+    let recordID: Int64
+    let index: Int
+}
+
 private enum HistoryKeyboardFocus: Hashable {
     case search
     case list
@@ -2318,6 +3293,17 @@ final class TranscriptHistoryViewModel: ObservableObject {
         }
     }
 
+    struct SpeakerSuggestion: Identifiable, Equatable {
+        let speakerLabel: String
+        let profileID: UUID
+        let profileDisplayName: String
+        let similarityScore: Float
+
+        var id: String {
+            "\(speakerLabel)|\(profileID.uuidString)"
+        }
+    }
+
     @Published var searchQuery = ""
     @Published var isFiltersExpanded = false
     @Published var filterDateFrom: Date?
@@ -2336,16 +3322,27 @@ final class TranscriptHistoryViewModel: ObservableObject {
 
     private let transcriptStore: TranscriptStore
     private let fileTranscriptionService: FileTranscriptionService
+    private let audioCaptureService: AudioCaptureService
+    private let speakerProfileStore: SpeakerProfileStore
+    private let transcriptArchiver: TranscriptArchiver
     private let pageSize = 50
     private var offset = 0
     private var isProcessingImportQueue = false
+    private var sessionTranscriptIDsWithEmbeddings: Set<Int64> = []
 
     init(
         transcriptStore: TranscriptStore,
-        fileTranscriptionService: FileTranscriptionService = FileTranscriptionService()
+        fileTranscriptionService: FileTranscriptionService = FileTranscriptionService(),
+        audioCaptureService: AudioCaptureService = AudioCaptureService(),
+        speakerProfileStore: SpeakerProfileStore? = nil,
+        transcriptArchiver: TranscriptArchiver = TranscriptArchiver()
     ) {
         self.transcriptStore = transcriptStore
         self.fileTranscriptionService = fileTranscriptionService
+        self.audioCaptureService = audioCaptureService
+        self.transcriptArchiver = transcriptArchiver
+        self.speakerProfileStore = speakerProfileStore
+            ?? SpeakerProfileStore(databaseQueue: transcriptStore.databaseQueue)
     }
 
     var selectedRecord: TranscriptRecord? {
@@ -2402,85 +3399,29 @@ final class TranscriptHistoryViewModel: ObservableObject {
     }
 
     func exportSelection() {
-        let selected = selectedRecords
-        guard selected.isEmpty == false else { return }
+        exportRecords(selectedRecords)
+    }
 
-        if selected.count > 1 {
-            guard
-                let selection = presentExportPanel(
-                    allowedFormats: TranscriptExportFormat.allCases,
-                    defaultFormat: .json,
-                    defaultFilename: defaultBatchExportFilename()
-                )
-            else {
-                return
-            }
+    func exportRecord(id: Int64) {
+        guard let record = record(withID: id) else { return }
+        exportRecords([record])
+    }
 
-            do {
-                let data = try TranscriptExporter.export(records: selected, format: selection.format)
-                try data.write(to: selection.url, options: .atomic)
-                errorMessage = nil
-            } catch {
-                errorMessage = localized(
-                    "error.history.exportSelectionFailed",
-                    default: "Failed to export selected transcripts.",
-                    comment: "Error shown when batch transcript export fails"
-                )
-            }
-            return
-        }
+    func shareSelection() {
+        shareRecords(selectedRecords)
+    }
 
-        guard let record = selected.first else { return }
-        let defaultFormat: TranscriptExportFormat = .plainText
-        guard
-            let selection = presentExportPanel(
-                allowedFormats: TranscriptExportFormat.allCases,
-                defaultFormat: defaultFormat,
-                defaultFilename: defaultExportFilename(for: record, format: defaultFormat)
-            )
-        else {
-            return
-        }
+    func shareRecord(id: Int64) {
+        guard let record = record(withID: id) else { return }
+        shareRecords([record])
+    }
 
-        do {
-            let outputData: Data
-            switch selection.format {
-            case .plainText:
-                outputData = Data(
-                    TranscriptExporter.exportAsPlainText(record, speakerMap: record.speakerMap).utf8
-                )
-            case .markdown:
-                outputData = Data(
-                    TranscriptExporter.exportAsMarkdown(record, speakerMap: record.speakerMap).utf8
-                )
-            case .json:
-                outputData = try TranscriptExporter.exportAsJSON([record], speakerMap: record.speakerMap)
-            case .srt:
-                outputData = Data(
-                    TranscriptExporter.exportAsSRT(
-                        record,
-                        segments: record.segments,
-                        speakerMap: record.speakerMap
-                    ).utf8
-                )
-            case .vtt:
-                outputData = Data(
-                    TranscriptExporter.exportAsVTT(
-                        record,
-                        segments: record.segments,
-                        speakerMap: record.speakerMap
-                    ).utf8
-                )
-            }
-            try outputData.write(to: selection.url, options: .atomic)
-            errorMessage = nil
-        } catch {
-            errorMessage = localized(
-                "error.history.exportSingleFailed",
-                default: "Failed to export transcript.",
-                comment: "Error shown when single transcript export fails"
-            )
-        }
+    func importArchive(from url: URL) throws -> TranscriptArchiveImportResult {
+        let archive = try transcriptArchiver.read(from: url)
+        let result = try transcriptStore.importArchive(archive)
+        reloadForSearchQuery()
+        errorMessage = nil
+        return result
     }
 
     func deleteSelected() {
@@ -2513,10 +3454,19 @@ final class TranscriptHistoryViewModel: ObservableObject {
         guard ids.isEmpty == false else { return }
 
         do {
+            let audioPathsToDelete = ids.compactMap { id in
+                record(withID: id)?.audioFilePath
+                    ?? (try? transcriptStore.fetchOne(id: id))?.audioFilePath
+            }
+
             if ids.count == 1, let id = ids.first {
                 try transcriptStore.delete(id: id)
             } else {
                 try transcriptStore.delete(ids: ids)
+            }
+
+            for audioPath in audioPathsToDelete {
+                try? audioCaptureService.deleteAudioFile(at: audioPath)
             }
 
             for id in ids {
@@ -2590,6 +3540,130 @@ final class TranscriptHistoryViewModel: ObservableObject {
         }
     }
 
+    func hasStoredEmbedding(recordID: Int64, speakerLabel: String) -> Bool {
+        guard let record = record(withID: recordID), let transcriptID = record.id else { return false }
+        let normalizedLabel = speakerLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedLabel.isEmpty == false else { return false }
+
+        do {
+            let embeddings = try transcriptStore.fetchEmbeddings(transcriptID: transcriptID)
+            guard let embedding = embeddings[normalizedLabel] else { return false }
+            return embedding.isEmpty == false
+        } catch {
+            return false
+        }
+    }
+
+    func loadSpeakerSuggestions(
+        recordID: Int64,
+        threshold: Float,
+        dismissedSpeakerLabels: Set<String> = []
+    ) -> [SpeakerSuggestion] {
+        guard let record = record(withID: recordID), let transcriptID = record.id else { return [] }
+        guard sessionTranscriptIDsWithEmbeddings.contains(transcriptID) else { return [] }
+        guard let segments = record.segments, segments.isEmpty == false else { return [] }
+
+        do {
+            let embeddings = try transcriptStore.fetchEmbeddings(transcriptID: transcriptID)
+            guard embeddings.isEmpty == false else { return [] }
+            let normalizedThreshold = min(max(threshold, 0.70), 0.99)
+
+            var suggestions: [SpeakerSuggestion] = []
+            for speakerLabel in Self.uniqueSpeakerLabels(in: segments) {
+                if dismissedSpeakerLabels.contains(speakerLabel) {
+                    continue
+                }
+                if let mapped = record.speakerMap?[speakerLabel],
+                   mapped.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                    continue
+                }
+                guard let embedding = embeddings[speakerLabel], embedding.isEmpty == false else {
+                    continue
+                }
+                guard let matchedProfile = try speakerProfileStore.findMatch(
+                    for: embedding,
+                    threshold: normalizedThreshold
+                ) else {
+                    continue
+                }
+                suggestions.append(
+                    SpeakerSuggestion(
+                        speakerLabel: speakerLabel,
+                        profileID: matchedProfile.id,
+                        profileDisplayName: matchedProfile.displayName,
+                        similarityScore: cosineSimilarity(embedding, matchedProfile.averageEmbedding)
+                    )
+                )
+            }
+
+            return suggestions.sorted {
+                if $0.similarityScore == $1.similarityScore {
+                    return $0.speakerLabel < $1.speakerLabel
+                }
+                return $0.similarityScore > $1.similarityScore
+            }
+        } catch {
+            return []
+        }
+    }
+
+    func acceptSpeakerSuggestion(recordID: Int64, suggestion: SpeakerSuggestion) {
+        guard let record = record(withID: recordID), let transcriptID = record.id else { return }
+
+        var updatedMap = record.speakerMap ?? [:]
+        updatedMap[suggestion.speakerLabel] = suggestion.profileDisplayName
+        updateSpeakerMap(recordID: recordID, speakerMap: updatedMap)
+
+        do {
+            let embeddings = try transcriptStore.fetchEmbeddings(transcriptID: transcriptID)
+            if let embedding = embeddings[suggestion.speakerLabel], embedding.isEmpty == false {
+                try speakerProfileStore.updateAverageEmbedding(
+                    id: suggestion.profileID,
+                    newEmbedding: embedding
+                )
+            }
+        } catch {
+            errorMessage = localized(
+                "error.history.speakerSuggestionAcceptFailed",
+                default: "Failed to apply speaker suggestion.",
+                comment: "Error shown when accepting a speaker-name suggestion fails"
+            )
+        }
+    }
+
+    func createSpeakerProfileFromSpeakerName(
+        recordID: Int64,
+        speakerLabel: String,
+        displayName: String
+    ) throws {
+        guard let record = record(withID: recordID), let transcriptID = record.id else { return }
+        let normalizedSpeakerLabel = speakerLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedSpeakerLabel.isEmpty == false else { return }
+        let normalizedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedName.isEmpty == false else { return }
+
+        let embeddings = try transcriptStore.fetchEmbeddings(transcriptID: transcriptID)
+        guard let embedding = embeddings[normalizedSpeakerLabel], embedding.isEmpty == false else { return }
+
+        if let existing = try speakerProfileStore
+            .fetchAll()
+            .first(where: { $0.displayName.caseInsensitiveCompare(normalizedName) == .orderedSame }) {
+            try speakerProfileStore.updateAverageEmbedding(id: existing.id, newEmbedding: embedding)
+            return
+        }
+
+        let now = Date()
+        try speakerProfileStore.save(
+            SpeakerProfile(
+                displayName: normalizedName,
+                createdAt: now,
+                lastSeenAt: now,
+                averageEmbedding: embedding,
+                transcriptCount: 1
+            )
+        )
+    }
+
     func selectRecord(id: Int64, additive: Bool) {
         if additive {
             if selectedRecordIDs.contains(id) {
@@ -2626,9 +3700,18 @@ final class TranscriptHistoryViewModel: ObservableObject {
 
     func loadActions(for transcriptID: Int64) {
         do {
-            actionHistoryByTranscriptID[transcriptID] = try transcriptStore.fetchActions(
-                forTranscriptID: transcriptID
-            )
+            let fetched = try transcriptStore.fetchActions(forTranscriptID: transcriptID)
+            actionHistoryByTranscriptID[transcriptID] = fetched.sorted { lhs, rhs in
+                let lhsAuto = lhs.actionType == "auto_summarise"
+                let rhsAuto = rhs.actionType == "auto_summarise"
+                if lhsAuto != rhsAuto {
+                    return lhsAuto
+                }
+                if lhs.createdAt != rhs.createdAt {
+                    return lhs.createdAt > rhs.createdAt
+                }
+                return (lhs.id ?? 0) > (rhs.id ?? 0)
+            }
         } catch {
             errorMessage = localized(
                 "error.history.loadPreviousActionsFailed",
@@ -2756,7 +3839,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
                     requestDiarization: job.requestDiarization
                 )
 
-                _ = try transcriptStore.save(
+                let savedRecord = try transcriptStore.save(
                     TranscriptRecord(
                         createdAt: Date(),
                         sourceType: "file_import",
@@ -2768,6 +3851,32 @@ final class TranscriptHistoryViewModel: ObservableObject {
                         segments: result.segments
                     )
                 )
+                if let transcriptID = savedRecord.id {
+                    do {
+                        try processSpeakerEmbeddings(
+                            result.speakerEmbeddings,
+                            transcriptID: transcriptID
+                        )
+                    } catch {
+                        print("[Screamer] Failed to process speaker embeddings: \(error)")
+                    }
+                }
+
+                if
+                    UserDefaults.standard.bool(forKey: "retainAudioRecordings"),
+                    job.fileURL.pathExtension.lowercased() == "wav",
+                    let transcriptID = savedRecord.id
+                {
+                    do {
+                        let archivedURL = try audioCaptureService.archiveAudioCopy(
+                            from: job.fileURL,
+                            transcriptID: transcriptID
+                        )
+                        try transcriptStore.updateAudioFilePath(id: transcriptID, path: archivedURL.path)
+                    } catch {
+                        print("[Screamer] Failed to retain imported audio copy: \(error)")
+                    }
+                }
 
                 importJobs.removeAll { $0.id == job.id }
                 reloadForSearchQuery()
@@ -2786,6 +3895,29 @@ final class TranscriptHistoryViewModel: ObservableObject {
 
             isProcessingImportQueue = false
             processImportQueueIfNeeded()
+        }
+    }
+
+    private func processSpeakerEmbeddings(
+        _ rawEmbeddings: [String: [Float]]?,
+        transcriptID: Int64
+    ) throws {
+        guard let rawEmbeddings else { return }
+
+        let normalized = rawEmbeddings.reduce(into: [String: [Float]]()) { partialResult, entry in
+            let label = entry.key.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard label.isEmpty == false else { return }
+            guard entry.value.isEmpty == false else { return }
+            partialResult[label] = entry.value
+        }
+        guard normalized.isEmpty == false else { return }
+
+        try transcriptStore.saveEmbeddings(normalized, transcriptID: transcriptID)
+        sessionTranscriptIDsWithEmbeddings.insert(transcriptID)
+
+        let threshold = Self.loadSpeakerMatchThreshold()
+        for embedding in normalized.values {
+            _ = try speakerProfileStore.matchOrCreateProfile(for: embedding, threshold: threshold)
         }
     }
 
@@ -2847,6 +3979,131 @@ final class TranscriptHistoryViewModel: ObservableObject {
         return Calendar.current.date(byAdding: DateComponents(day: 1, second: -1), to: dayStart)
     }
 
+    private static func loadSpeakerMatchThreshold() -> Float {
+        let defaults = UserDefaults.standard
+        let key = "speakerMatchThreshold"
+        if defaults.object(forKey: key) == nil {
+            return 0.85
+        }
+        let stored = defaults.double(forKey: key)
+        return Float(min(max(stored, 0.70), 0.99))
+    }
+
+    private static func uniqueSpeakerLabels(in segments: [TranscriptSegment]) -> [String] {
+        Array(
+            Set(
+                segments.compactMap { segment in
+                    guard let speaker = segment.speaker else { return nil }
+                    let trimmed = speaker.trimmingCharacters(in: .whitespacesAndNewlines)
+                    return trimmed.isEmpty ? nil : trimmed
+                }
+            )
+        )
+        .sorted()
+    }
+
+    private func exportRecords(_ records: [TranscriptRecord]) {
+        guard records.isEmpty == false else { return }
+
+        if records.count > 1 {
+            guard
+                let selection = presentExportPanel(
+                    allowedFormats: TranscriptExportFormat.allCases,
+                    defaultFormat: .json,
+                    defaultFilename: defaultBatchExportFilename()
+                )
+            else {
+                return
+            }
+
+            do {
+                let data = try TranscriptExporter.export(records: records, format: selection.format)
+                try data.write(to: selection.url, options: .atomic)
+                errorMessage = nil
+            } catch {
+                errorMessage = localized(
+                    "error.history.exportSelectionFailed",
+                    default: "Failed to export selected transcripts.",
+                    comment: "Error shown when batch transcript export fails"
+                )
+            }
+            return
+        }
+
+        guard let record = records.first else { return }
+        let defaultFormat: TranscriptExportFormat = .plainText
+        guard
+            let selection = presentExportPanel(
+                allowedFormats: TranscriptExportFormat.allCases,
+                defaultFormat: defaultFormat,
+                defaultFilename: defaultExportFilename(for: record, format: defaultFormat)
+            )
+        else {
+            return
+        }
+
+        do {
+            let outputData: Data
+            switch selection.format {
+            case .plainText:
+                outputData = Data(
+                    TranscriptExporter.exportAsPlainText(record, speakerMap: record.speakerMap).utf8
+                )
+            case .markdown:
+                outputData = Data(
+                    TranscriptExporter.exportAsMarkdown(record, speakerMap: record.speakerMap).utf8
+                )
+            case .json:
+                outputData = try TranscriptExporter.exportAsJSON([record], speakerMap: record.speakerMap)
+            case .srt:
+                outputData = Data(
+                    TranscriptExporter.exportAsSRT(
+                        record,
+                        segments: record.segments,
+                        speakerMap: record.speakerMap
+                    ).utf8
+                )
+            case .vtt:
+                outputData = Data(
+                    TranscriptExporter.exportAsVTT(
+                        record,
+                        segments: record.segments,
+                        speakerMap: record.speakerMap
+                    ).utf8
+                )
+            }
+            try outputData.write(to: selection.url, options: .atomic)
+            errorMessage = nil
+        } catch {
+            errorMessage = localized(
+                "error.history.exportSingleFailed",
+                default: "Failed to export transcript.",
+                comment: "Error shown when single transcript export fails"
+            )
+        }
+    }
+
+    private func shareRecords(_ records: [TranscriptRecord]) {
+        guard records.isEmpty == false else { return }
+        guard let destinationURL = presentArchiveSavePanel(defaultFilename: defaultArchiveFilename(for: records))
+        else {
+            return
+        }
+
+        do {
+            let data = try transcriptArchiver.export(transcripts: records, store: transcriptStore)
+            let archive = try transcriptArchiver.import(from: data)
+            try transcriptArchiver.write(archive, to: destinationURL)
+            errorMessage = nil
+        } catch {
+            errorMessage = localized(
+                "error.history.shareArchiveFailed",
+                default: "Failed to share transcript archive.",
+                comment: "Error shown when sharing transcript archives fails"
+            )
+        }
+    }
+
     private func defaultExportFilename(for record: TranscriptRecord, format: TranscriptExportFormat) -> String {
         let sourceName: String
         if record.sourceType == "dictation" {
@@ -2869,6 +4126,52 @@ final class TranscriptHistoryViewModel: ObservableObject {
         formatter.dateFormat = "yyyy-MM-dd_HHmmss"
         let timestamp = formatter.string(from: Date())
         return "transcripts_\(timestamp).json"
+    }
+
+    private func defaultArchiveFilename(for records: [TranscriptRecord]) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        if records.count == 1, let record = records.first {
+            let date = formatter.string(from: record.createdAt)
+            let modelID = sanitizedFilenameComponent(record.modelID)
+            return "\(date)_\(modelID)-transcript.scream"
+        }
+
+        let today = formatter.string(from: Date())
+        return "screamer-export-\(today)-\(records.count)transcripts.scream"
+    }
+
+    private func presentArchiveSavePanel(defaultFilename: String) -> URL? {
+        let panel = NSSavePanel()
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = defaultFilename
+        panel.allowedContentTypes = Self.supportedArchiveContentTypes
+        panel.directoryURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+
+        guard panel.runModal() == .OK, var url = panel.url else {
+            return nil
+        }
+
+        if url.pathExtension.lowercased() != "scream" {
+            url = url.deletingPathExtension().appendingPathExtension("scream")
+        }
+
+        return url
+    }
+
+    private func sanitizedFilenameComponent(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { return "model" }
+
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let mappedScalars = trimmed.unicodeScalars.map { scalar -> String in
+            allowed.contains(scalar) ? String(scalar) : "-"
+        }
+        let collapsed = mappedScalars.joined()
+            .replacingOccurrences(of: "--", with: "-")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        return collapsed.isEmpty ? "model" : collapsed
     }
 
     private func presentExportPanel(
@@ -2921,9 +4224,25 @@ final class TranscriptHistoryViewModel: ObservableObject {
             .compactMap { UTType(filenameExtension: $0) }
     }
 
+    static var supportedArchiveContentTypes: [UTType] {
+        var types: [UTType] = []
+        if let screamType = UTType(filenameExtension: "scream") {
+            types.append(screamType)
+        }
+        if types.contains(.json) == false {
+            types.append(.json)
+        }
+        return types
+    }
+
     static func isSupportedAudioFile(_ url: URL) -> Bool {
         let ext = url.pathExtension.lowercased()
         return ["wav", "mp3", "m4a", "flac", "ogg"].contains(ext)
+    }
+
+    static func isSupportedArchiveFile(_ url: URL) -> Bool {
+        let ext = url.pathExtension.lowercased()
+        return ext == "scream" || ext == "json"
     }
 
     static func utType(for format: TranscriptExportFormat) -> UTType? {
@@ -2950,7 +4269,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
         case .askQuestion(let question):
             return ("question", question)
         case .customPrompt(let prompt):
-            return ("custom", prompt)
+            return ("custom_prompt", prompt)
         }
     }
 }

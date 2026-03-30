@@ -1,9 +1,17 @@
 import Foundation
 import ScreamerCore
 import Combine
+import OSLog
 
 @MainActor
 final class DictationController: ObservableObject {
+    private static let defaultAutoSummarizePrompt =
+        "Summarize this transcript in 3–5 bullet points, focusing on key decisions and action items."
+    private static let log = Logger(
+        subsystem: "com.screamer.app",
+        category: "DictationController"
+    )
+
     enum State: Equatable {
         case idle
         case recording
@@ -40,6 +48,7 @@ final class DictationController: ObservableObject {
     private let pasteHelper: PasteHelper
     private let permissionsService: PermissionsService
     private let transcriptStore: TranscriptStore?
+    private let speakerProfileStore: SpeakerProfileStore?
     private let modelStore: ModelStore
     private let restartWorker: @Sendable () async -> Bool
     private var resultAutoClearTask: Task<Void, Never>?
@@ -60,6 +69,11 @@ final class DictationController: ObservableObject {
         self.pasteHelper = pasteHelper
         self.permissionsService = permissionsService
         self.transcriptStore = transcriptStore
+        if let transcriptStore {
+            self.speakerProfileStore = SpeakerProfileStore(databaseQueue: transcriptStore.databaseQueue)
+        } else {
+            self.speakerProfileStore = nil
+        }
         self.restartWorker = restartWorker
     }
 
@@ -310,8 +324,32 @@ final class DictationController: ObservableObject {
         return defaults.bool(forKey: key)
     }
 
+    private func shouldRetainAudioRecordings() -> Bool {
+        value(for: "retainAudioRecordings", defaultValue: false)
+    }
+
     private func stringValue(for key: String) -> String? {
         UserDefaults.standard.string(forKey: key)
+    }
+
+    private func shouldAutoSummarize() -> Bool {
+        value(for: "autoSummarizeEnabled", defaultValue: false)
+    }
+
+    private var selectedLLMModelID: String? {
+        let trimmed = stringValue(for: "lmStudioModelID")?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, trimmed.isEmpty == false else { return nil }
+        return trimmed
+    }
+
+    private func autoSummarizePrompt() -> String {
+        let trimmed = stringValue(for: "autoSummarizePrompt")?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, trimmed.isEmpty == false else {
+            return Self.defaultAutoSummarizePrompt
+        }
+        return trimmed
     }
 
     private func effectiveLanguageHint(for selectedModel: ModelCatalogEntry) -> String? {
@@ -431,6 +469,12 @@ final class DictationController: ObservableObject {
                     TranscriptSegment(start: $0.start, end: $0.end, text: $0.text, speaker: $0.speaker)
                 }
             )
+            processSpeakerEmbeddingsIfAvailable(
+                transcript: savedRecord,
+                speakerEmbeddings: response.speakerEmbeddings
+            )
+            await finalizeRecordingStorage(recordingURL: recordingURL, savedRecord: savedRecord)
+            triggerAutoSummarizeIfNeeded(for: savedRecord)
 
             if value(for: "showPreviewAfterDictation", defaultValue: true),
                let transcriptID = savedRecord?.id {
@@ -463,7 +507,6 @@ final class DictationController: ObservableObject {
             }
 
             if pasteIntoActiveApp && copyToClipboardAsFallback == false && pasteResult == .copiedOnly {
-                audioCaptureService.cleanupScratchFile(recordingURL)
                 clearPendingRetryTranscription(cleanupFile: false)
                 lastDeliveryMessage = nil
                 state = .error(
@@ -477,7 +520,6 @@ final class DictationController: ObservableObject {
                 return
             }
 
-            audioCaptureService.cleanupScratchFile(recordingURL)
             clearPendingRetryTranscription(cleanupFile: false)
             lastDeliveryMessage = deliveryMessage(for: pasteResult)
             state = .success(response.text)
@@ -586,6 +628,151 @@ final class DictationController: ObservableObject {
         }.value
     }
 
+    private func finalizeRecordingStorage(recordingURL: URL, savedRecord: TranscriptRecord?) async {
+        guard shouldRetainAudioRecordings() else {
+            audioCaptureService.cleanupScratchFile(recordingURL)
+            return
+        }
+
+        guard
+            let transcriptStore,
+            let transcriptID = savedRecord?.id
+        else {
+            audioCaptureService.cleanupScratchFile(recordingURL)
+            return
+        }
+
+        do {
+            let archivedURL = try audioCaptureService.archiveRecording(
+                from: recordingURL,
+                transcriptID: transcriptID
+            )
+
+            _ = try await Task.detached(priority: .utility) {
+                try transcriptStore.updateAudioFilePath(id: transcriptID, path: archivedURL.path)
+            }.value
+        } catch {
+            print("[Screamer] Failed to archive retained audio: \(error)")
+            audioCaptureService.cleanupScratchFile(recordingURL)
+        }
+    }
+
+    private func triggerAutoSummarizeIfNeeded(for transcript: TranscriptRecord?) {
+        guard shouldAutoSummarize() else { return }
+        guard let transcript else { return }
+        guard selectedLLMModelID != nil else { return }
+
+        Task {
+            await performAutoSummarize(transcript: transcript)
+        }
+    }
+
+    private func performAutoSummarize(transcript: TranscriptRecord) async {
+        guard let transcriptID = transcript.id else { return }
+        guard let modelID = selectedLLMModelID else { return }
+        guard let actionService = makeTranscriptActionService() else {
+            Self.log.debug("Auto-summarize skipped because LM Studio is not configured")
+            return
+        }
+
+        let prompt = autoSummarizePrompt()
+
+        do {
+            let result = try await actionService.perform(
+                action: .customPrompt(prompt: prompt),
+                on: transcript,
+                modelID: modelID
+            )
+
+            guard let transcriptStore else { return }
+            _ = try await Task.detached(priority: .utility) {
+                try transcriptStore.saveAction(
+                    TranscriptActionRecord(
+                        transcriptID: transcriptID,
+                        createdAt: result.createdAt,
+                        actionType: "auto_summarise",
+                        actionInput: prompt,
+                        llmModelID: result.modelUsed,
+                        resultText: result.resultText
+                    )
+                )
+            }.value
+        } catch {
+            Self.log.debug(
+                "Auto-summarize failed for transcript \(transcriptID, privacy: .public): \(String(describing: error), privacy: .public)"
+            )
+        }
+    }
+
+    private func makeTranscriptActionService() -> TranscriptActionService? {
+        guard
+            let host = stringValue(for: "lmStudioHost")?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+            host.isEmpty == false,
+            let portText = stringValue(for: "lmStudioPort"),
+            let port = Int(portText),
+            port > 0
+        else {
+            return nil
+        }
+
+        let client = LMStudioClient(configuration: LMStudioConfiguration(host: host, port: port))
+        return TranscriptActionService(lmStudioClient: client)
+    }
+
+    private func processSpeakerEmbeddingsIfAvailable(
+        transcript: TranscriptRecord?,
+        speakerEmbeddings: [String: [Float]?]?
+    ) {
+        guard let transcriptStore else { return }
+        guard let speakerProfileStore else { return }
+        guard let transcriptID = transcript?.id else { return }
+        let normalizedEmbeddings = normalizedSpeakerEmbeddings(from: speakerEmbeddings)
+        guard normalizedEmbeddings.isEmpty == false else { return }
+
+        let threshold = speakerMatchThreshold()
+        let logger = Self.log
+
+        Task.detached(priority: .utility) {
+            do {
+                try transcriptStore.saveEmbeddings(normalizedEmbeddings, transcriptID: transcriptID)
+                for embedding in normalizedEmbeddings.values {
+                    _ = try speakerProfileStore.matchOrCreateProfile(for: embedding, threshold: threshold)
+                }
+            } catch {
+                logger.debug(
+                    "Speaker embedding persistence failed for transcript \(transcriptID, privacy: .public): \(String(describing: error), privacy: .public)"
+                )
+            }
+        }
+    }
+
+    private func normalizedSpeakerEmbeddings(
+        from speakerEmbeddings: [String: [Float]?]?
+    ) -> [String: [Float]] {
+        guard let speakerEmbeddings else { return [:] }
+        var normalized: [String: [Float]] = [:]
+
+        for (speakerLabel, embedding) in speakerEmbeddings {
+            let normalizedLabel = speakerLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard normalizedLabel.isEmpty == false else { continue }
+            guard let embedding, embedding.isEmpty == false else { continue }
+            normalized[normalizedLabel] = embedding
+        }
+
+        return normalized
+    }
+
+    private func speakerMatchThreshold() -> Float {
+        let defaults = UserDefaults.standard
+        let key = "speakerMatchThreshold"
+        if defaults.object(forKey: key) == nil {
+            return 0.85
+        }
+        let threshold = defaults.double(forKey: key)
+        return Float(min(max(threshold, 0.70), 0.99))
+    }
+
     private func elapsedDurationSeconds(since startedAt: UInt64) -> Double {
         let now = DispatchTime.now().uptimeNanoseconds
         guard now > startedAt else { return 0 }
@@ -599,4 +786,5 @@ final class DictationController: ObservableObject {
 
 extension Notification.Name {
     static let screamerSelectTranscriptInHistory = Notification.Name("screamer.selectTranscriptInHistory")
+    static let screamerImportTranscriptArchive = Notification.Name("screamer.importTranscriptArchive")
 }

@@ -27,6 +27,7 @@ struct ScreamerApp: App {
             SettingsView(
                 onUpdateHotkey: { appDelegate.updateHotkey($0) },
                 onLMStudioConfigurationChanged: { appDelegate.refreshLMStudioClientConfiguration() },
+                transcriptStore: appDelegate.transcriptStore,
                 modelStore: appDelegate.modelStore,
                 updaterSettings: appDelegate.updaterSettings
             )
@@ -66,6 +67,22 @@ struct ScreamerApp: App {
             }
         }
         .commands {
+            CommandGroup(after: .newItem) {
+                Button(
+                    localized(
+                        "file.importArchive",
+                        default: "Import Transcript Archive…",
+                        comment: "File menu item for importing Screamer transcript archive files"
+                    )
+                ) {
+                    Task { @MainActor in
+                        openWindow(id: "transcript-history")
+                        try? await Task.sleep(for: .milliseconds(150))
+                        NotificationCenter.default.post(name: .screamerImportTranscriptArchive, object: nil)
+                    }
+                }
+            }
+
             CommandMenu(
                 localized(
                     "history.menu.title",

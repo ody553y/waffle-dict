@@ -299,7 +299,8 @@ struct TranscriptStoreTests {
                 TranscriptSegment(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
             ],
             speakerMap: ["SPEAKER_00": "Alice"],
-            notes: "Follow up on TODOs"
+            notes: "Follow up on TODOs",
+            audioFilePath: "/tmp/audio.wav"
         )
 
         let encoded = try JSONEncoder().encode(record)
@@ -307,6 +308,7 @@ struct TranscriptStoreTests {
 
         #expect(decoded.speakerMap == ["SPEAKER_00": "Alice"])
         #expect(decoded.notes == "Follow up on TODOs")
+        #expect(decoded.audioFilePath == "/tmp/audio.wav")
     }
 
     @Test func resolvedSpeakerUsesMappedValueThenFallsBackToRawSpeaker() {
@@ -398,6 +400,57 @@ struct TranscriptStoreTests {
         #expect(cleared.notes == nil)
     }
 
+    @Test func updateAudioFilePathRoundTripsAndClears() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+        let saved = try store.save(
+            TranscriptRecord(
+                createdAt: Date(timeIntervalSince1970: 1_710_000_000),
+                sourceType: "dictation",
+                sourceFileName: nil,
+                modelID: "whisper-small",
+                languageHint: nil,
+                durationSeconds: nil,
+                text: "audio linked transcript"
+            )
+        )
+        let id = try #require(saved.id)
+
+        try store.updateAudioFilePath(id: id, path: "/tmp/retained.wav")
+        let updated = try #require(try store.fetchOne(id: id))
+        #expect(updated.audioFilePath == "/tmp/retained.wav")
+
+        try store.updateAudioFilePath(id: id, path: nil)
+        let cleared = try #require(try store.fetchOne(id: id))
+        #expect(cleared.audioFilePath == nil)
+    }
+
+    @Test func saveAndFetchSpeakerEmbeddingsRoundTrip() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+        let transcript = try store.save(
+            TranscriptRecord(
+                createdAt: Date(timeIntervalSince1970: 1_710_000_000),
+                sourceType: "file_import",
+                sourceFileName: "meeting.wav",
+                modelID: "whisper-small",
+                languageHint: nil,
+                durationSeconds: 30,
+                text: "hello"
+            )
+        )
+        let transcriptID = try #require(transcript.id)
+
+        let embeddings: [String: [Float]] = [
+            "SPEAKER_00": [0.1, 0.2, 0.3],
+            "SPEAKER_01": [0.4, 0.5, 0.6],
+        ]
+
+        try store.saveEmbeddings(embeddings, transcriptID: transcriptID)
+        let fetched = try store.fetchEmbeddings(transcriptID: transcriptID)
+
+        #expect(fetched["SPEAKER_00"] == [0.1, 0.2, 0.3])
+        #expect(fetched["SPEAKER_01"] == [0.4, 0.5, 0.6])
+    }
+
     @Test func countActionsForTranscriptIDsReturnsCascadeDeleteCount() throws {
         let store = try TranscriptStore(databasePath: ":memory:")
         let first = try #require(
@@ -463,7 +516,7 @@ struct TranscriptStoreTests {
         #expect(try store.countActions(forTranscriptIDs: []) == 0)
     }
 
-    @Test func migrationFromLegacySchemaAddsSpeakerMapAndNotesColumns() throws {
+    @Test func migrationFromLegacySchemaAddsSpeakerMapNotesAudioPathAndEmbeddingTables() throws {
         let temporaryDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("TranscriptStoreLegacyMigration-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
@@ -522,6 +575,13 @@ struct TranscriptStoreTests {
         }
         #expect(columnNames.contains("speakerMap"))
         #expect(columnNames.contains("notes"))
+        #expect(columnNames.contains("audioFilePath"))
+
+        let tableNames = try legacyQueue.read { db in
+            try String.fetchAll(db, sql: "SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
+        #expect(tableNames.contains("speaker_profiles"))
+        #expect(tableNames.contains("transcript_speaker_embeddings"))
 
         let saved = try store.save(
             TranscriptRecord(
@@ -538,6 +598,163 @@ struct TranscriptStoreTests {
         try store.updateNotes(id: id, notes: "legacy-note-match")
         let matches = try store.search(query: "legacy-note-match", limit: 10)
         #expect(matches.map(\.id).contains(id))
+    }
+
+    @Test func importArchiveInsertsTranscriptsAndActionsWithFreshIDs() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+        let archive = ScreamerArchive(
+            version: 1,
+            exportedAt: Date(timeIntervalSince1970: 1_710_000_000),
+            appVersion: "1.0.0",
+            transcripts: [
+                ArchivedTranscript(
+                    record: TranscriptRecord(
+                        id: 99,
+                        createdAt: Date(timeIntervalSince1970: 1_710_000_001),
+                        sourceType: "dictation",
+                        sourceFileName: nil,
+                        modelID: "whisper-small",
+                        languageHint: "en",
+                        durationSeconds: 11,
+                        text: "Imported transcript text",
+                        segments: [
+                            TranscriptSegment(start: 0, end: 1, text: "hello", speaker: "SPEAKER_00"),
+                        ],
+                        speakerMap: ["SPEAKER_00": "Alice"],
+                        notes: "note"
+                    ),
+                    actions: [
+                        TranscriptActionRecord(
+                            id: 88,
+                            transcriptID: 99,
+                            createdAt: Date(timeIntervalSince1970: 1_710_000_002),
+                            actionType: "auto_summarise",
+                            actionInput: "prompt",
+                            llmModelID: "qwen3-8b",
+                            resultText: "Summary"
+                        ),
+                    ]
+                ),
+            ]
+        )
+
+        let result = try store.importArchive(archive)
+        let importedID = try #require(result.firstImportedTranscriptID)
+        #expect(result.importedTranscriptCount == 1)
+        #expect(result.importedActionCount == 1)
+        #expect(result.skippedDuplicateCount == 0)
+        #expect(importedID != 99)
+
+        let importedRecord = try #require(try store.fetchOne(id: importedID))
+        #expect(importedRecord.text == "Imported transcript text")
+        #expect(importedRecord.speakerMap == ["SPEAKER_00": "Alice"])
+
+        let importedActions = try store.fetchActions(forTranscriptID: importedID)
+        #expect(importedActions.count == 1)
+        #expect(importedActions[0].transcriptID == importedID)
+        #expect(importedActions[0].resultText == "Summary")
+    }
+
+    @Test func importArchiveSkipsDuplicateMatchingCreatedAtModelAndTextPrefix() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+        let sharedPrefix = String(repeating: "A", count: 200)
+        _ = try store.save(
+            TranscriptRecord(
+                createdAt: Date(timeIntervalSince1970: 1_710_000_010.8),
+                sourceType: "dictation",
+                sourceFileName: nil,
+                modelID: "whisper-small",
+                languageHint: nil,
+                durationSeconds: 5,
+                text: "\(sharedPrefix)-existing-tail"
+            )
+        )
+
+        let archive = ScreamerArchive(
+            version: 1,
+            exportedAt: Date(timeIntervalSince1970: 1_710_000_100),
+            appVersion: "1.0.0",
+            transcripts: [
+                ArchivedTranscript(
+                    record: TranscriptRecord(
+                        id: 123,
+                        createdAt: Date(timeIntervalSince1970: 1_710_000_010.2),
+                        sourceType: "dictation",
+                        sourceFileName: nil,
+                        modelID: "whisper-small",
+                        languageHint: nil,
+                        durationSeconds: 5,
+                        text: "\(sharedPrefix)-archive-tail"
+                    ),
+                    actions: []
+                ),
+            ]
+        )
+
+        let result = try store.importArchive(archive)
+
+        #expect(result.importedTranscriptCount == 0)
+        #expect(result.importedActionCount == 0)
+        #expect(result.skippedDuplicateCount == 1)
+        #expect(result.firstImportedTranscriptID == nil)
+        #expect(try store.fetchAll(limit: 10).count == 1)
+    }
+
+    @Test func importArchiveRollsBackAllWritesWhenAnyRecordIsInvalid() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+        let archive = ScreamerArchive(
+            version: 1,
+            exportedAt: Date(timeIntervalSince1970: 1_710_000_200),
+            appVersion: "1.0.0",
+            transcripts: [
+                ArchivedTranscript(
+                    record: TranscriptRecord(
+                        id: 1,
+                        createdAt: Date(timeIntervalSince1970: 1_710_000_201),
+                        sourceType: "dictation",
+                        sourceFileName: nil,
+                        modelID: "whisper-small",
+                        languageHint: nil,
+                        durationSeconds: 1,
+                        text: "First valid record"
+                    ),
+                    actions: [
+                        TranscriptActionRecord(
+                            id: 1,
+                            transcriptID: 1,
+                            createdAt: Date(timeIntervalSince1970: 1_710_000_202),
+                            actionType: "summarise",
+                            actionInput: nil,
+                            llmModelID: "qwen3-8b",
+                            resultText: "summary"
+                        ),
+                    ]
+                ),
+                ArchivedTranscript(
+                    record: TranscriptRecord(
+                        id: 2,
+                        createdAt: Date(timeIntervalSince1970: 1_710_000_203),
+                        sourceType: "dictation",
+                        sourceFileName: nil,
+                        modelID: "whisper-small",
+                        languageHint: nil,
+                        durationSeconds: 1,
+                        text: "   "
+                    ),
+                    actions: []
+                ),
+            ]
+        )
+
+        #expect(throws: ArchiveError.invalidData("Transcript text cannot be empty.")) {
+            _ = try store.importArchive(archive)
+        }
+
+        #expect(try store.fetchAll(limit: 10).isEmpty)
+        let actionCount = try store.databaseQueue.read { db in
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM transcript_actions") ?? 0
+        }
+        #expect(actionCount == 0)
     }
 
     @Test func fetchFilteredComposesTextDateSourceModelAndSpeakerFilters() throws {

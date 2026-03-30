@@ -47,6 +47,7 @@ class FileTranscriptionResponse:
     backend_id: str
     text: str
     segments: list["TranscriptionSegment"] | None = None
+    speaker_embeddings: dict[str, list[float] | None] | None = None
 
     def to_dict(self) -> dict[str, object]:
         payload: dict[str, object] = {
@@ -57,6 +58,8 @@ class FileTranscriptionResponse:
         }
         if self.segments is not None:
             payload["segments"] = [segment.to_dict() for segment in self.segments]
+        if self.speaker_embeddings is not None:
+            payload["speaker_embeddings"] = self.speaker_embeddings
         return payload
 
 
@@ -89,6 +92,7 @@ class DiarizationSegment:
 class DiarizationStatusResponse:
     available: bool
     model: str
+    embedding_support: bool = True
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)

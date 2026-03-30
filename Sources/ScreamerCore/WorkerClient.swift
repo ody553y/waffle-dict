@@ -95,16 +95,19 @@ public struct FileTranscriptionResponsePayload: Decodable, Equatable, Sendable {
     public let backendID: String
     public let text: String
     public let segments: [Segment]?
+    public let speakerEmbeddings: [String: [Float]?]?
 
     public init(
         jobID: String,
         backendID: String,
         text: String,
+        speakerEmbeddings: [String: [Float]?]? = nil,
         segments: [Segment]? = nil
     ) {
         self.jobID = jobID
         self.backendID = backendID
         self.text = text
+        self.speakerEmbeddings = speakerEmbeddings
         self.segments = segments
     }
 
@@ -113,16 +116,32 @@ public struct FileTranscriptionResponsePayload: Decodable, Equatable, Sendable {
         case backendID = "backend_id"
         case text
         case segments
+        case speakerEmbeddings = "speaker_embeddings"
     }
 }
 
 public struct DiarizationStatus: Decodable, Equatable, Sendable {
     public let available: Bool
     public let model: String?
+    public let embeddingSupport: Bool
 
-    public init(available: Bool, model: String? = nil) {
+    public init(available: Bool, model: String? = nil, embeddingSupport: Bool = true) {
         self.available = available
         self.model = model
+        self.embeddingSupport = embeddingSupport
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case available
+        case model
+        case embeddingSupport = "embedding_support"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        available = try container.decode(Bool.self, forKey: .available)
+        model = try container.decodeIfPresent(String.self, forKey: .model)
+        embeddingSupport = try container.decodeIfPresent(Bool.self, forKey: .embeddingSupport) ?? true
     }
 }
 

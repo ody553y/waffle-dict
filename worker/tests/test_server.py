@@ -63,15 +63,23 @@ class StubDiarizationPipeline:
         *,
         available: bool,
         segments: list[DiarizationSegment] | None = None,
+        embeddings: dict[str, list[float] | None] | None = None,
     ) -> None:
         self._available = available
         self._segments = segments or []
+        self._embeddings = embeddings or {}
 
     def is_available(self) -> bool:
         return self._available
 
     def diarize(self, _file_path: str) -> list[DiarizationSegment]:
         return list(self._segments)
+
+    def diarize_with_embeddings(
+        self,
+        _file_path: str,
+    ) -> tuple[list[DiarizationSegment], dict[str, list[float] | None]]:
+        return list(self._segments), dict(self._embeddings)
 
 
 class WorkerServerTests(unittest.TestCase):
@@ -195,6 +203,7 @@ class WorkerServerTests(unittest.TestCase):
             {
                 "available": False,
                 "model": "pyannote/speaker-diarization-3.1",
+                "embedding_support": True,
             },
         )
 
@@ -222,6 +231,7 @@ class WorkerServerTests(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(payload["available"], True)
         self.assertEqual(payload["model"], "pyannote/speaker-diarization-3.1")
+        self.assertEqual(payload["embedding_support"], True)
 
     def test_file_transcription_route_uses_registered_backend(self) -> None:
         temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
@@ -428,6 +438,114 @@ class WorkerServerTests(unittest.TestCase):
                 }
             ],
         )
+        self.assertEqual(
+            payload["speaker_embeddings"],
+            {
+                "SPEAKER_00": None,
+                "SPEAKER_01": None,
+            },
+        )
+
+    def test_file_transcription_omits_speaker_embeddings_when_diarization_disabled(self) -> None:
+        temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        temp_file.write(b"RIFF")
+        temp_file.flush()
+        temp_file.close()
+
+        server = make_server(
+            host="127.0.0.1",
+            port=0,
+            transcription_backends={"stub-whisper": StubBackend()},
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        time.sleep(0.05)
+
+        request_payload = {
+            "job_id": "job-no-embeddings",
+            "model_id": "stub-whisper",
+            "file_path": temp_file.name,
+            "language_hint": "en",
+            "translate_to_english": False,
+            "diarize": False,
+        }
+
+        try:
+            conn = HTTPConnection("127.0.0.1", server.server_port, timeout=2)
+            conn.request(
+                "POST",
+                "/transcriptions/file",
+                body=json.dumps(request_payload),
+                headers={"Content-Type": "application/json"},
+            )
+            response = conn.getresponse()
+            payload = json.loads(response.read())
+        finally:
+            conn.close()
+            Path(temp_file.name).unlink(missing_ok=True)
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.assertEqual(response.status, 200)
+        self.assertNotIn("speaker_embeddings", payload)
+
+    def test_file_transcription_includes_null_embedding_for_short_speakers(self) -> None:
+        temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        temp_file.write(b"RIFF")
+        temp_file.flush()
+        temp_file.close()
+
+        server = make_server(
+            host="127.0.0.1",
+            port=0,
+            transcription_backends={"stub-whisper": StubBackend()},
+            diarization_pipeline=StubDiarizationPipeline(
+                available=True,
+                segments=[
+                    DiarizationSegment(start=0.0, end=0.4, speaker="SPEAKER_00"),
+                    DiarizationSegment(start=0.4, end=1.8, speaker="SPEAKER_01"),
+                ],
+                embeddings={
+                    "SPEAKER_00": None,
+                    "SPEAKER_01": [0.2, 0.4, 0.6],
+                },
+            ),
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        time.sleep(0.05)
+
+        request_payload = {
+            "job_id": "job-embeddings",
+            "model_id": "stub-whisper",
+            "file_path": temp_file.name,
+            "language_hint": "en",
+            "translate_to_english": False,
+            "diarize": True,
+        }
+
+        try:
+            conn = HTTPConnection("127.0.0.1", server.server_port, timeout=2)
+            conn.request(
+                "POST",
+                "/transcriptions/file",
+                body=json.dumps(request_payload),
+                headers={"Content-Type": "application/json"},
+            )
+            response = conn.getresponse()
+            payload = json.loads(response.read())
+        finally:
+            conn.close()
+            Path(temp_file.name).unlink(missing_ok=True)
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.assertEqual(response.status, 200)
+        self.assertIn("speaker_embeddings", payload)
+        self.assertEqual(payload["speaker_embeddings"]["SPEAKER_00"], None)
+        self.assertEqual(payload["speaker_embeddings"]["SPEAKER_01"], [0.2, 0.4, 0.6])
 
     def test_file_transcription_returns_404_when_audio_file_missing(self) -> None:
         server = make_server(

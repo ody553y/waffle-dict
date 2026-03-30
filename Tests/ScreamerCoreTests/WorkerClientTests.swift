@@ -53,6 +53,10 @@ struct WorkerClientTests {
           "job_id":"job-123",
           "backend_id":"stub-whisper",
           "text":"transcribed:demo.wav:stub-whisper",
+          "speaker_embeddings":{
+            "SPEAKER_00":[0.1,0.2,0.3],
+            "SPEAKER_01":null
+          },
           "segments":[
             {"start":0.0,"end":1.2,"text":"transcribed:"},
             {"start":1.2,"end":2.4,"text":"demo.wav:stub-whisper"}
@@ -103,6 +107,11 @@ struct WorkerClientTests {
         #expect(response.segments?[0].start == 0.0)
         #expect(response.segments?[0].end == 1.2)
         #expect(response.segments?[0].text == "transcribed:")
+        let embeddings = try #require(response.speakerEmbeddings)
+        let speakerZero = try #require(embeddings["SPEAKER_00"])
+        #expect(speakerZero?.count == 3)
+        #expect(embeddings.keys.contains("SPEAKER_01"))
+        #expect(embeddings["SPEAKER_01"]! == nil)
     }
 
     @Test func transcribeFileDecodesNullSegments() async throws {
@@ -134,7 +143,7 @@ struct WorkerClientTests {
 
     @Test func fetchDiarizationStatusDecodesPayload() async throws {
         let payload = """
-        {"available":true,"model":"pyannote/speaker-diarization-3.1"}
+        {"available":true,"model":"pyannote/speaker-diarization-3.1","embedding_support":true}
         """
 
         let session = URLSession.makeMockingSession(
@@ -147,6 +156,7 @@ struct WorkerClientTests {
 
         #expect(status.available == true)
         #expect(status.model == "pyannote/speaker-diarization-3.1")
+        #expect(status.embeddingSupport == true)
     }
 }
 

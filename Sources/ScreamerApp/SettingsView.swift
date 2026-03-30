@@ -6,6 +6,7 @@ import ScreamerCore
 struct SettingsView: View {
     let onUpdateHotkey: (GlobalHotkey) -> Void
     let onLMStudioConfigurationChanged: () -> Void
+    let transcriptStore: TranscriptStore?
     @ObservedObject var modelStore: ModelStore
     @ObservedObject var updaterSettings: UpdaterSettings
 
@@ -33,7 +34,10 @@ struct SettingsView: View {
                         systemImage: "arrow.down.circle"
                     )
                 }
-            AISettingsView(onConfigurationChanged: onLMStudioConfigurationChanged)
+            AISettingsView(
+                onConfigurationChanged: onLMStudioConfigurationChanged,
+                transcriptStore: transcriptStore
+            )
                 .tabItem {
                     Label(
                         localized(
@@ -69,6 +73,8 @@ struct GeneralSettingsView: View {
     private var previewAutoDismissSeconds = 10
     @AppStorage("languageHint")
     private var languageHint = ""
+    @AppStorage("retainAudioRecordings")
+    private var retainAudioRecordings = false
 
     @ObservedObject var modelStore: ModelStore
     @ObservedObject var updaterSettings: UpdaterSettings
@@ -122,6 +128,25 @@ struct GeneralSettingsView: View {
                     "settings.general.previewAutoDismissHint",
                     default: "Set to 0 to keep the preview visible until dismissed.",
                     comment: "Help text for preview auto-dismiss stepper"
+                )
+            )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+            Toggle(
+                localized(
+                    "settings.general.retainAudioRecordings",
+                    default: "Retain audio recordings",
+                    comment: "Toggle label for retaining WAV recordings linked to transcripts"
+                ),
+                isOn: $retainAudioRecordings
+            )
+
+            Text(
+                localized(
+                    "settings.general.retainAudioRecordings.note",
+                    default: "WAV files use ~1.9 MB/minute. Audio is not included in transcript exports.",
+                    comment: "Help text warning about retained audio file size and export behavior"
                 )
             )
                 .font(.caption2)
@@ -574,15 +599,22 @@ struct ModelsSettingsView: View {
 }
 
 struct AISettingsView: View {
+    private static let defaultAutoSummarizePrompt =
+        "Summarize this transcript in 3–5 bullet points, focusing on key decisions and action items."
+
     @AppStorage("lmStudioHost") private var lmStudioHost = "127.0.0.1"
     @AppStorage("lmStudioPort") private var lmStudioPort = "1234"
     @AppStorage("lmStudioModelID") private var lmStudioModelID = ""
     @AppStorage("lmStudioStreaming") private var lmStudioStreaming = true
     @AppStorage("lmStudioDefaultTranslationLanguage")
     private var lmStudioDefaultTranslationLanguage = AppLanguageOption.defaultCode
+    @AppStorage("autoSummarizeEnabled") private var autoSummarizeEnabled = false
+    @AppStorage("autoSummarizePrompt") private var autoSummarizePrompt = Self.defaultAutoSummarizePrompt
 
     let onConfigurationChanged: () -> Void
+    let transcriptStore: TranscriptStore?
 
+    @State private var promptTemplates: [PromptTemplate] = []
     @State private var availableModels: [LMStudioModel] = []
     @State private var isConnected = false
     @State private var connectionMessage = localized(
@@ -591,6 +623,12 @@ struct AISettingsView: View {
         comment: "Default LM Studio connection status text"
     )
     @State private var isTestingConnection = false
+    @State private var isAddTemplateSheetPresented = false
+    @State private var newTemplateName = ""
+    @State private var newTemplatePrompt = ""
+    @State private var pendingDeleteTemplate: PromptTemplate?
+    @State private var templateErrorMessage: String?
+    private let promptTemplateStore = PromptTemplateStore()
 
     var body: some View {
         Form {
@@ -784,11 +822,357 @@ struct AISettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section(
+                localized(
+                    "settings.ai.autoSummarize.section",
+                    default: "Auto-Summarization",
+                    comment: "Section title for automatic transcript summarization settings"
+                )
+            ) {
+                Toggle(
+                    localized(
+                        "settings.ai.autoSummarize.enabled",
+                        default: "Auto-summarize after transcription",
+                        comment: "Toggle label for running automatic summary after dictation"
+                    ),
+                    isOn: $autoSummarizeEnabled
+                )
+
+                Menu(
+                    localized(
+                        "settings.ai.autoSummarize.useTemplate",
+                        default: "Use template…",
+                        comment: "Menu button title for selecting auto-summarize prompt template"
+                    )
+                ) {
+                    if promptTemplates.isEmpty {
+                        Text(
+                            localized(
+                                "settings.ai.promptTemplates.empty.short",
+                                default: "No templates saved",
+                                comment: "Short empty-state text shown in template picker menus"
+                            )
+                        )
+                        .disabled(true)
+                    } else {
+                        ForEach(promptTemplates) { template in
+                            Button(template.name) {
+                                autoSummarizePrompt = template.prompt
+                            }
+                        }
+                    }
+                }
+
+                TextEditor(text: $autoSummarizePrompt)
+                    .frame(minHeight: 96, maxHeight: 180)
+                    .font(.body)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                    )
+
+                Text(
+                    localized(
+                        "settings.ai.autoSummarize.note",
+                        default: "Requires LM Studio to be running with a model loaded.",
+                        comment: "Help text for auto-summarize settings dependency"
+                    )
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
+            Section(
+                localized(
+                    "settings.ai.promptTemplates.section",
+                    default: "Prompt Templates",
+                    comment: "Section title for prompt template management"
+                )
+            ) {
+                HStack(spacing: 8) {
+                    Button(
+                        localized(
+                            "settings.ai.promptTemplates.add",
+                            default: "Add Template",
+                            comment: "Button title for adding a new prompt template"
+                        )
+                    ) {
+                        beginAddTemplateFlow()
+                    }
+                    .buttonStyle(.bordered)
+                    Spacer()
+
+                    Text(
+                        localizedFormat(
+                            "settings.ai.promptTemplates.count",
+                            default: "%d / %d",
+                            comment: "Template count indicator showing current and maximum template count",
+                            promptTemplates.count,
+                            PromptTemplateStore.maxTemplateCount
+                        )
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                if promptTemplates.isEmpty {
+                    Text(
+                        localized(
+                            "settings.ai.promptTemplates.empty",
+                            default: "No prompt templates yet. Add one to reuse your best prompts.",
+                            comment: "Empty-state message shown when there are no prompt templates"
+                        )
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                } else {
+                    List {
+                        ForEach(promptTemplates) { template in
+                            PromptTemplateInlineRow(
+                                template: template,
+                                onUpdate: { updated in
+                                    updatePromptTemplate(updated)
+                                },
+                                onRequestDelete: { selected in
+                                    pendingDeleteTemplate = selected
+                                },
+                                onValidationError: { message in
+                                    templateErrorMessage = message
+                                }
+                            )
+                        }
+                        .onMove(perform: movePromptTemplates)
+                    }
+                    .frame(minHeight: 170, maxHeight: 260)
+                }
+
+                if let templateErrorMessage {
+                    Text(templateErrorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            SpeakerProfilesSection(transcriptStore: transcriptStore)
         }
         .padding()
         .task {
             await refreshModels()
+            loadPromptTemplates()
         }
+        .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
+            loadPromptTemplates()
+        }
+        .sheet(isPresented: $isAddTemplateSheetPresented) {
+            addTemplateSheet
+        }
+        .alert(
+            pendingDeleteTemplate?.name
+                ?? localized(
+                    "settings.ai.promptTemplates.delete.fallback",
+                    default: "Delete template?",
+                    comment: "Fallback title for delete template confirmation alert"
+                ),
+            isPresented: Binding(
+                get: { pendingDeleteTemplate != nil },
+                set: { isPresented in
+                    if isPresented == false {
+                        pendingDeleteTemplate = nil
+                    }
+                }
+            )
+        ) {
+            Button(
+                localized(
+                    "action.delete",
+                    default: "Delete",
+                    comment: "Action title for deleting selected transcripts"
+                ),
+                role: .destructive
+            ) {
+                guard let pendingDeleteTemplate else { return }
+                promptTemplateStore.delete(id: pendingDeleteTemplate.id)
+                loadPromptTemplates()
+                self.pendingDeleteTemplate = nil
+            }
+
+            Button(
+                localized(
+                    "action.cancel",
+                    default: "Cancel",
+                    comment: "Generic action title for canceling a dialog"
+                ),
+                role: .cancel
+            ) {
+                pendingDeleteTemplate = nil
+            }
+        } message: {
+            if let pendingDeleteTemplate {
+                Text(
+                    localizedFormat(
+                        "settings.ai.promptTemplates.delete.message",
+                        default: "Delete \"%@\"? This cannot be undone.",
+                        comment: "Confirmation message for deleting a prompt template",
+                        pendingDeleteTemplate.name
+                    )
+                )
+            }
+        }
+    }
+
+    private var addTemplateSheet: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(
+                localized(
+                    "settings.ai.promptTemplates.add.sheetTitle",
+                    default: "Add Prompt Template",
+                    comment: "Sheet title for adding a prompt template"
+                )
+            )
+            .font(.headline)
+
+            TextField(
+                localized(
+                    "settings.ai.promptTemplates.name",
+                    default: "Name",
+                    comment: "Label for prompt template name input"
+                ),
+                text: $newTemplateName
+            )
+            .textFieldStyle(.roundedBorder)
+
+            TextEditor(text: $newTemplatePrompt)
+                .frame(minHeight: 120)
+                .font(.body)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                )
+
+            if let templateErrorMessage {
+                Text(templateErrorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            HStack {
+                Spacer()
+
+                Button(
+                    localized(
+                        "action.cancel",
+                        default: "Cancel",
+                        comment: "Generic action title for canceling a dialog"
+                    )
+                ) {
+                    dismissAddTemplateSheet()
+                }
+                .buttonStyle(.bordered)
+
+                Button(
+                    localized(
+                        "action.add",
+                        default: "Add",
+                        comment: "Action title for adding an item"
+                    )
+                ) {
+                    saveTemplateFromSheet()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 420, minHeight: 300)
+    }
+
+    private func loadPromptTemplates() {
+        promptTemplates = promptTemplateStore.load()
+    }
+
+    private func beginAddTemplateFlow() {
+        guard promptTemplates.count < PromptTemplateStore.maxTemplateCount else {
+            templateErrorMessage = localizedFormat(
+                "settings.ai.promptTemplates.limit",
+                default: "You can save up to %d templates.",
+                comment: "Validation message shown when prompt template limit is reached",
+                PromptTemplateStore.maxTemplateCount
+            )
+            return
+        }
+
+        newTemplateName = ""
+        newTemplatePrompt = ""
+        templateErrorMessage = nil
+        isAddTemplateSheetPresented = true
+    }
+
+    private func dismissAddTemplateSheet() {
+        isAddTemplateSheetPresented = false
+        newTemplateName = ""
+        newTemplatePrompt = ""
+    }
+
+    private func saveTemplateFromSheet() {
+        let normalizedName = newTemplateName
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedPrompt = newTemplatePrompt
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard normalizedName.isEmpty == false else {
+            templateErrorMessage = localized(
+                "settings.ai.promptTemplates.validation.nameRequired",
+                default: "Template name is required.",
+                comment: "Validation message shown when a template name is missing"
+            )
+            return
+        }
+
+        guard normalizedName.count <= 40 else {
+            templateErrorMessage = localized(
+                "settings.ai.promptTemplates.validation.nameLength",
+                default: "Template name must be 40 characters or fewer.",
+                comment: "Validation message shown when template name exceeds maximum length"
+            )
+            return
+        }
+
+        guard normalizedPrompt.isEmpty == false else {
+            templateErrorMessage = localized(
+                "settings.ai.promptTemplates.validation.promptRequired",
+                default: "Prompt text is required.",
+                comment: "Validation message shown when template prompt text is missing"
+            )
+            return
+        }
+
+        guard promptTemplates.count < PromptTemplateStore.maxTemplateCount else {
+            templateErrorMessage = localizedFormat(
+                "settings.ai.promptTemplates.limit",
+                default: "You can save up to %d templates.",
+                comment: "Validation message shown when prompt template limit is reached",
+                PromptTemplateStore.maxTemplateCount
+            )
+            return
+        }
+
+        _ = promptTemplateStore.add(name: normalizedName, prompt: normalizedPrompt)
+        loadPromptTemplates()
+        templateErrorMessage = nil
+        dismissAddTemplateSheet()
+    }
+
+    private func updatePromptTemplate(_ template: PromptTemplate) {
+        promptTemplateStore.update(template)
+        loadPromptTemplates()
+        templateErrorMessage = nil
+    }
+
+    private func movePromptTemplates(from source: IndexSet, to destination: Int) {
+        var reordered = promptTemplates
+        reordered.move(fromOffsets: source, toOffset: destination)
+        promptTemplateStore.save(reordered)
+        loadPromptTemplates()
     }
 
     private func refreshModels() async {
@@ -874,6 +1258,191 @@ struct AISettingsView: View {
                 comment: "Error shown when LM Studio connection test fails for an unknown reason"
             )
         }
+    }
+}
+
+private struct PromptTemplateInlineRow: View {
+    let template: PromptTemplate
+    let onUpdate: (PromptTemplate) -> Void
+    let onRequestDelete: (PromptTemplate) -> Void
+    let onValidationError: (String?) -> Void
+
+    @State private var isEditingName = false
+    @State private var isEditingPrompt = false
+    @State private var nameDraft: String
+    @State private var promptDraft: String
+
+    init(
+        template: PromptTemplate,
+        onUpdate: @escaping (PromptTemplate) -> Void,
+        onRequestDelete: @escaping (PromptTemplate) -> Void,
+        onValidationError: @escaping (String?) -> Void
+    ) {
+        self.template = template
+        self.onUpdate = onUpdate
+        self.onRequestDelete = onRequestDelete
+        self.onValidationError = onValidationError
+        _nameDraft = State(initialValue: template.name)
+        _promptDraft = State(initialValue: template.prompt)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 8) {
+                if isEditingName {
+                    TextField(
+                        localized(
+                            "settings.ai.promptTemplates.name",
+                            default: "Name",
+                            comment: "Label for prompt template name input"
+                        ),
+                        text: $nameDraft
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        commitNameEdit()
+                    }
+                } else {
+                    Text(template.name)
+                        .font(.body.weight(.semibold))
+                        .onTapGesture {
+                            onValidationError(nil)
+                            nameDraft = template.name
+                            isEditingName = true
+                        }
+                }
+
+                Spacer()
+
+                Button {
+                    onRequestDelete(template)
+                } label: {
+                    Image(systemName: "minus.circle")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+            }
+
+            if isEditingPrompt {
+                TextEditor(text: $promptDraft)
+                    .frame(minHeight: 70, maxHeight: 110)
+                    .font(.caption)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                    )
+
+                HStack(spacing: 8) {
+                    Button(
+                        localized(
+                            "action.save",
+                            default: "Save",
+                            comment: "Generic action title for saving data"
+                        )
+                    ) {
+                        commitPromptEdit()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+
+                    Button(
+                        localized(
+                            "action.cancel",
+                            default: "Cancel",
+                            comment: "Generic action title for canceling a dialog"
+                        )
+                    ) {
+                        promptDraft = template.prompt
+                        isEditingPrompt = false
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            } else {
+                Text(promptPreview(for: template.prompt))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .onTapGesture {
+                        onValidationError(nil)
+                        promptDraft = template.prompt
+                        isEditingPrompt = true
+                    }
+            }
+        }
+        .onChange(of: template) { _, updated in
+            if isEditingName == false {
+                nameDraft = updated.name
+            }
+            if isEditingPrompt == false {
+                promptDraft = updated.prompt
+            }
+        }
+    }
+
+    private func commitNameEdit() {
+        let trimmed = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else {
+            onValidationError(
+                localized(
+                    "settings.ai.promptTemplates.validation.nameRequired",
+                    default: "Template name is required.",
+                    comment: "Validation message shown when a template name is missing"
+                )
+            )
+            nameDraft = template.name
+            isEditingName = false
+            return
+        }
+
+        guard trimmed.count <= 40 else {
+            onValidationError(
+                localized(
+                    "settings.ai.promptTemplates.validation.nameLength",
+                    default: "Template name must be 40 characters or fewer.",
+                    comment: "Validation message shown when template name exceeds maximum length"
+                )
+            )
+            nameDraft = template.name
+            isEditingName = false
+            return
+        }
+
+        var updated = template
+        updated.name = trimmed
+        onUpdate(updated)
+        onValidationError(nil)
+        isEditingName = false
+    }
+
+    private func commitPromptEdit() {
+        let trimmed = promptDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else {
+            onValidationError(
+                localized(
+                    "settings.ai.promptTemplates.validation.promptRequired",
+                    default: "Prompt text is required.",
+                    comment: "Validation message shown when template prompt text is missing"
+                )
+            )
+            promptDraft = template.prompt
+            isEditingPrompt = false
+            return
+        }
+
+        var updated = template
+        updated.prompt = trimmed
+        onUpdate(updated)
+        onValidationError(nil)
+        isEditingPrompt = false
+    }
+
+    private func promptPreview(for prompt: String) -> String {
+        let compact = prompt
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if compact.count <= 60 { return compact }
+        return String(compact.prefix(60)) + "…"
     }
 }
 

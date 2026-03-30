@@ -38,17 +38,28 @@ public enum AudioCaptureError: Error {
 // MARK: - Service
 
 public final class AudioCaptureService: NSObject, @unchecked Sendable {
+    private let fileManager: FileManager
     private let scratchDirectory: URL
+    private let audioFilesDirectory: URL
     private var recorder: AVAudioRecorder?
     private var activeSessionURL: URL?
 
-    public override init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        self.scratchDirectory = appSupport
+    public init(
+        fileManager: FileManager = .default,
+        appSupportDirectory: URL? = nil
+    ) {
+        self.fileManager = fileManager
+        let appSupport = appSupportDirectory
+            ?? fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let screamerDirectory = appSupport
             .appendingPathComponent("Screamer", isDirectory: true)
+        self.scratchDirectory = screamerDirectory
             .appendingPathComponent("Scratch", isDirectory: true)
+        self.audioFilesDirectory = screamerDirectory
+            .appendingPathComponent("AudioFiles", isDirectory: true)
         super.init()
-        try? FileManager.default.createDirectory(at: scratchDirectory, withIntermediateDirectories: true)
+        try? fileManager.createDirectory(at: scratchDirectory, withIntermediateDirectories: true)
+        try? fileManager.createDirectory(at: audioFilesDirectory, withIntermediateDirectories: true)
     }
 
     // MARK: - Device listing
@@ -140,7 +151,7 @@ public final class AudioCaptureService: NSObject, @unchecked Sendable {
 
     /// Returns any orphaned recordings from a previous crash.
     public func recoverOrphanedRecordings() -> [URL] {
-        guard let files = try? FileManager.default.contentsOfDirectory(
+        guard let files = try? fileManager.contentsOfDirectory(
             at: scratchDirectory,
             includingPropertiesForKeys: [.creationDateKey],
             options: .skipsHiddenFiles
@@ -153,7 +164,40 @@ public final class AudioCaptureService: NSObject, @unchecked Sendable {
 
     /// Removes a scratch file after transcript is confirmed saved.
     public func cleanupScratchFile(_ url: URL) {
-        try? FileManager.default.removeItem(at: url)
+        try? fileManager.removeItem(at: url)
+    }
+
+    /// Archives a scratch recording to Application Support and removes the scratch file on success.
+    @discardableResult
+    public func archiveRecording(from scratchURL: URL, transcriptID: Int64) throws -> URL {
+        let destinationURL = try makeArchiveDestinationURL(transcriptID: transcriptID)
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+        }
+
+        try fileManager.copyItem(at: scratchURL, to: destinationURL)
+        try fileManager.removeItem(at: scratchURL)
+        return destinationURL
+    }
+
+    /// Archives an existing file without deleting the source (used for imported files).
+    @discardableResult
+    public func archiveAudioCopy(from sourceURL: URL, transcriptID: Int64) throws -> URL {
+        let destinationURL = try makeArchiveDestinationURL(transcriptID: transcriptID)
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+        }
+        try fileManager.copyItem(at: sourceURL, to: destinationURL)
+        return destinationURL
+    }
+
+    public func deleteAudioFile(at path: String) throws {
+        let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedPath.isEmpty == false else { return }
+
+        let fileURL = URL(fileURLWithPath: trimmedPath)
+        guard fileManager.fileExists(atPath: fileURL.path) else { return }
+        try fileManager.removeItem(at: fileURL)
     }
 
     public func recordingDurationSeconds(for fileURL: URL) -> Double? {
@@ -167,6 +211,19 @@ public final class AudioCaptureService: NSObject, @unchecked Sendable {
         }
 
         return Double(audioFile.length) / sampleRate
+    }
+}
+
+private extension AudioCaptureService {
+    func makeArchiveDestinationURL(transcriptID: Int64) throws -> URL {
+        try fileManager.createDirectory(at: audioFilesDirectory, withIntermediateDirectories: true)
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let timestamp = formatter.string(from: Date())
+            .replacingOccurrences(of: ":", with: "-")
+        let filename = "\(transcriptID)_\(timestamp).wav"
+        return audioFilesDirectory.appendingPathComponent(filename, isDirectory: false)
     }
 }
 

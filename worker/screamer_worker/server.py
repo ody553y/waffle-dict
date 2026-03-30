@@ -19,6 +19,9 @@ from screamer_worker.models import (
 
 
 class WorkerHTTPServer(ThreadingHTTPServer):
+    daemon_threads = True
+    block_on_close = False
+
     def __init__(
         self,
         server_address: tuple[str, int],
@@ -41,6 +44,7 @@ class RequestTooLargeError(ValueError):
 
 class WorkerRequestHandler(BaseHTTPRequestHandler):
     server_version = "ScreamerWorker/0.1"
+    protocol_version = "HTTP/1.0"
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
         if self.path == "/health":
@@ -67,6 +71,7 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
                         and diarization_pipeline.is_available()
                     ),
                     model=DiarizationPipeline.MODEL_ID,
+                    embedding_support=True,
                 ).to_dict(),
             )
             return
@@ -164,10 +169,18 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
             )
 
             segments = transcription_result.segments
-            if request.diarize and segments is not None:
+            speaker_embeddings: dict[str, list[float] | None] | None = None
+
+            if request.diarize:
                 assert diarization_pipeline is not None
                 try:
-                    diarization_segments = diarization_pipeline.diarize(request.file_path)
+                    diarization_segments, speaker_embeddings = (
+                        diarization_pipeline.diarize_with_embeddings(request.file_path)
+                    )
+                    if speaker_embeddings is None:
+                        speaker_embeddings = {}
+                    for diarization_segment in diarization_segments:
+                        speaker_embeddings.setdefault(diarization_segment.speaker, None)
                 except RuntimeError as error:
                     self._write_json(
                         HTTPStatus.BAD_REQUEST,
@@ -184,16 +197,18 @@ class WorkerRequestHandler(BaseHTTPRequestHandler):
                     )
                     return
 
-                segments = merge_speakers(
-                    transcription_segments=segments,
-                    diarization_segments=diarization_segments,
-                )
+                if segments is not None:
+                    segments = merge_speakers(
+                        transcription_segments=segments,
+                        diarization_segments=diarization_segments,
+                    )
 
             response = FileTranscriptionResponse(
                 job_id=request.job_id,
                 backend_id=backend.backend_id,
                 text=transcription_result.text,
                 segments=segments,
+                speaker_embeddings=speaker_embeddings if request.diarize else None,
             )
             self._write_json(HTTPStatus.OK, response.to_dict())
             return

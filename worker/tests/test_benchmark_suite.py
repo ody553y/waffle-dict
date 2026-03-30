@@ -70,7 +70,7 @@ class BenchmarkSuiteTests(unittest.TestCase):
         def fake_post_json(path: str, payload: dict[str, object]) -> dict[str, object]:
             captured["path"] = path
             captured["payload"] = payload
-            return {}
+            return {"speaker_embeddings": {}}
 
         suite._post_json = fake_post_json  # type: ignore[method-assign]
         suite._request_transcription(
@@ -85,6 +85,21 @@ class BenchmarkSuiteTests(unittest.TestCase):
         assert isinstance(payload, dict)
         self.assertEqual(payload.get("diarize"), True)
         self.assertNotIn("request_diarization", payload)
+
+    def test_diarization_request_requires_speaker_embeddings_in_response(self) -> None:
+        suite = BenchmarkSuite()
+
+        def fake_post_json(_path: str, _payload: dict[str, object]) -> dict[str, object]:
+            return {"text": "ok"}
+
+        suite._post_json = fake_post_json  # type: ignore[method-assign]
+
+        with self.assertRaisesRegex(RuntimeError, "speaker_embeddings"):
+            suite._request_transcription(
+                model_id="whisper-small",
+                audio_path=Path("/tmp/example.wav"),
+                request_diarization=True,
+            )
 
 
 if __name__ == "__main__":

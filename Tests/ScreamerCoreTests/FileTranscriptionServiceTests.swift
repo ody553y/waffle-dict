@@ -43,6 +43,10 @@ struct FileTranscriptionServiceTests {
             jobID: "job-1",
             backendID: "stub-whisper",
             text: "hello from file",
+            speakerEmbeddings: [
+                "SPEAKER_00": [0.1, 0.2, 0.3],
+                "SPEAKER_01": nil,
+            ],
             segments: [
                 .init(start: 0.0, end: 1.0, text: "hello", speaker: "SPEAKER_00"),
                 .init(start: 1.0, end: 2.0, text: "from file", speaker: "SPEAKER_01"),
@@ -68,6 +72,7 @@ struct FileTranscriptionServiceTests {
                 TranscriptSegment(start: 1.0, end: 2.0, text: "from file", speaker: "SPEAKER_01"),
             ]
         )
+        #expect(result.speakerEmbeddings == ["SPEAKER_00": [0.1, 0.2, 0.3]])
     }
 
     @Test func transcribePropagatesRequestDiarizationFlag() async throws {

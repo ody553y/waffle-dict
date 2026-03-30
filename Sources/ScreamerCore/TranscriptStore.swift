@@ -29,6 +29,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
     public var segments: [TranscriptSegment]?
     public var speakerMap: [String: String]?
     public var notes: String?
+    public var audioFilePath: String?
 
     public init(
         id: Int64? = nil,
@@ -41,7 +42,8 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         text: String,
         segments: [TranscriptSegment]? = nil,
         speakerMap: [String: String]? = nil,
-        notes: String? = nil
+        notes: String? = nil,
+        audioFilePath: String? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -54,6 +56,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         self.segments = segments
         self.speakerMap = speakerMap
         self.notes = notes
+        self.audioFilePath = audioFilePath
     }
 
     enum CodingKeys: String, CodingKey {
@@ -68,6 +71,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         case segments
         case speakerMap
         case notes
+        case audioFilePath
     }
 
     public init(from decoder: Decoder) throws {
@@ -81,6 +85,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         durationSeconds = try container.decodeIfPresent(Double.self, forKey: .durationSeconds)
         text = try container.decode(String.self, forKey: .text)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        audioFilePath = try container.decodeIfPresent(String.self, forKey: .audioFilePath)
 
         if let segmentsJSONString = try container.decodeIfPresent(String.self, forKey: .segments),
            segmentsJSONString.isEmpty == false {
@@ -110,6 +115,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encode(text, forKey: .text)
         try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encodeIfPresent(audioFilePath, forKey: .audioFilePath)
 
         if let segments {
             let data = try JSONEncoder().encode(segments)
@@ -185,6 +191,25 @@ public enum TranscriptStoreError: Error {
     case insertedRecordMissingID
 }
 
+public struct TranscriptArchiveImportResult: Equatable, Sendable {
+    public var importedTranscriptCount: Int
+    public var importedActionCount: Int
+    public var skippedDuplicateCount: Int
+    public var firstImportedTranscriptID: Int64?
+
+    public init(
+        importedTranscriptCount: Int,
+        importedActionCount: Int,
+        skippedDuplicateCount: Int,
+        firstImportedTranscriptID: Int64?
+    ) {
+        self.importedTranscriptCount = importedTranscriptCount
+        self.importedActionCount = importedActionCount
+        self.skippedDuplicateCount = skippedDuplicateCount
+        self.firstImportedTranscriptID = firstImportedTranscriptID
+    }
+}
+
 public struct TranscriptFilter: Sendable, Equatable {
     public var searchText: String?
     public var dateFrom: Date?
@@ -212,6 +237,10 @@ public struct TranscriptFilter: Sendable, Equatable {
 
 public final class TranscriptStore: @unchecked Sendable {
     private let dbQueue: DatabaseQueue
+
+    public var databaseQueue: DatabaseQueue {
+        dbQueue
+    }
 
     public init(databasePath: String? = nil, fileManager: FileManager = .default) throws {
         let path = databasePath ?? Self.defaultDatabasePath(fileManager: fileManager)
@@ -256,7 +285,7 @@ public final class TranscriptStore: @unchecked Sendable {
                     db,
                     sql: """
                     SELECT id, createdAt, sourceType, sourceFileName, modelID, languageHint, durationSeconds, text, segments
-                    , speakerMap, notes
+                    , speakerMap, notes, audioFilePath
                     FROM transcripts
                     ORDER BY createdAt DESC, id DESC
                     LIMIT ? OFFSET ?
@@ -329,7 +358,7 @@ public final class TranscriptStore: @unchecked Sendable {
             try TranscriptRecord.fetchAll(
                 db,
                 sql: """
-                SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments, t.speakerMap, t.notes
+                SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments, t.speakerMap, t.notes, t.audioFilePath
                 FROM transcripts AS t
                 \(joinClause)
                 \(whereClause)
@@ -397,6 +426,62 @@ public final class TranscriptStore: @unchecked Sendable {
         }
     }
 
+    public func updateAudioFilePath(id: Int64, path: String?) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE transcripts SET audioFilePath = ? WHERE id = ?",
+                arguments: [path, id]
+            )
+        }
+    }
+
+    public func saveEmbeddings(_ embeddings: [String: [Float]], transcriptID: Int64) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "DELETE FROM transcript_speaker_embeddings WHERE transcriptID = ?",
+                arguments: [transcriptID]
+            )
+
+            for (speakerLabel, embedding) in embeddings {
+                let normalizedLabel = speakerLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard normalizedLabel.isEmpty == false else { continue }
+                guard embedding.isEmpty == false else { continue }
+
+                try db.execute(
+                    sql: """
+                    INSERT INTO transcript_speaker_embeddings(transcriptID, speakerLabel, embedding)
+                    VALUES (?, ?, ?)
+                    """,
+                    arguments: [transcriptID, normalizedLabel, Self.encodeFloatArray(embedding)]
+                )
+            }
+        }
+    }
+
+    public func fetchEmbeddings(transcriptID: Int64) throws -> [String: [Float]] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT speakerLabel, embedding
+                FROM transcript_speaker_embeddings
+                WHERE transcriptID = ?
+                """,
+                arguments: [transcriptID]
+            )
+
+            var embeddings: [String: [Float]] = [:]
+            for row in rows {
+                guard let speakerLabel = row["speakerLabel"] as String? else { continue }
+                guard let embeddingData = row["embedding"] as Data? else { continue }
+                let decoded = Self.decodeFloatArray(embeddingData)
+                guard decoded.isEmpty == false else { continue }
+                embeddings[speakerLabel] = decoded
+            }
+            return embeddings
+        }
+    }
+
     public func delete(ids: [Int64]) throws {
         guard ids.isEmpty == false else { return }
         let placeholders = Array(repeating: "?", count: ids.count).joined(separator: ",")
@@ -455,6 +540,60 @@ public final class TranscriptStore: @unchecked Sendable {
         }
     }
 
+    public func importArchive(_ archive: ScreamerArchive) throws -> TranscriptArchiveImportResult {
+        var importedTranscriptCount = 0
+        var importedActionCount = 0
+        var skippedDuplicateCount = 0
+        var firstImportedTranscriptID: Int64?
+
+        try dbQueue.write { db in
+            for archivedTranscript in archive.transcripts {
+                guard archivedTranscript.record.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+                else {
+                    throw ArchiveError.invalidData("Transcript text cannot be empty.")
+                }
+
+                if try Self.archiveRecordIsDuplicate(archivedTranscript.record, db: db) {
+                    skippedDuplicateCount += 1
+                    continue
+                }
+
+                var record = archivedTranscript.record
+                record.id = nil
+                try record.insert(db)
+
+                guard let insertedID = record.id else {
+                    throw TranscriptStoreError.insertedRecordMissingID
+                }
+
+                try db.execute(
+                    sql: "INSERT INTO transcripts_fts(rowid, text, notes) VALUES (?, ?, ?)",
+                    arguments: [insertedID, record.text, Self.normalizedNotesForFTS(record.notes)]
+                )
+
+                if firstImportedTranscriptID == nil {
+                    firstImportedTranscriptID = insertedID
+                }
+                importedTranscriptCount += 1
+
+                for archivedAction in archivedTranscript.actions {
+                    var action = archivedAction
+                    action.id = nil
+                    action.transcriptID = insertedID
+                    try action.insert(db)
+                    importedActionCount += 1
+                }
+            }
+        }
+
+        return TranscriptArchiveImportResult(
+            importedTranscriptCount: importedTranscriptCount,
+            importedActionCount: importedActionCount,
+            skippedDuplicateCount: skippedDuplicateCount,
+            firstImportedTranscriptID: firstImportedTranscriptID
+        )
+    }
+
     public func deleteAction(id: Int64) throws {
         try dbQueue.write { db in
             _ = try TranscriptActionRecord.deleteOne(db, key: id)
@@ -482,6 +621,7 @@ private extension TranscriptStore {
                 table.column("text", .text).notNull()
                 table.column("speakerMap", .text)
                 table.column("notes", .text)
+                table.column("audioFilePath", .text)
             }
 
             try db.create(index: "idx_transcripts_createdAt", on: "transcripts", columns: ["createdAt"])
@@ -533,6 +673,45 @@ private extension TranscriptStore {
                 try db.alter(table: "transcripts") { table in
                     table.add(column: "notes", .text)
                 }
+            }
+        }
+
+        migrator.registerMigration("addAudioFilePathColumn") { db in
+            if try columnExists("audioFilePath", in: "transcripts", db: db) == false {
+                try db.alter(table: "transcripts") { table in
+                    table.add(column: "audioFilePath", .text)
+                }
+            }
+        }
+
+        migrator.registerMigration("createSpeakerProfiles") { db in
+            if try tableExists("speaker_profiles", db: db) == false {
+                try db.create(table: "speaker_profiles") { table in
+                    table.column("id", .text).notNull().primaryKey()
+                    table.column("displayName", .text).notNull()
+                    table.column("createdAt", .double).notNull()
+                    table.column("lastSeenAt", .double).notNull()
+                    table.column("averageEmbedding", .blob).notNull()
+                    table.column("transcriptCount", .integer).notNull().defaults(to: 1)
+                }
+            }
+        }
+
+        migrator.registerMigration("createTranscriptSpeakerEmbeddings") { db in
+            if try tableExists("transcript_speaker_embeddings", db: db) == false {
+                try db.create(table: "transcript_speaker_embeddings") { table in
+                    table.column("transcriptID", .integer)
+                        .notNull()
+                        .references("transcripts", onDelete: .cascade)
+                    table.column("speakerLabel", .text).notNull()
+                    table.column("embedding", .blob).notNull()
+                    table.primaryKey(["transcriptID", "speakerLabel"])
+                }
+                try db.create(
+                    index: "idx_transcript_speaker_embeddings_transcriptID",
+                    on: "transcript_speaker_embeddings",
+                    columns: ["transcriptID"]
+                )
             }
         }
 
@@ -588,6 +767,26 @@ private extension TranscriptStore {
             }
     }
 
+    static func tableExists(_ tableName: String, db: Database) throws -> Bool {
+        try String.fetchOne(
+            db,
+            sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1",
+            arguments: [tableName]
+        ) != nil
+    }
+
+    static func encodeFloatArray(_ embedding: [Float]) -> Data {
+        var array = embedding
+        return Data(bytes: &array, count: array.count * MemoryLayout<Float>.size)
+    }
+
+    static func decodeFloatArray(_ data: Data) -> [Float] {
+        guard data.count.isMultiple(of: MemoryLayout<Float>.size) else { return [] }
+        return data.withUnsafeBytes { rawBytes in
+            Array(rawBytes.bindMemory(to: Float.self))
+        }
+    }
+
     static func normalizeSpeakerMap(_ speakerMap: [String: String]?) -> [String: String]? {
         guard let speakerMap else { return nil }
         let normalized = speakerMap.reduce(into: [String: String]()) { partialResult, entry in
@@ -607,5 +806,26 @@ private extension TranscriptStore {
 
     static func normalizedNotesForFTS(_ notes: String?) -> String {
         notes ?? ""
+    }
+
+    static func archiveRecordIsDuplicate(_ record: TranscriptRecord, db: Database) throws -> Bool {
+        let textPrefix = String(record.text.prefix(200))
+        let existingCreatedAts = try Date.fetchAll(
+            db,
+            sql: """
+            SELECT createdAt
+            FROM transcripts
+            WHERE modelID = ? AND substr(text, 1, 200) = ?
+            """,
+            arguments: [record.modelID, textPrefix]
+        )
+        let archiveSecond = Self.unixSecond(for: record.createdAt)
+        return existingCreatedAts.contains { existingDate in
+            Self.unixSecond(for: existingDate) == archiveSecond
+        }
+    }
+
+    static func unixSecond(for date: Date) -> Int64 {
+        Int64(floor(date.timeIntervalSince1970))
     }
 }

@@ -262,7 +262,12 @@ class BenchmarkSuite:
             "diarize": request_diarization,
         }
 
-        return self._post_json("/transcriptions/file", payload)
+        response = self._post_json("/transcriptions/file", payload)
+        if request_diarization and "speaker_embeddings" not in response:
+            raise RuntimeError(
+                "Expected diarization response to include speaker_embeddings"
+            )
+        return response
 
     def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
         body = json.dumps(payload).encode("utf-8")
