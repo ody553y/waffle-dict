@@ -63,6 +63,29 @@ class BenchmarkSuiteTests(unittest.TestCase):
         self.assertIn("parakeet-0.6b", report)
         self.assertIn("3.00", report)
 
+    def test_diarization_request_uses_worker_diarize_field(self) -> None:
+        suite = BenchmarkSuite()
+        captured: dict[str, object] = {}
+
+        def fake_post_json(path: str, payload: dict[str, object]) -> dict[str, object]:
+            captured["path"] = path
+            captured["payload"] = payload
+            return {}
+
+        suite._post_json = fake_post_json  # type: ignore[method-assign]
+        suite._request_transcription(
+            model_id="whisper-small",
+            audio_path=Path("/tmp/example.wav"),
+            request_diarization=True,
+        )
+
+        self.assertEqual(captured["path"], "/transcriptions/file")
+        payload = captured["payload"]
+        self.assertIsInstance(payload, dict)
+        assert isinstance(payload, dict)
+        self.assertEqual(payload.get("diarize"), True)
+        self.assertNotIn("request_diarization", payload)
+
 
 if __name__ == "__main__":
     unittest.main()

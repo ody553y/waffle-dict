@@ -259,9 +259,8 @@ class BenchmarkSuite:
             "file_path": str(audio_path),
             "language_hint": None,
             "translate_to_english": False,
+            "diarize": request_diarization,
         }
-        if request_diarization:
-            payload["request_diarization"] = True
 
         return self._post_json("/transcriptions/file", payload)
 
