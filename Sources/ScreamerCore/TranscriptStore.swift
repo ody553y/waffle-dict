@@ -27,6 +27,8 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
     public var durationSeconds: Double?
     public var text: String
     public var segments: [TranscriptSegment]?
+    public var speakerMap: [String: String]?
+    public var notes: String?
 
     public init(
         id: Int64? = nil,
@@ -37,7 +39,9 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         languageHint: String?,
         durationSeconds: Double?,
         text: String,
-        segments: [TranscriptSegment]? = nil
+        segments: [TranscriptSegment]? = nil,
+        speakerMap: [String: String]? = nil,
+        notes: String? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -48,6 +52,8 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         self.durationSeconds = durationSeconds
         self.text = text
         self.segments = segments
+        self.speakerMap = speakerMap
+        self.notes = notes
     }
 
     enum CodingKeys: String, CodingKey {
@@ -60,6 +66,8 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         case durationSeconds
         case text
         case segments
+        case speakerMap
+        case notes
     }
 
     public init(from decoder: Decoder) throws {
@@ -72,6 +80,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         languageHint = try container.decodeIfPresent(String.self, forKey: .languageHint)
         durationSeconds = try container.decodeIfPresent(Double.self, forKey: .durationSeconds)
         text = try container.decode(String.self, forKey: .text)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
 
         if let segmentsJSONString = try container.decodeIfPresent(String.self, forKey: .segments),
            segmentsJSONString.isEmpty == false {
@@ -79,6 +88,14 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
             segments = try JSONDecoder().decode([TranscriptSegment].self, from: data)
         } else {
             segments = nil
+        }
+
+        if let speakerMapJSONString = try container.decodeIfPresent(String.self, forKey: .speakerMap),
+           speakerMapJSONString.isEmpty == false {
+            let data = Data(speakerMapJSONString.utf8)
+            speakerMap = try JSONDecoder().decode([String: String].self, from: data)
+        } else {
+            speakerMap = nil
         }
     }
 
@@ -92,6 +109,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         try container.encodeIfPresent(languageHint, forKey: .languageHint)
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encode(text, forKey: .text)
+        try container.encodeIfPresent(notes, forKey: .notes)
 
         if let segments {
             let data = try JSONEncoder().encode(segments)
@@ -100,10 +118,32 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         } else {
             try container.encodeNil(forKey: .segments)
         }
+
+        if let speakerMap {
+            let data = try JSONEncoder().encode(speakerMap)
+            let jsonString = String(decoding: data, as: UTF8.self)
+            try container.encode(jsonString, forKey: .speakerMap)
+        } else {
+            try container.encodeNil(forKey: .speakerMap)
+        }
     }
 
     public mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
+    }
+
+    public func resolvedSpeaker(for segment: TranscriptSegment) -> String? {
+        guard let rawSpeaker = normalizedSpeakerLabel(segment.speaker) else { return nil }
+        if let mappedSpeaker = normalizedSpeakerLabel(speakerMap?[rawSpeaker]) {
+            return mappedSpeaker
+        }
+        return rawSpeaker
+    }
+
+    private func normalizedSpeakerLabel(_ speaker: String?) -> String? {
+        guard let speaker else { return nil }
+        let trimmed = speaker.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
@@ -145,6 +185,31 @@ public enum TranscriptStoreError: Error {
     case insertedRecordMissingID
 }
 
+public struct TranscriptFilter: Sendable, Equatable {
+    public var searchText: String?
+    public var dateFrom: Date?
+    public var dateTo: Date?
+    public var sourceType: String?
+    public var modelID: String?
+    public var hasSpeakers: Bool?
+
+    public init(
+        searchText: String? = nil,
+        dateFrom: Date? = nil,
+        dateTo: Date? = nil,
+        sourceType: String? = nil,
+        modelID: String? = nil,
+        hasSpeakers: Bool? = nil
+    ) {
+        self.searchText = searchText
+        self.dateFrom = dateFrom
+        self.dateTo = dateTo
+        self.sourceType = sourceType
+        self.modelID = modelID
+        self.hasSpeakers = hasSpeakers
+    }
+}
+
 public final class TranscriptStore: @unchecked Sendable {
     private let dbQueue: DatabaseQueue
 
@@ -175,8 +240,8 @@ public final class TranscriptStore: @unchecked Sendable {
                 }
 
                 try db.execute(
-                    sql: "INSERT INTO transcripts_fts(rowid, text) VALUES (?, ?)",
-                    arguments: [id, savedRecord.text]
+                    sql: "INSERT INTO transcripts_fts(rowid, text, notes) VALUES (?, ?, ?)",
+                    arguments: [id, savedRecord.text, Self.normalizedNotesForFTS(savedRecord.notes)]
                 )
             }
 
@@ -191,6 +256,7 @@ public final class TranscriptStore: @unchecked Sendable {
                     db,
                     sql: """
                     SELECT id, createdAt, sourceType, sourceFileName, modelID, languageHint, durationSeconds, text, segments
+                    , speakerMap, notes
                     FROM transcripts
                     ORDER BY createdAt DESC, id DESC
                     LIMIT ? OFFSET ?
@@ -203,27 +269,89 @@ public final class TranscriptStore: @unchecked Sendable {
 
     public func search(query: String, limit: Int) throws -> [TranscriptRecord] {
         try PerformanceMetrics.shared.measure("db.search") {
-            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty {
-                return try fetchAll(limit: limit, offset: 0)
-            }
+            try fetchFiltered(TranscriptFilter(searchText: query), limit: limit, offset: 0)
+        }
+    }
 
-            let matchQuery = Self.makeFTSMatchQuery(from: trimmed)
+    public func fetchFiltered(_ filter: TranscriptFilter, limit: Int, offset: Int = 0) throws -> [TranscriptRecord] {
+        let normalizedSearchText = filter.searchText?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let shouldApplySearch = (normalizedSearchText?.isEmpty == false)
 
-            return try dbQueue.read { db in
-                try TranscriptRecord.fetchAll(
-                    db,
-                    sql: """
-                    SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments
-                    FROM transcripts AS t
-                    JOIN transcripts_fts ON transcripts_fts.rowid = t.id
-                    WHERE transcripts_fts MATCH ?
-                    ORDER BY t.createdAt DESC, t.id DESC
-                    LIMIT ?
-                    """,
-                    arguments: [matchQuery, max(limit, 0)]
-                )
+        var predicates: [String] = []
+        var arguments = StatementArguments()
+
+        if shouldApplySearch, let normalizedSearchText {
+            predicates.append("transcripts_fts MATCH ?")
+            arguments += [Self.makeFTSMatchQuery(from: normalizedSearchText)]
+        }
+
+        if let dateFrom = filter.dateFrom {
+            predicates.append("t.createdAt >= ?")
+            arguments += [dateFrom]
+        }
+
+        if let dateTo = filter.dateTo {
+            predicates.append("t.createdAt <= ?")
+            arguments += [dateTo]
+        }
+
+        if let sourceType = filter.sourceType?.trimmingCharacters(in: .whitespacesAndNewlines),
+           sourceType.isEmpty == false {
+            predicates.append("t.sourceType = ?")
+            arguments += [sourceType]
+        }
+
+        if let modelID = filter.modelID?.trimmingCharacters(in: .whitespacesAndNewlines),
+           modelID.isEmpty == false {
+            predicates.append("t.modelID = ?")
+            arguments += [modelID]
+        }
+
+        if let hasSpeakers = filter.hasSpeakers {
+            if hasSpeakers {
+                predicates.append("t.segments LIKE '%\"speaker\"%'")
+            } else {
+                predicates.append("(t.segments IS NULL OR t.segments NOT LIKE '%\"speaker\"%')")
             }
+        }
+
+        let joinClause = shouldApplySearch
+            ? "JOIN transcripts_fts ON transcripts_fts.rowid = t.id"
+            : ""
+        let whereClause = predicates.isEmpty
+            ? ""
+            : "WHERE \(predicates.joined(separator: " AND "))"
+
+        arguments += [max(limit, 0), max(offset, 0)]
+
+        return try dbQueue.read { db in
+            try TranscriptRecord.fetchAll(
+                db,
+                sql: """
+                SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments, t.speakerMap, t.notes
+                FROM transcripts AS t
+                \(joinClause)
+                \(whereClause)
+                ORDER BY t.createdAt DESC, t.id DESC
+                LIMIT ? OFFSET ?
+                """,
+                arguments: arguments
+            )
+        }
+    }
+
+    public func fetchDistinctModelIDs() throws -> [String] {
+        try dbQueue.read { db in
+            try String.fetchAll(
+                db,
+                sql: """
+                SELECT DISTINCT modelID
+                FROM transcripts
+                WHERE modelID IS NOT NULL AND modelID <> ''
+                ORDER BY modelID ASC
+                """
+            )
         }
     }
 
@@ -237,6 +365,63 @@ public final class TranscriptStore: @unchecked Sendable {
     public func fetchOne(id: Int64) throws -> TranscriptRecord? {
         try dbQueue.read { db in
             try TranscriptRecord.fetchOne(db, key: id)
+        }
+    }
+
+    public func updateSpeakerMap(id: Int64, speakerMap: [String: String]?) throws {
+        let normalizedMap = Self.normalizeSpeakerMap(speakerMap)
+        let speakerMapJSONString: String? = try normalizedMap.map { map in
+            let data = try JSONEncoder().encode(map)
+            return String(decoding: data, as: UTF8.self)
+        }
+
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE transcripts SET speakerMap = ? WHERE id = ?",
+                arguments: [speakerMapJSONString, id]
+            )
+        }
+    }
+
+    public func updateNotes(id: Int64, notes: String?) throws {
+        let normalizedNotes = Self.normalizeNotes(notes)
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE transcripts SET notes = ? WHERE id = ?",
+                arguments: [normalizedNotes, id]
+            )
+            try db.execute(
+                sql: "UPDATE transcripts_fts SET notes = ? WHERE rowid = ?",
+                arguments: [Self.normalizedNotesForFTS(normalizedNotes), id]
+            )
+        }
+    }
+
+    public func delete(ids: [Int64]) throws {
+        guard ids.isEmpty == false else { return }
+        let placeholders = Array(repeating: "?", count: ids.count).joined(separator: ",")
+        let arguments = StatementArguments(ids)
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "DELETE FROM transcripts WHERE id IN (\(placeholders))",
+                arguments: arguments
+            )
+            try db.execute(
+                sql: "DELETE FROM transcripts_fts WHERE rowid IN (\(placeholders))",
+                arguments: arguments
+            )
+        }
+    }
+
+    public func countActions(forTranscriptIDs transcriptIDs: [Int64]) throws -> Int {
+        guard transcriptIDs.isEmpty == false else { return 0 }
+        let placeholders = Array(repeating: "?", count: transcriptIDs.count).joined(separator: ",")
+        return try dbQueue.read { db in
+            try Int.fetchOne(
+                db,
+                sql: "SELECT COUNT(*) FROM transcript_actions WHERE transcriptID IN (\(placeholders))",
+                arguments: StatementArguments(transcriptIDs)
+            ) ?? 0
         }
     }
 
@@ -295,12 +480,15 @@ private extension TranscriptStore {
                 table.column("languageHint", .text)
                 table.column("durationSeconds", .double)
                 table.column("text", .text).notNull()
+                table.column("speakerMap", .text)
+                table.column("notes", .text)
             }
 
             try db.create(index: "idx_transcripts_createdAt", on: "transcripts", columns: ["createdAt"])
 
             try db.create(virtualTable: "transcripts_fts", using: FTS5()) { table in
                 table.column("text")
+                table.column("notes")
             }
         }
 
@@ -325,9 +513,43 @@ private extension TranscriptStore {
         }
 
         migrator.registerMigration("addSegmentsColumn") { db in
-            try db.alter(table: "transcripts") { table in
-                table.add(column: "segments", .text)
+            if try columnExists("segments", in: "transcripts", db: db) == false {
+                try db.alter(table: "transcripts") { table in
+                    table.add(column: "segments", .text)
+                }
             }
+        }
+
+        migrator.registerMigration("addSpeakerMapColumn") { db in
+            if try columnExists("speakerMap", in: "transcripts", db: db) == false {
+                try db.alter(table: "transcripts") { table in
+                    table.add(column: "speakerMap", .text)
+                }
+            }
+        }
+
+        migrator.registerMigration("addNotesColumn") { db in
+            if try columnExists("notes", in: "transcripts", db: db) == false {
+                try db.alter(table: "transcripts") { table in
+                    table.add(column: "notes", .text)
+                }
+            }
+        }
+
+        migrator.registerMigration("rebuildTranscriptsFTSWithNotes") { db in
+            try db.drop(table: "transcripts_fts")
+            try db.create(virtualTable: "transcripts_fts", using: FTS5()) { table in
+                table.column("text")
+                table.column("notes")
+            }
+            try db.execute(
+                sql: """
+                INSERT INTO transcripts_fts(rowid, text, notes)
+                SELECT id, text, COALESCE(notes, '')
+                FROM transcripts
+                """
+            )
+            try db.execute(sql: "INSERT INTO transcripts_fts(transcripts_fts) VALUES('rebuild')")
         }
 
         return migrator
@@ -357,5 +579,33 @@ private extension TranscriptStore {
                 return "\"\(escaped)\"*"
             }
             .joined(separator: " AND ")
+    }
+
+    static func columnExists(_ columnName: String, in tableName: String, db: Database) throws -> Bool {
+        try Row.fetchAll(db, sql: "PRAGMA table_info(\(tableName))")
+            .contains { row in
+                (row["name"] as String?) == columnName
+            }
+    }
+
+    static func normalizeSpeakerMap(_ speakerMap: [String: String]?) -> [String: String]? {
+        guard let speakerMap else { return nil }
+        let normalized = speakerMap.reduce(into: [String: String]()) { partialResult, entry in
+            let key = entry.key.trimmingCharacters(in: .whitespacesAndNewlines)
+            let value = entry.value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard key.isEmpty == false, value.isEmpty == false else { return }
+            partialResult[key] = value
+        }
+        return normalized.isEmpty ? nil : normalized
+    }
+
+    static func normalizeNotes(_ notes: String?) -> String? {
+        guard let notes else { return nil }
+        let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : notes
+    }
+
+    static func normalizedNotesForFTS(_ notes: String?) -> String {
+        notes ?? ""
     }
 }

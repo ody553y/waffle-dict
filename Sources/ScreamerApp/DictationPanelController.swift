@@ -16,6 +16,7 @@ final class DictationPanelController {
     private var localEscapeMonitor: Any?
     private var globalEscapeMonitor: Any?
     private weak var dictationController: DictationController?
+    private var previousState: DictationController.State = .idle
 
     func bind(to dictationController: DictationController) {
         self.dictationController = dictationController
@@ -59,6 +60,8 @@ final class DictationPanelController {
     }
 
     private func handleStateChange(_ state: DictationController.State) {
+        announceStateChangeIfNeeded(state)
+
         switch state {
         case .idle:
             dismissTask?.cancel()
@@ -79,6 +82,8 @@ final class DictationPanelController {
                 panel?.orderOut(nil)
             }
         }
+
+        previousState = state
     }
 
     private func showPanel(for state: DictationController.State) {
@@ -124,5 +129,49 @@ final class DictationPanelController {
         guard event.keyCode == UInt16(kVK_Escape) else { return }
         guard let dictationController else { return }
         dictationController.cancelRecordingFromEscape()
+    }
+
+    private func announceStateChangeIfNeeded(_ state: DictationController.State) {
+        guard previousState != state else { return }
+
+        let announcement: String?
+        switch state {
+        case .idle:
+            announcement = nil
+        case .recording:
+            announcement = localized(
+                "dictation.panel.announcement.recording",
+                default: "Recording started.",
+                comment: "VoiceOver announcement when recording begins"
+            )
+        case .transcribing:
+            announcement = localized(
+                "dictation.panel.announcement.transcribing",
+                default: "Transcribing recording.",
+                comment: "VoiceOver announcement when transcription begins"
+            )
+        case .success:
+            announcement = localized(
+                "dictation.panel.announcement.success",
+                default: "Dictation completed.",
+                comment: "VoiceOver announcement when transcription succeeds"
+            )
+        case .error:
+            announcement = localized(
+                "dictation.panel.announcement.error",
+                default: "Dictation failed.",
+                comment: "VoiceOver announcement when transcription fails"
+            )
+        }
+
+        guard let announcement else { return }
+        NSAccessibility.post(
+            element: NSApplication.shared,
+            notification: .announcementRequested,
+            userInfo: [
+                .announcement: announcement,
+                .priority: NSAccessibilityPriorityLevel.high.rawValue,
+            ]
+        )
     }
 }

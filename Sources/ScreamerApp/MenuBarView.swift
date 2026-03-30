@@ -4,12 +4,15 @@ struct MenuBarView: View {
     @Environment(\.openWindow) private var openWindow
 
     let hotkeyDisplayValue: String
-    @AppStorage("showTranscriptInMenuAfterTranscription")
-    private var showTranscriptInMenuAfterTranscription = true
+    @AppStorage("showPreviewAfterDictation")
+    private var showPreviewAfterDictation = true
+    @AppStorage("previewAutoDismissSeconds")
+    private var previewAutoDismissSeconds = 10
 
     @ObservedObject var dictationController: DictationController
     @ObservedObject var modelStore: ModelStore
-    @State private var isShowingFullTranscript = false
+    @State private var isHoveringPreview = false
+    @State private var previewDismissTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 12) {
@@ -17,26 +20,69 @@ struct MenuBarView: View {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 8, height: 8)
-                Text("Worker: \(dictationController.workerStatus)")
+                    .accessibilityHidden(true)
+                Text(
+                    localizedFormat(
+                        "menu.worker.status",
+                        default: "Worker: %@",
+                        comment: "Worker status line shown in menu bar popover",
+                        workerStatusDisplayText
+                    )
+                )
                     .font(.caption)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(workerStatusAccessibilityLabel)
 
             HStack {
-                Text("Model:")
+                Text(
+                    localized(
+                        "menu.model.title",
+                        default: "Model:",
+                        comment: "Model label shown in menu bar popover"
+                    )
+                )
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(modelStore.selectedEntry?.displayName ?? "None installed")
+                Text(
+                    modelStore.selectedEntry?.displayName
+                        ?? localized(
+                            "menu.model.noneInstalled",
+                            default: "None installed",
+                            comment: "Placeholder shown when no models are installed"
+                        )
+                )
                     .font(.caption)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(
+                localized(
+                    "menu.model.hint",
+                    default: "Currently selected transcription model",
+                    comment: "Accessibility hint for the model row in menu bar"
+                )
+            )
 
             Divider()
 
             if modelStore.hasInstalledModels == false {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("No model installed. Open Settings -> Models to download one.")
+                    Text(
+                        localized(
+                            "menu.model.missing",
+                            default: "No model installed. Open Settings -> Models to download one.",
+                            comment: "Guidance shown in menu bar when no models are installed"
+                        )
+                    )
                         .font(.caption)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Button("Open Settings") {
+                    Button(
+                        localized(
+                            "action.openSettings",
+                            default: "Open Settings",
+                            comment: "Action title that opens the app settings window"
+                        )
+                    ) {
                         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
                     }
                     .font(.caption)
@@ -50,9 +96,17 @@ struct MenuBarView: View {
             }
             .keyboardShortcut("r")
             .disabled(dictationController.isTranscribing || (modelStore.hasInstalledModels == false && dictationController.isRecording == false))
+            .accessibilityLabel(recordingButtonAccessibilityLabel)
 
             if dictationController.isHotkeyActive == false {
-                Text("Global hotkey \(hotkeyDisplayValue) is inactive. Enable Accessibility access to use it.")
+                Text(
+                    localizedFormat(
+                        "menu.hotkey.inactive",
+                        default: "Global hotkey %@ is inactive. Enable Accessibility access to use it.",
+                        comment: "Message shown when the global hotkey is inactive",
+                        hotkeyDisplayValue
+                    )
+                )
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -62,9 +116,23 @@ struct MenuBarView: View {
                 HStack(spacing: 6) {
                     ProgressView()
                         .controlSize(.small)
-                    Text("Transcribing…")
+                    Text(
+                        localized(
+                            "status.transcribing",
+                            default: "Transcribing…",
+                            comment: "Status text shown while a recording is transcribing"
+                        )
+                    )
                         .font(.caption)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(
+                    localized(
+                        "menu.transcribing.accessibility",
+                        default: "Transcription in progress",
+                        comment: "Accessibility label for transcribing status row"
+                    )
+                )
             }
 
             if case .success(let transcript) = dictationController.state {
@@ -76,7 +144,9 @@ struct MenuBarView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    if showTranscriptInMenuAfterTranscription {
+                    if showPreviewAfterDictation, let preview = dictationController.lastTranscriptPreview {
+                        transcriptPreviewCard(preview)
+                    } else if showPreviewAfterDictation {
                         ScrollView {
                             Text(displayTranscriptText(for: transcript))
                                 .font(.caption)
@@ -84,20 +154,6 @@ struct MenuBarView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .frame(maxHeight: 100)
-
-                        HStack(spacing: 10) {
-                            if transcript.count > 200 {
-                                Button(isShowingFullTranscript ? "Show Less" : "Show More") {
-                                    isShowingFullTranscript.toggle()
-                                }
-                                .font(.caption)
-                            }
-
-                            Button("Copy Again") {
-                                dictationController.copyTranscriptAgain(transcript)
-                            }
-                            .font(.caption)
-                        }
                     }
                 }
             }
@@ -111,14 +167,26 @@ struct MenuBarView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     if dictationController.shouldShowMicrophoneSettingsButton {
-                        Button("Open Microphone Settings") {
+                        Button(
+                            localized(
+                                "menu.microphoneSettings.open",
+                                default: "Open Microphone Settings",
+                                comment: "Action title to open macOS microphone privacy settings"
+                            )
+                        ) {
                             openMicrophoneSystemSettings()
                         }
                         .font(.caption)
                     }
 
                     if dictationController.canRetryLastTranscription {
-                        Button("Retry") {
+                        Button(
+                            localized(
+                                "action.retry",
+                                default: "Retry",
+                                comment: "Action title to retry a failed transcription"
+                            )
+                        ) {
                             Task {
                                 await dictationController.retryLastTranscription()
                             }
@@ -131,16 +199,34 @@ struct MenuBarView: View {
             if dictationController.shouldShowAccessibilityPrompt {
                 Divider()
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("To paste directly into the active app, enable Accessibility access for Screamer.")
+                    Text(
+                        localized(
+                            "menu.accessibilityPrompt.body",
+                            default: "To paste directly into the active app, enable Accessibility access for Screamer.",
+                            comment: "Message prompting the user to grant macOS Accessibility permission"
+                        )
+                    )
                         .font(.caption)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack(spacing: 10) {
-                        Button("Open Accessibility Settings") {
+                        Button(
+                            localized(
+                                "menu.accessibilityPrompt.openSettings",
+                                default: "Open Accessibility Settings",
+                                comment: "Action title that opens macOS Accessibility privacy settings"
+                            )
+                        ) {
                             openAccessibilitySystemSettings()
                             dictationController.dismissAccessibilityPrompt()
                         }
                         .font(.caption)
-                        Button("Dismiss") {
+                        Button(
+                            localized(
+                                "action.dismiss",
+                                default: "Dismiss",
+                                comment: "Generic action title for dismissing a prompt"
+                            )
+                        ) {
                             dictationController.dismissAccessibilityPrompt()
                         }
                         .font(.caption)
@@ -150,16 +236,49 @@ struct MenuBarView: View {
 
             Divider()
 
-            Button("Settings…") {
+            Button(
+                localized(
+                    "menu.settings.button",
+                    default: "Settings…",
+                    comment: "Button title that opens settings from menu bar popover"
+                )
+            ) {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
             .keyboardShortcut(",")
+            .help(
+                localized(
+                    "menu.settings.help",
+                    default: "Settings (\u{2318},)",
+                    comment: "Tooltip for settings button including keyboard shortcut"
+                )
+            )
 
-            Button("History") {
+            Button(
+                localized(
+                    "menu.history.button",
+                    default: "History",
+                    comment: "Button title that opens transcript history"
+                )
+            ) {
                 openWindow(id: "transcript-history")
             }
+            .keyboardShortcut("h")
+            .help(
+                localized(
+                    "menu.history.help",
+                    default: "History (\u{2318}H)",
+                    comment: "Tooltip for history button including keyboard shortcut"
+                )
+            )
 
-            Button("Quit") {
+            Button(
+                localized(
+                    "action.quit",
+                    default: "Quit",
+                    comment: "Action title that quits the app"
+                )
+            ) {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")
@@ -170,24 +289,66 @@ struct MenuBarView: View {
             modelStore.refreshCatalog()
             await dictationController.checkWorker()
         }
-        .onChange(of: dictationController.state) { _, newState in
-            switch newState {
-            case .success:
-                isShowingFullTranscript = false
-            default:
-                break
-            }
+        .onChange(of: dictationController.lastTranscriptPreview) { _, newPreview in
+            schedulePreviewAutoDismiss(for: newPreview)
+        }
+        .onChange(of: previewAutoDismissSeconds) { _, _ in
+            schedulePreviewAutoDismiss(for: dictationController.lastTranscriptPreview)
+        }
+        .onChange(of: isHoveringPreview) { _, _ in
+            schedulePreviewAutoDismiss(for: dictationController.lastTranscriptPreview)
+        }
+        .onDisappear {
+            previewDismissTask?.cancel()
+            previewDismissTask = nil
+            isHoveringPreview = false
+            dictationController.clearLastTranscriptPreview()
         }
     }
 
     private var recordingButtonLabel: String {
         switch dictationController.state {
         case .recording:
-            return "Stop Recording"
+            return localized(
+                "menu.recording.stop",
+                default: "Stop Recording",
+                comment: "Button title to stop an active recording"
+            )
         case .transcribing:
-            return "Transcribing…"
+            return localized(
+                "status.transcribing",
+                default: "Transcribing…",
+                comment: "Status text shown while a recording is transcribing"
+            )
         default:
-            return "Start Recording"
+            return localized(
+                "menu.recording.start",
+                default: "Start Recording",
+                comment: "Button title to start recording"
+            )
+        }
+    }
+
+    private var recordingButtonAccessibilityLabel: String {
+        switch dictationController.state {
+        case .recording:
+            return localized(
+                "menu.recording.accessibility.stop",
+                default: "Stop recording",
+                comment: "Accessibility label for record button while recording is active"
+            )
+        case .transcribing:
+            return localized(
+                "menu.recording.accessibility.transcribing",
+                default: "Transcribing",
+                comment: "Accessibility label for record button while transcription is running"
+            )
+        default:
+            return localized(
+                "menu.recording.accessibility.start",
+                default: "Start recording",
+                comment: "Accessibility label for record button while idle"
+            )
         }
     }
 
@@ -202,11 +363,125 @@ struct MenuBarView: View {
         }
     }
 
+    @ViewBuilder
+    private func transcriptPreviewCard(_ preview: DictationController.TranscriptPreview) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(displayPreviewText(preview.text))
+                .font(.caption)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .textSelection(.enabled)
+
+            Text(previewMetadata(preview))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 8) {
+                Button(
+                    localized(
+                        "action.copy",
+                        default: "Copy",
+                        comment: "Generic action title to copy transcript text"
+                    )
+                ) {
+                    dictationController.copyTranscriptAgain(preview.text)
+                }
+                .font(.caption)
+
+                Button(
+                    localized(
+                        "menu.preview.openHistory",
+                        default: "Open in History",
+                        comment: "Button title in menu preview card to open the transcript in history"
+                    )
+                ) {
+                    openHistory(for: preview)
+                }
+                .font(.caption)
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.secondary.opacity(0.08))
+        )
+        .onHover { isHovering in
+            isHoveringPreview = isHovering
+        }
+    }
+
     private func displayTranscriptText(for transcript: String) -> String {
-        guard transcript.count > 200, !isShowingFullTranscript else {
+        guard transcript.count > 200 else {
             return transcript
         }
         return "\(String(transcript.prefix(200)))…"
+    }
+
+    private func displayPreviewText(_ transcript: String) -> String {
+        guard transcript.count > 200 else { return transcript }
+        return "\(String(transcript.prefix(200)))…"
+    }
+
+    private func previewMetadata(_ preview: DictationController.TranscriptPreview) -> String {
+        let durationText: String
+        if let durationSeconds = preview.durationSeconds {
+            durationText = String(format: "%.1fs", durationSeconds)
+        } else {
+            durationText = localized(
+                "menu.preview.duration.unknown",
+                default: "Unknown duration",
+                comment: "Duration label shown when preview duration is unavailable"
+            )
+        }
+
+        let timestamp = Self.timestampFormatter.string(from: preview.timestamp)
+        return localizedFormat(
+            "menu.preview.metadata",
+            default: "%d words • %@ • %@ • %@",
+            comment: "Transcript preview metadata line: words, duration, model, and timestamp",
+            preview.wordCount,
+            durationText,
+            preview.modelID,
+            timestamp
+        )
+    }
+
+    private func schedulePreviewAutoDismiss(for preview: DictationController.TranscriptPreview?) {
+        previewDismissTask?.cancel()
+        previewDismissTask = nil
+
+        guard showPreviewAfterDictation else {
+            dictationController.clearLastTranscriptPreview()
+            return
+        }
+        guard isHoveringPreview == false else { return }
+        guard let preview else { return }
+        guard previewAutoDismissSeconds > 0 else { return }
+
+        previewDismissTask = Task {
+            do {
+                try await Task.sleep(for: .seconds(previewAutoDismissSeconds))
+            } catch {
+                return
+            }
+            guard Task.isCancelled == false else { return }
+            await MainActor.run {
+                if dictationController.lastTranscriptPreview == preview {
+                    dictationController.clearLastTranscriptPreview()
+                }
+            }
+        }
+    }
+
+    private func openHistory(for preview: DictationController.TranscriptPreview) {
+        openWindow(id: "transcript-history")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            NotificationCenter.default.post(
+                name: .screamerSelectTranscriptInHistory,
+                object: nil,
+                userInfo: ["transcriptID": preview.transcriptID]
+            )
+        }
     }
 
     private func openMicrophoneSystemSettings() {
@@ -229,5 +504,60 @@ struct MenuBarView: View {
             return
         }
         NSWorkspace.shared.open(url)
+    }
+
+    private static let timestampFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    private var workerStatusAccessibilityLabel: String {
+        switch dictationController.workerStatus {
+        case "OK":
+            return localized(
+                "menu.worker.accessibility.running",
+                default: "Worker running",
+                comment: "Accessibility label when background worker is healthy"
+            )
+        default:
+            return localized(
+                "menu.worker.accessibility.stopped",
+                default: "Worker stopped",
+                comment: "Accessibility label when background worker is unavailable"
+                )
+        }
+    }
+
+    private var workerStatusDisplayText: String {
+        switch dictationController.workerStatus {
+        case "OK":
+            return localized(
+                "menu.worker.state.ok",
+                default: "OK",
+                comment: "Worker health state shown when worker is ready"
+            )
+        case "Checking…":
+            return localized(
+                "menu.worker.state.checking",
+                default: "Checking…",
+                comment: "Worker health state shown while checking worker health"
+            )
+        case "Model loading…":
+            return localized(
+                "menu.worker.state.modelLoading",
+                default: "Model loading…",
+                comment: "Worker health state shown while model is loading"
+            )
+        case "Offline":
+            return localized(
+                "menu.worker.state.offline",
+                default: "Offline",
+                comment: "Worker health state shown when worker is unavailable"
+            )
+        default:
+            return dictationController.workerStatus
+        }
     }
 }

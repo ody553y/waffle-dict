@@ -18,11 +18,21 @@ final class DictationController: ObservableObject {
     @Published private(set) var shouldShowAccessibilityPrompt = false
     @Published private(set) var lastDeliveryMessage: String?
     @Published private(set) var isHotkeyActive = false
+    @Published private(set) var lastTranscriptPreview: TranscriptPreview?
 
     private struct PendingRetryTranscription: Sendable {
         let recordingURL: URL
         let modelID: String
         let languageHint: String?
+    }
+
+    struct TranscriptPreview: Sendable, Equatable {
+        let text: String
+        let wordCount: Int
+        let durationSeconds: Double?
+        let modelID: String
+        let timestamp: Date
+        let transcriptID: Int64
     }
 
     private let workerClient: WorkerClient
@@ -124,8 +134,16 @@ final class DictationController: ObservableObject {
     func copyTranscriptAgain(_ transcript: String) {
         let result = pasteHelper.copyOnly(transcript)
         if result == .copiedOnly {
-            lastDeliveryMessage = "Copied to clipboard"
+            lastDeliveryMessage = localized(
+                "status.copiedToClipboard",
+                default: "Copied to clipboard",
+                comment: "Status message shown when transcript is copied to clipboard"
+            )
         }
+    }
+
+    func clearLastTranscriptPreview() {
+        lastTranscriptPreview = nil
     }
 
     func dismissAccessibilityPrompt() {
@@ -141,7 +159,13 @@ final class DictationController: ObservableObject {
         shouldShowMicrophoneSettingsButton = false
 
         guard modelStore.hasInstalledModels else {
-            state = .error("No model installed. Open Settings > Models to download one.")
+            state = .error(
+                localized(
+                    "error.model.missing",
+                    default: "No model installed. Open Settings > Models to download one.",
+                    comment: "Error shown when recording starts without any installed model"
+                )
+            )
             scheduleResultAutoClear()
             return
         }
@@ -174,14 +198,26 @@ final class DictationController: ObservableObject {
 
     private func stopAndTranscribe() async {
         guard let recordingURL = audioCaptureService.stopRecording() else {
-            state = .error("No active recording was found.")
+            state = .error(
+                localized(
+                    "error.recording.noneActive",
+                    default: "No active recording was found.",
+                    comment: "Error shown when stop is requested without an active recording"
+                )
+            )
             scheduleResultAutoClear()
             return
         }
 
         guard let selectedModel = modelStore.selectedEntry else {
             audioCaptureService.cleanupScratchFile(recordingURL)
-            state = .error("No model installed. Open Settings > Models to download one.")
+            state = .error(
+                localized(
+                    "error.model.missing",
+                    default: "No model installed. Open Settings > Models to download one.",
+                    comment: "Error shown when recording completes but no model is selected"
+                )
+            )
             scheduleResultAutoClear()
             return
         }
@@ -225,7 +261,13 @@ final class DictationController: ObservableObject {
     }
 
     private func showMicrophonePermissionBlockedMessage() {
-        state = .error("Microphone access is blocked. Enable it in System Settings to record.")
+        state = .error(
+            localized(
+                "error.microphone.blocked",
+                default: "Microphone access is blocked. Enable it in System Settings to record.",
+                comment: "Error shown when microphone permission is blocked"
+            )
+        )
         shouldShowMicrophoneSettingsButton = true
     }
 
@@ -240,11 +282,23 @@ final class DictationController: ObservableObject {
     private func deliveryMessage(for pasteResult: PasteHelper.Result) -> String {
         switch pasteResult {
         case .pastedAndCopied:
-            return "Pasted into app"
+            return localized(
+                "status.pastedIntoApp",
+                default: "Pasted into app",
+                comment: "Status message when transcript is pasted into the active app"
+            )
         case .copiedOnly:
-            return "Copied to clipboard"
+            return localized(
+                "status.copiedToClipboard",
+                default: "Copied to clipboard",
+                comment: "Status message when transcript is only copied to clipboard"
+            )
         case .copyFailed:
-            return "Transcribed, but copy failed"
+            return localized(
+                "error.copy.failed",
+                default: "Transcribed, but copy failed",
+                comment: "Error message when transcription succeeds but clipboard copy fails"
+            )
         }
     }
 
@@ -277,11 +331,24 @@ final class DictationController: ObservableObject {
         if let audioError = error as? AudioCaptureError {
             switch audioError {
             case .permissionDenied:
-                return "Microphone access is required to start recording."
+                return localized(
+                    "error.microphone.required",
+                    default: "Microphone access is required to start recording.",
+                    comment: "Error shown when microphone permission is denied"
+                )
             case .noInputDevice:
-                return "No microphone input device is available."
+                return localized(
+                    "error.microphone.noInputDevice",
+                    default: "No microphone input device is available.",
+                    comment: "Error shown when no microphone input device is detected"
+                )
             case .recordingFailed(let detail):
-                return "Recording failed: \(detail)"
+                return localizedFormat(
+                    "error.recording.failedWithDetail",
+                    default: "Recording failed: %@",
+                    comment: "Error shown when recording fails with a detailed message",
+                    detail
+                )
             }
         }
 
@@ -290,11 +357,24 @@ final class DictationController: ObservableObject {
             case .unexpectedStatusCode(let statusCode):
                 switch statusCode {
                 case 400:
-                    return "Selected model is not available in the worker."
+                    return localized(
+                        "error.worker.modelUnavailable",
+                        default: "Selected model is not available in the worker.",
+                        comment: "Error shown when selected model cannot be used by worker"
+                    )
                 case 503:
-                    return "Model is still loading. Try again in a moment."
+                    return localized(
+                        "error.worker.modelLoading",
+                        default: "Model is still loading. Try again in a moment.",
+                        comment: "Error shown when worker model is still loading"
+                    )
                 default:
-                    return "Worker request failed (\(statusCode))."
+                    return localizedFormat(
+                        "error.worker.requestFailed",
+                        default: "Worker request failed (%d).",
+                        comment: "Error shown when worker request fails with status code",
+                        statusCode
+                    )
                 }
             }
         }
@@ -302,9 +382,17 @@ final class DictationController: ObservableObject {
         if let urlError = error as? URLError {
             switch urlError.code {
             case .timedOut:
-                return "Transcription timed out. Try a shorter recording."
+                return localized(
+                    "error.transcription.timeout",
+                    default: "Transcription timed out. Try a shorter recording.",
+                    comment: "Error shown when transcription request times out"
+                )
             case .cannotConnectToHost, .cannotFindHost, .networkConnectionLost:
-                return "Worker is not running. Restart Screamer."
+                return localized(
+                    "error.worker.notRunning",
+                    default: "Worker is not running. Restart Screamer.",
+                    comment: "Error shown when worker cannot be reached over the network"
+                )
             default:
                 break
             }
@@ -333,15 +421,30 @@ final class DictationController: ObservableObject {
                 )
             )
 
-            saveTranscriptToHistory(
+            let durationSeconds = audioCaptureService.recordingDurationSeconds(for: recordingURL)
+            let savedRecord = await saveTranscriptToHistory(
                 text: response.text,
                 modelID: modelID,
                 languageHint: languageHint,
-                durationSeconds: audioCaptureService.recordingDurationSeconds(for: recordingURL),
+                durationSeconds: durationSeconds,
                 segments: response.segments?.map {
                     TranscriptSegment(start: $0.start, end: $0.end, text: $0.text, speaker: $0.speaker)
                 }
             )
+
+            if value(for: "showPreviewAfterDictation", defaultValue: true),
+               let transcriptID = savedRecord?.id {
+                lastTranscriptPreview = TranscriptPreview(
+                    text: response.text,
+                    wordCount: Self.wordCount(in: response.text),
+                    durationSeconds: durationSeconds,
+                    modelID: modelID,
+                    timestamp: savedRecord?.createdAt ?? Date(),
+                    transcriptID: transcriptID
+                )
+            } else if value(for: "showPreviewAfterDictation", defaultValue: true) == false {
+                lastTranscriptPreview = nil
+            }
 
             let pasteIntoActiveApp = value(for: "pasteIntoActiveApp", defaultValue: true)
             let copyToClipboardAsFallback = value(for: "copyToClipboardAsFallback", defaultValue: true)
@@ -363,7 +466,13 @@ final class DictationController: ObservableObject {
                 audioCaptureService.cleanupScratchFile(recordingURL)
                 clearPendingRetryTranscription(cleanupFile: false)
                 lastDeliveryMessage = nil
-                state = .error("Transcribed, but could not paste into the active app.")
+                state = .error(
+                    localized(
+                        "error.paste.failed",
+                        default: "Transcribed, but could not paste into the active app.",
+                        comment: "Error shown when transcription succeeds but paste into active app fails"
+                    )
+                )
                 scheduleResultAutoClear()
                 return
             }
@@ -401,13 +510,25 @@ final class DictationController: ObservableObject {
             _ = try await workerClient.fetchHealth()
             return false
         } catch {
-            state = .error("Worker crashed. Restarting…")
+            state = .error(
+                localized(
+                    "error.worker.crashedRestarting",
+                    default: "Worker crashed. Restarting…",
+                    comment: "Error status shown while restarting crashed worker"
+                )
+            )
             workerStatus = "Offline"
             let didRestart = await restartWorker()
             if didRestart {
                 await checkWorker()
             } else {
-                state = .error("Worker crashed. Restart failed. Restart Screamer.")
+                state = .error(
+                    localized(
+                        "error.worker.crashedRestartFailed",
+                        default: "Worker crashed. Restart failed. Restart Screamer.",
+                        comment: "Error shown when worker restart attempt fails"
+                    )
+                )
             }
             scheduleResultAutoClear()
             return true
@@ -441,8 +562,8 @@ final class DictationController: ObservableObject {
         languageHint: String?,
         durationSeconds: Double?,
         segments: [TranscriptSegment]?
-    ) {
-        guard let transcriptStore else { return }
+    ) async -> TranscriptRecord? {
+        guard let transcriptStore else { return nil }
 
         let record = TranscriptRecord(
             createdAt: Date(),
@@ -455,13 +576,14 @@ final class DictationController: ObservableObject {
             segments: segments
         )
 
-        Task.detached(priority: .utility) {
+        return await Task.detached(priority: .utility) {
             do {
-                _ = try transcriptStore.save(record)
+                return try transcriptStore.save(record)
             } catch {
                 print("[Screamer] Failed to save transcript history: \(error)")
+                return nil
             }
-        }
+        }.value
     }
 
     private func elapsedDurationSeconds(since startedAt: UInt64) -> Double {
@@ -469,4 +591,12 @@ final class DictationController: ObservableObject {
         guard now > startedAt else { return 0 }
         return Double(now - startedAt) / 1_000_000_000
     }
+
+    private static func wordCount(in text: String) -> Int {
+        text.split(whereSeparator: \.isWhitespace).count
+    }
+}
+
+extension Notification.Name {
+    static let screamerSelectTranscriptInHistory = Notification.Name("screamer.selectTranscriptInHistory")
 }

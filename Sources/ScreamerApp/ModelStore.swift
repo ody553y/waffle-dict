@@ -141,7 +141,11 @@ final class ModelStore: ObservableObject {
 
         let newIDs = Set(result.entries.map(\.id)).subtracting(previousIDs)
         remoteUpdateNotice = (result.source == .remote && newIDs.isEmpty == false)
-            ? "Updated model catalog"
+            ? localized(
+                "settings.models.catalog.updated",
+                default: "Updated model catalog",
+                comment: "Notice shown when remote model catalog update adds new models"
+            )
             : nil
 
         refreshInstalledState()

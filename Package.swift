@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Screamer",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
     ],
@@ -35,6 +36,9 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "ScreamerApp.entitlements",
+            ],
+            resources: [
+                .process("Localizable.xcstrings"),
             ]
         ),
         .testTarget(

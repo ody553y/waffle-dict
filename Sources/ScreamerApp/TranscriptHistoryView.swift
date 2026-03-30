@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import Foundation
 import ScreamerCore
 import SwiftUI
@@ -30,8 +31,18 @@ struct TranscriptHistoryView: View {
     @State private var previousActionsExpandedByRecordID: [Int64: Bool] = [:]
     @State private var expandedPreviousActionResultIDs: Set<Int64> = []
     @State private var timelineEnabledRecordIDs: Set<Int64> = []
+    @State private var speakerNameDraftsByRecordID: [Int64: [String: String]] = [:]
+    @State private var notesDraftByRecordID: [Int64: String] = [:]
+    @State private var notesSaveTaskByRecordID: [Int64: Task<Void, Never>] = [:]
+    @State private var pendingBatchDeleteSummary: TranscriptHistoryViewModel.DeleteSelectionSummary?
+    @State private var pendingExternalSelectionID: Int64?
     @State private var isDiarizationAvailable = false
     @State private var requestDiarizationForImports = false
+    @State private var keyboardFocusedRecordID: Int64?
+    @State private var keyDownMonitor: Any?
+    @FocusState private var focusedSpeakerField: SpeakerRenameField?
+    @FocusState private var focusedNotesRecordID: Int64?
+    @FocusState private var historyKeyboardFocus: HistoryKeyboardFocus?
 
     init(transcriptStore: TranscriptStore, modelStore: ModelStore) {
         self._modelStore = ObservedObject(wrappedValue: modelStore)
@@ -48,22 +59,57 @@ struct TranscriptHistoryView: View {
                 importDiarizationOptionView
             }
 
-            TextField("Search transcripts", text: $viewModel.searchQuery)
+            TextField(
+                localized(
+                    "history.search.placeholder",
+                    default: "Search transcripts",
+                    comment: "Placeholder text for transcript history search field"
+                ),
+                text: $viewModel.searchQuery
+            )
                 .textFieldStyle(.roundedBorder)
+                .focused($historyKeyboardFocus, equals: .search)
                 .onChange(of: viewModel.searchQuery) { _, _ in
                     viewModel.reloadForSearchQuery()
                 }
+                .accessibilityLabel(
+                    localized(
+                        "history.search.accessibility",
+                        default: "Search transcripts",
+                        comment: "Accessibility label for transcript history search field"
+                    )
+                )
 
-            Text("Tip: Command-click transcript rows to multi-select for JSON batch export.")
+            filterBar
+
+            Text(
+                localized(
+                    "history.tip.multiSelect",
+                    default: "Tip: Command-click transcript rows to multi-select for batch export and delete. Keyboard shortcuts are listed in Settings > General.",
+                    comment: "Tip text describing multi-select behavior and keyboard shortcut location"
+                )
+            )
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
-            Text("All transcript history is stored locally on this device.")
+            Text(
+                localized(
+                    "history.storage.localOnly",
+                    default: "All transcript history is stored locally on this device.",
+                    comment: "Informational text about transcript history being stored locally"
+                )
+            )
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             if let selectedModel = modelStore.selectedEntry, selectedModel.family == .parakeet {
-                Text("Parakeet currently works best with WAV files for imported audio.")
+                Text(
+                    localized(
+                        "history.parakeet.wavHint",
+                        default: "Parakeet currently works best with WAV files for imported audio.",
+                        comment: "Hint shown when Parakeet model is selected"
+                    )
+                )
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -81,13 +127,29 @@ struct TranscriptHistoryView: View {
             if viewModel.records.isEmpty, viewModel.isLoading == false {
                 ContentUnavailableView(
                     viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        ? "No transcripts yet"
-                        : "No results",
+                        ? localized(
+                            "history.empty.title",
+                            default: "No transcripts yet",
+                            comment: "Empty-state title when transcript history has no items"
+                        )
+                        : localized(
+                            "history.empty.noResults.title",
+                            default: "No results",
+                            comment: "Empty-state title when search filters return no results"
+                        ),
                     systemImage: "waveform.and.magnifyingglass",
                     description: Text(
                         viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            ? "Start a dictation or import audio to build your history."
-                            : "Try a different search term."
+                            ? localized(
+                                "history.empty.description",
+                                default: "Start a dictation or import audio to build your history.",
+                                comment: "Empty-state description when no transcripts exist"
+                            )
+                            : localized(
+                                "history.empty.noResults.description",
+                                default: "Try a different search term.",
+                                comment: "Empty-state description when search has no matches"
+                            )
                     )
                 )
             } else {
@@ -107,34 +169,91 @@ struct TranscriptHistoryView: View {
                         }
                     }
                 }
+                .onTapGesture {
+                    historyKeyboardFocus = .list
+                }
             }
         }
         .padding()
         .frame(minWidth: 760, minHeight: 540)
         .toolbar {
             ToolbarItemGroup {
-                Button("Import File…") {
+                Button(
+                    localized(
+                        "history.toolbar.importFile",
+                        default: "Import File…",
+                        comment: "Toolbar button title for importing audio files"
+                    )
+                ) {
                     presentImportFilePanel()
                 }
+                .help(
+                    localized(
+                        "history.toolbar.importFile.help",
+                        default: "Import File",
+                        comment: "Tooltip for import file toolbar button"
+                    )
+                )
 
-                Button("Copy Text") {
+                Button(
+                    localized(
+                        "history.toolbar.copyText",
+                        default: "Copy Text",
+                        comment: "Toolbar button title for copying selected transcript text"
+                    )
+                ) {
                     viewModel.copySelectedToPasteboard()
                 }
                 .disabled(viewModel.selectedRecord == nil)
+                .help(
+                    localized(
+                        "history.toolbar.copyText.help",
+                        default: "Copy Text (\u{2318}C)",
+                        comment: "Tooltip for copy text toolbar button with shortcut"
+                    )
+                )
 
-                Button("Export") {
+                Button(
+                    localized(
+                        "action.export",
+                        default: "Export",
+                        comment: "Action title for exporting transcripts"
+                    )
+                ) {
                     viewModel.exportSelection()
                 }
                 .disabled(viewModel.selectedRecords.isEmpty)
+                .help(
+                    localized(
+                        "history.toolbar.export.help",
+                        default: "Export (\u{2318}E)",
+                        comment: "Tooltip for export toolbar button with shortcut"
+                    )
+                )
 
-                Button("Delete", role: .destructive) {
-                    let deletedID = viewModel.selectedRecord?.id
-                    viewModel.deleteSelected()
-                    if let deletedID {
-                        expandedRecordIDs.remove(deletedID)
+                Button(
+                    localized(
+                        "action.delete",
+                        default: "Delete",
+                        comment: "Action title for deleting selected transcripts"
+                    ),
+                    role: .destructive
+                ) {
+                    guard let summary = viewModel.makeDeleteSelectionSummary() else { return }
+                    if summary.transcriptCount > 1 {
+                        pendingBatchDeleteSummary = summary
+                    } else {
+                        applyDelete(summary: summary)
                     }
                 }
-                .disabled(viewModel.selectedRecord == nil)
+                .disabled(viewModel.selectedRecords.isEmpty)
+                .help(
+                    localized(
+                        "history.toolbar.delete.help",
+                        default: "Delete (\u{2318}\u{232b})",
+                        comment: "Tooltip for delete toolbar button with shortcut"
+                    )
+                )
             }
         }
         .task {
@@ -143,17 +262,121 @@ struct TranscriptHistoryView: View {
             await refreshLMStudioReachability()
             await refreshDiarizationAvailability()
         }
+        .onAppear {
+            installKeyDownMonitorIfNeeded()
+            if historyKeyboardFocus == nil {
+                historyKeyboardFocus = .list
+            }
+        }
         .task(id: lmStudioConnectionSignature) {
             await refreshLMStudioReachability()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .screamerSelectTranscriptInHistory)) { notification in
+            let transcriptID: Int64?
+            if let value = notification.userInfo?["transcriptID"] as? Int64 {
+                transcriptID = value
+            } else if let value = notification.userInfo?["transcriptID"] as? Int {
+                transcriptID = Int64(value)
+            } else if let value = notification.userInfo?["transcriptID"] as? NSNumber {
+                transcriptID = value.int64Value
+            } else {
+                transcriptID = nil
+            }
+
+            if let transcriptID {
+                pendingExternalSelectionID = transcriptID
+                selectTranscriptFromExternalNavigation(transcriptID)
+            }
         }
         .onChange(of: viewModel.records) { _, newRecords in
             let validIDs = Set(newRecords.compactMap(\.id))
             expandedRecordIDs = expandedRecordIDs.intersection(validIDs)
             viewModel.retainSelection(validIDs: validIDs)
             pruneAIState(validRecordIDs: validIDs)
+            pruneSpeakerDraftState(validRecordIDs: validIDs)
+            pruneNotesState(validRecordIDs: validIDs)
+            if let keyboardFocusedRecordID, validIDs.contains(keyboardFocusedRecordID) == false {
+                self.keyboardFocusedRecordID = nil
+            }
+            if let keyboardFocusedRecordID,
+               viewModel.selectedRecordIDs.contains(keyboardFocusedRecordID) == false {
+                self.keyboardFocusedRecordID = viewModel.selectedRecordIDs.sorted().first
+            }
+            if let pendingExternalSelectionID,
+               validIDs.contains(pendingExternalSelectionID) {
+                selectTranscriptFromExternalNavigation(pendingExternalSelectionID)
+                self.pendingExternalSelectionID = nil
+            }
+        }
+        .onChange(of: focusedSpeakerField) { oldValue, newValue in
+            guard oldValue != newValue, let oldValue else { return }
+            persistSpeakerNameDraft(for: oldValue.recordID, speaker: oldValue.speaker)
+        }
+        .onChange(of: focusedNotesRecordID) { oldValue, newValue in
+            guard oldValue != newValue, let oldValue else { return }
+            flushNotesSave(for: oldValue)
         }
         .onDisappear {
             cancelAllStreamingTasks()
+            flushAllNotesSaves()
+            removeKeyDownMonitor()
+        }
+        .focusedValue(
+            \.historySelectionActions,
+            HistorySelectionActions(
+                focusSearch: { historyKeyboardFocus = .search },
+                copySelection: { viewModel.copySelectedToPasteboard() },
+                exportSelection: { viewModel.exportSelection() },
+                deleteSelection: { performDeleteSelection() },
+                selectAllVisible: {
+                    viewModel.selectAllVisible()
+                    keyboardFocusedRecordID = viewModel.selectedRecordIDs.sorted().first
+                    historyKeyboardFocus = .list
+                }
+            )
+        )
+        .alert(
+            pendingBatchDeleteSummary?.alertTitle
+                ?? localized(
+                    "history.delete.alert.title.fallback",
+                    default: "Delete transcripts?",
+                    comment: "Fallback delete confirmation alert title"
+                ),
+            isPresented: Binding(
+                get: { pendingBatchDeleteSummary != nil },
+                set: { isPresented in
+                    if isPresented == false {
+                        pendingBatchDeleteSummary = nil
+                    }
+                }
+            )
+        ) {
+            Button(
+                localized(
+                    "action.delete",
+                    default: "Delete",
+                    comment: "Action title for deleting selected transcripts"
+                ),
+                role: .destructive
+            ) {
+                guard let summary = pendingBatchDeleteSummary else { return }
+                applyDelete(summary: summary)
+                pendingBatchDeleteSummary = nil
+            }
+            Button(
+                localized(
+                    "action.cancel",
+                    default: "Cancel",
+                    comment: "Generic action title for canceling a dialog"
+                ),
+                role: .cancel
+            ) {
+                pendingBatchDeleteSummary = nil
+            }
+        } message: {
+            if let summary = pendingBatchDeleteSummary {
+                Text(summary.alertMessage)
+            }
         }
     }
 
@@ -162,14 +385,33 @@ struct TranscriptHistoryView: View {
             HStack(spacing: 10) {
                 Image(systemName: "square.and.arrow.down.on.square")
                     .foregroundStyle(isDropTargeted ? Color.accentColor : Color.secondary)
-                Text("Drop audio files here")
+                    .accessibilityHidden(true)
+                Text(
+                    localized(
+                        "history.import.dropZone.title",
+                        default: "Drop audio files here",
+                        comment: "Title for audio file drop zone in transcript history"
+                    )
+                )
                     .font(.headline)
                 Spacer()
-                Text("WAV, MP3, M4A, FLAC, OGG")
+                Text(
+                    localized(
+                        "history.import.dropZone.formats",
+                        default: "WAV, MP3, M4A, FLAC, OGG",
+                        comment: "Supported file format hint for drop zone"
+                    )
+                )
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text("Imports are processed one file at a time and saved to history.")
+            Text(
+                localized(
+                    "history.import.dropZone.description",
+                    default: "Imports are processed one file at a time and saved to history.",
+                    comment: "Description under audio file drop zone"
+                )
+            )
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -198,13 +440,218 @@ struct TranscriptHistoryView: View {
 
     private var importDiarizationOptionView: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Toggle("Speaker identification", isOn: $requestDiarizationForImports)
+            Toggle(
+                localized(
+                    "history.import.diarization.toggle",
+                    default: "Speaker identification",
+                    comment: "Toggle label to request diarization when importing files"
+                ),
+                isOn: $requestDiarizationForImports
+            )
                 .toggleStyle(.checkbox)
                 .font(.caption)
-            Text("Adds speaker labels to imported-file timelines and exports.")
+            Text(
+                localized(
+                    "history.import.diarization.description",
+                    default: "Adds speaker labels to imported-file timelines and exports.",
+                    comment: "Description for diarization import toggle"
+                )
+            )
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Spacer()
+        }
+    }
+
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Button {
+                    viewModel.isFiltersExpanded.toggle()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(
+                            localized(
+                                "history.filters.button",
+                                default: "Filters",
+                                comment: "Button title that expands and collapses transcript filters"
+                            )
+                        )
+                        if viewModel.activeFilterCount > 0 {
+                            Text("\(viewModel.activeFilterCount)")
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.accentColor.opacity(0.16), in: Capsule())
+                                .accessibilityHidden(true)
+                        }
+                    }
+                }
+                .buttonStyle(.bordered)
+                .accessibilityLabel(
+                    localized(
+                        "history.filters.button.accessibility",
+                        default: "Filters",
+                        comment: "Accessibility label for filters button"
+                    )
+                )
+                .accessibilityValue(
+                    localizedFormat(
+                        "history.filters.activeCount",
+                        default: "%d filters active",
+                        comment: "Accessibility value announcing count of active filters",
+                        viewModel.activeFilterCount
+                    )
+                )
+
+                Spacer()
+
+                if viewModel.activeFilterCount > 0 {
+                    Button(
+                        localized(
+                            "history.filters.clear",
+                            default: "Clear Filters",
+                            comment: "Action title to clear all transcript filters"
+                        )
+                    ) {
+                        viewModel.clearFilters()
+                    }
+                    .buttonStyle(.link)
+                    .font(.caption)
+                }
+            }
+
+            if viewModel.isFiltersExpanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        optionalDateFilterControl(
+                            title: localized(
+                                "history.filters.from",
+                                default: "From",
+                                comment: "Label for start date filter"
+                            ),
+                            date: $viewModel.filterDateFrom
+                        )
+
+                        optionalDateFilterControl(
+                            title: localized(
+                                "history.filters.to",
+                                default: "To",
+                                comment: "Label for end date filter"
+                            ),
+                            date: $viewModel.filterDateTo
+                        )
+
+                        Picker(
+                            localized(
+                                "history.filters.source",
+                                default: "Source",
+                                comment: "Picker label for transcript source filter"
+                            ),
+                            selection: Binding(
+                                get: { viewModel.sourceTypeFilter },
+                                set: { newValue in
+                                    viewModel.sourceTypeFilter = newValue
+                                    viewModel.reloadForSearchQuery()
+                                }
+                            )
+                        ) {
+                            ForEach(TranscriptHistoryViewModel.SourceTypeFilterOption.allCases) { option in
+                                Text(option.label).tag(option)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 260)
+                    }
+
+                    HStack(spacing: 12) {
+                        Picker(
+                            localized(
+                                "history.filters.model",
+                                default: "Model",
+                                comment: "Picker label for transcript model filter"
+                            ),
+                            selection: Binding(
+                                get: { viewModel.selectedModelFilterID },
+                                set: { newValue in
+                                    viewModel.selectedModelFilterID = newValue
+                                    viewModel.reloadForSearchQuery()
+                                }
+                            )
+                        ) {
+                            Text(
+                                localized(
+                                    "history.filters.model.all",
+                                    default: "All Models",
+                                    comment: "Option label for including all models in filter"
+                                )
+                            ).tag("")
+                            ForEach(viewModel.availableModelFilterIDs, id: \.self) { modelID in
+                                Text(modelDisplayName(for: modelID)).tag(modelID)
+                            }
+                        }
+                        .frame(width: 260)
+
+                        Toggle(
+                            localized(
+                                "history.filters.hasSpeakers",
+                                default: "Has speakers",
+                                comment: "Toggle label for filtering transcripts with speaker diarization"
+                            ),
+                            isOn: Binding(
+                                get: { viewModel.hasSpeakersFilterEnabled },
+                                set: { newValue in
+                                    viewModel.hasSpeakersFilterEnabled = newValue
+                                    viewModel.reloadForSearchQuery()
+                                }
+                            )
+                        )
+                        .toggleStyle(.switch)
+                        .font(.caption)
+                    }
+                }
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.05))
+                )
+            }
+        }
+    }
+
+    private func optionalDateFilterControl(
+        title: String,
+        date: Binding<Date?>
+    ) -> some View {
+        HStack(spacing: 6) {
+            Toggle(
+                title,
+                isOn: Binding(
+                    get: { date.wrappedValue != nil },
+                    set: { isEnabled in
+                        date.wrappedValue = isEnabled ? (date.wrappedValue ?? Date()) : nil
+                        viewModel.reloadForSearchQuery()
+                    }
+                )
+            )
+            .toggleStyle(.checkbox)
+            .font(.caption)
+
+            DatePicker(
+                "",
+                selection: Binding(
+                    get: { date.wrappedValue ?? Date() },
+                    set: { newDate in
+                        date.wrappedValue = newDate
+                        viewModel.reloadForSearchQuery()
+                    }
+                ),
+                displayedComponents: .date
+            )
+            .datePickerStyle(.compact)
+            .labelsHidden()
+            .disabled(date.wrappedValue == nil)
+            .frame(width: 130)
         }
     }
 
@@ -216,18 +663,41 @@ struct TranscriptHistoryView: View {
                     case .queued:
                         Image(systemName: "clock")
                             .foregroundStyle(.secondary)
-                        Text("Queued: \(job.fileName)")
+                            .accessibilityHidden(true)
+                        Text(
+                            localizedFormat(
+                                "history.import.job.queued",
+                                default: "Queued: %@",
+                                comment: "Status line for queued transcript import job",
+                                job.fileName
+                            )
+                        )
                             .font(.caption)
                     case .transcribing:
                         ProgressView()
                             .controlSize(.small)
-                        Text("Transcribing: \(job.fileName)")
+                        Text(
+                            localizedFormat(
+                                "history.import.job.transcribing",
+                                default: "Transcribing: %@",
+                                comment: "Status line for in-progress transcript import job",
+                                job.fileName
+                            )
+                        )
                             .font(.caption)
                     case .failed(let message):
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.red)
+                            .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Import failed: \(job.fileName)")
+                            Text(
+                                localizedFormat(
+                                    "history.import.job.failed",
+                                    default: "Import failed: %@",
+                                    comment: "Status line for failed transcript import job",
+                                    job.fileName
+                                )
+                            )
                                 .font(.caption)
                                 .foregroundStyle(.red)
                             Text(message)
@@ -267,6 +737,7 @@ struct TranscriptHistoryView: View {
     private func transcriptRow(_ record: TranscriptRecord) -> some View {
         let isExpanded = record.id.map { expandedRecordIDs.contains($0) } ?? false
         let isSelected = record.id.map { viewModel.selectedRecordIDs.contains($0) } ?? false
+        let isKeyboardFocused = record.id.map { keyboardFocusedRecordID == $0 && historyKeyboardFocus == .list } ?? false
 
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 8) {
@@ -295,12 +766,26 @@ struct TranscriptHistoryView: View {
 
                 if let recordID = record.id, let segments = record.segments, segments.isEmpty == false {
                     HStack(spacing: 8) {
-                        Toggle("Timeline", isOn: timelineEnabledBinding(for: recordID))
+                        Toggle(
+                            localized(
+                                "history.row.timeline.toggle",
+                                default: "Timeline",
+                                comment: "Toggle label for switching transcript row to timeline mode"
+                            ),
+                            isOn: timelineEnabledBinding(for: recordID)
+                        )
                             .toggleStyle(.switch)
                             .font(.caption)
 
                         if let speakerCount = speakerCount(in: segments), speakerCount > 0 {
-                            Text("Speakers: \(speakerCount)")
+                            Text(
+                                localizedFormat(
+                                    "history.row.speakers.count",
+                                    default: "Speakers: %d",
+                                    comment: "Badge showing count of unique speakers in transcript",
+                                    speakerCount
+                                )
+                            )
                                 .font(.caption2)
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 3)
@@ -311,18 +796,24 @@ struct TranscriptHistoryView: View {
                     }
 
                     if timelineEnabledRecordIDs.contains(recordID) {
-                        timelineView(for: segments)
+                        timelineView(for: record, segments: segments)
                     } else {
                         Text(record.text)
                             .font(.body)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
+
+                    speakerRenameSection(record: record, recordID: recordID, segments: segments)
                 } else {
                     Text(record.text)
                         .font(.body)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if let recordID = record.id {
+                    transcriptNotesSection(record: record, recordID: recordID)
                 }
 
                 if let recordID = record.id, isLMStudioConfigured {
@@ -337,18 +828,73 @@ struct TranscriptHistoryView: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.07))
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(
+                    isKeyboardFocused ? Color.accentColor.opacity(0.7) : Color.clear,
+                    lineWidth: isKeyboardFocused ? 1.5 : 0
+                )
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(transcriptRowAccessibilityLabel(record))
+        .accessibilityHint(
+            localized(
+                "history.row.accessibility.hint.expandCollapse",
+                default: "Double-tap to expand transcript",
+                comment: "Accessibility hint for transcript row expand and collapse action"
+            )
+        )
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(
+            named: Text(
+                expandedRecordIDs.contains(record.id ?? -1)
+                    ? localized(
+                        "history.row.accessibility.action.collapse",
+                        default: "Collapse",
+                        comment: "Accessibility action name for collapsing an expanded transcript row"
+                    )
+                    : localized(
+                        "history.row.accessibility.action.expand",
+                        default: "Expand",
+                        comment: "Accessibility action name for expanding a transcript row"
+                    )
+            )
+        ) {
+            guard let recordID = record.id else { return }
+            toggleTranscriptExpansion(recordID)
+        }
         .contentShape(Rectangle())
         .onTapGesture {
             guard let recordID = record.id else { return }
             let additiveSelection = NSApp.currentEvent?.modifierFlags.contains(.command) ?? false
             viewModel.selectRecord(id: recordID, additive: additiveSelection)
-            if expandedRecordIDs.contains(recordID) {
-                expandedRecordIDs.remove(recordID)
-                stopStreaming(for: recordID)
-            } else {
-                expandedRecordIDs.insert(recordID)
-                viewModel.loadActions(for: recordID)
-            }
+            keyboardFocusedRecordID = recordID
+            historyKeyboardFocus = .list
+            toggleTranscriptExpansion(recordID)
+        }
+    }
+
+    private func transcriptRowAccessibilityLabel(_ record: TranscriptRecord) -> String {
+        let date = Self.dateFormatter.string(from: record.createdAt)
+        let source = sourceAccessibilityName(for: record)
+        let wordCount = record.text.split(whereSeparator: \.isWhitespace).count
+        return localizedFormat(
+            "history.row.accessibility.label",
+            default: "Transcript from %@, %@, %d words",
+            comment: "Accessibility label for a transcript history row including date, source, and word count",
+            date,
+            source,
+            wordCount
+        )
+    }
+
+    private func toggleTranscriptExpansion(_ recordID: Int64) {
+        if expandedRecordIDs.contains(recordID) {
+            expandedRecordIDs.remove(recordID)
+            stopStreaming(for: recordID)
+        } else {
+            expandedRecordIDs.insert(recordID)
+            viewModel.loadActions(for: recordID)
         }
     }
 
@@ -356,15 +902,41 @@ struct TranscriptHistoryView: View {
     private func transcriptActionsSection(record: TranscriptRecord, recordID: Int64) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Button("Summarise") {
+                Button(
+                    localized(
+                        "history.actions.summarise",
+                        default: "Summarise",
+                        comment: "Button title to summarize a transcript via AI"
+                    )
+                ) {
                     startStreamingAction(.summarise, for: record, recordID: recordID)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel(
+                    localized(
+                        "history.actions.summarise.accessibility",
+                        default: "Summarise transcript",
+                        comment: "Accessibility label for transcript summarization action"
+                    )
+                )
 
-                Button("Translate") {
+                Button(
+                    localized(
+                        "history.actions.translate",
+                        default: "Translate",
+                        comment: "Button title to translate a transcript via AI"
+                    )
+                ) {
                     translatePopoverRecordID = recordID
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel(
+                    localized(
+                        "history.actions.translate.accessibility",
+                        default: "Translate transcript",
+                        comment: "Accessibility label for transcript translation action"
+                    )
+                )
                 .popover(
                     isPresented: Binding(
                         get: { translatePopoverRecordID == recordID },
@@ -375,13 +947,26 @@ struct TranscriptHistoryView: View {
                     arrowEdge: .bottom
                 ) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Picker("Language", selection: translateLanguageCodeBinding(for: recordID)) {
+                        Picker(
+                            localized(
+                                "history.actions.translate.language",
+                                default: "Language",
+                                comment: "Picker label for translation target language"
+                            ),
+                            selection: translateLanguageCodeBinding(for: recordID)
+                        ) {
                             ForEach(AppLanguageOption.all) { option in
                                 Text(option.name).tag(option.code)
                             }
                         }
 
-                        Button("Translate") {
+                        Button(
+                            localized(
+                                "history.actions.translate",
+                                default: "Translate",
+                                comment: "Button title to confirm transcript translation"
+                            )
+                        ) {
                             let languageCode = translateLanguageCodeByRecordID[recordID]
                                 ?? lmStudioDefaultTranslationLanguage
                             let targetLanguage = languageName(for: languageCode)
@@ -399,15 +984,41 @@ struct TranscriptHistoryView: View {
                     .frame(width: 260)
                 }
 
-                Button("Ask a Question") {
+                Button(
+                    localized(
+                        "history.actions.askQuestion",
+                        default: "Ask a Question",
+                        comment: "Button title to ask a question about transcript via AI"
+                    )
+                ) {
                     toggleInputMode(.question, for: recordID)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel(
+                    localized(
+                        "history.actions.askQuestion.accessibility",
+                        default: "Ask a question about transcript",
+                        comment: "Accessibility label for ask-question AI action"
+                    )
+                )
 
-                Button("Custom Prompt") {
+                Button(
+                    localized(
+                        "history.actions.customPrompt",
+                        default: "Custom Prompt",
+                        comment: "Button title to run a custom prompt on transcript"
+                    )
+                ) {
                     toggleInputMode(.customPrompt, for: recordID)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel(
+                    localized(
+                        "history.actions.customPrompt.accessibility",
+                        default: "Run custom prompt on transcript",
+                        comment: "Accessibility label for custom-prompt AI action"
+                    )
+                )
             }
             .disabled(areTranscriptActionsEnabled == false)
 
@@ -419,9 +1030,22 @@ struct TranscriptHistoryView: View {
 
             if actionInputModeByRecordID[recordID] == .question {
                 HStack(spacing: 8) {
-                    TextField("Ask a question about this transcript", text: questionBinding(for: recordID))
+                    TextField(
+                        localized(
+                            "history.actions.askQuestion.placeholder",
+                            default: "Ask a question about this transcript",
+                            comment: "Placeholder for transcript question input"
+                        ),
+                        text: questionBinding(for: recordID)
+                    )
                         .textFieldStyle(.roundedBorder)
-                    Button("Ask") {
+                    Button(
+                        localized(
+                            "action.ask",
+                            default: "Ask",
+                            comment: "Action title for submitting transcript question"
+                        )
+                    ) {
                         let question = questionInputByRecordID[recordID, default: ""]
                             .trimmingCharacters(in: .whitespacesAndNewlines)
                         guard question.isEmpty == false else { return }
@@ -439,9 +1063,22 @@ struct TranscriptHistoryView: View {
 
             if actionInputModeByRecordID[recordID] == .customPrompt {
                 HStack(spacing: 8) {
-                    TextField("Custom prompt", text: customPromptBinding(for: recordID))
+                    TextField(
+                        localized(
+                            "history.actions.customPrompt.placeholder",
+                            default: "Custom prompt",
+                            comment: "Placeholder for transcript custom prompt input"
+                        ),
+                        text: customPromptBinding(for: recordID)
+                    )
                         .textFieldStyle(.roundedBorder)
-                    Button("Run") {
+                    Button(
+                        localized(
+                            "action.run",
+                            default: "Run",
+                            comment: "Action title for executing custom prompt"
+                        )
+                    ) {
                         let prompt = customPromptInputByRecordID[recordID, default: ""]
                             .trimmingCharacters(in: .whitespacesAndNewlines)
                         guard prompt.isEmpty == false else { return }
@@ -463,7 +1100,13 @@ struct TranscriptHistoryView: View {
                         HStack(spacing: 8) {
                             ProgressView()
                                 .controlSize(.small)
-                            Text("Waiting for response…")
+                            Text(
+                                localized(
+                                    "history.actions.waitingResponse",
+                                    default: "Waiting for response…",
+                                    comment: "Status text while waiting for first streamed AI token"
+                                )
+                            )
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()
@@ -478,7 +1121,13 @@ struct TranscriptHistoryView: View {
                     }
 
                     if streamingRecordIDs.contains(recordID) {
-                        Button("Stop") {
+                        Button(
+                            localized(
+                                "action.stop",
+                                default: "Stop",
+                                comment: "Action title for stopping an in-progress AI action stream"
+                            )
+                        ) {
                             stopStreaming(for: recordID)
                         }
                         .buttonStyle(.bordered)
@@ -508,7 +1157,13 @@ struct TranscriptHistoryView: View {
             isExpanded: previousActionsExpandedBinding(for: recordID)
         ) {
             if actions.isEmpty {
-                Text("No previous actions yet.")
+                Text(
+                    localized(
+                        "history.actions.previous.empty",
+                        default: "No previous actions yet.",
+                        comment: "Message shown when transcript has no prior AI actions"
+                    )
+                )
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -522,7 +1177,13 @@ struct TranscriptHistoryView: View {
                 .padding(.top, 4)
             }
         } label: {
-            Text("Previous Actions")
+            Text(
+                localized(
+                    "history.actions.previous.section",
+                    default: "Previous Actions",
+                    comment: "Disclosure title for previous AI actions"
+                )
+            )
                 .font(.subheadline)
         }
     }
@@ -559,7 +1220,19 @@ struct TranscriptHistoryView: View {
 
             HStack(spacing: 8) {
                 if let actionID = actionRecord.id, text.count > 200 {
-                    Button(isExpanded ? "Collapse" : "Expand") {
+                    Button(
+                        isExpanded
+                            ? localized(
+                                "action.collapse",
+                                default: "Collapse",
+                                comment: "Action title for collapsing expanded content"
+                            )
+                            : localized(
+                                "action.expand",
+                                default: "Expand",
+                                comment: "Action title for expanding truncated content"
+                            )
+                    ) {
                         if isExpanded {
                             expandedPreviousActionResultIDs.remove(actionID)
                         } else {
@@ -569,13 +1242,26 @@ struct TranscriptHistoryView: View {
                     .font(.caption)
                 }
 
-                Button("Copy") {
+                Button(
+                    localized(
+                        "action.copy",
+                        default: "Copy",
+                        comment: "Generic action title for copying text"
+                    )
+                ) {
                     viewModel.copyActionText(text)
                 }
                 .font(.caption)
 
                 if let actionID = actionRecord.id {
-                    Button("Delete", role: .destructive) {
+                    Button(
+                        localized(
+                            "action.delete",
+                            default: "Delete",
+                            comment: "Action title for deleting an item"
+                        ),
+                        role: .destructive
+                    ) {
                         viewModel.deleteAction(id: actionID, transcriptID: transcriptID)
                     }
                     .font(.caption)
@@ -659,14 +1345,26 @@ struct TranscriptHistoryView: View {
         case .unconfigured:
             return nil
         case .unknown:
-            return "Checking LM Studio status…"
+            return localized(
+                "history.actions.lmStudio.checking",
+                default: "Checking LM Studio status…",
+                comment: "Status line while checking LM Studio connectivity for transcript actions"
+            )
         case .reachableWithModels:
             if lmStudioModelID.isEmpty {
-                return "Choose a default model in Settings > AI."
+                return localized(
+                    "history.actions.lmStudio.chooseDefaultModel",
+                    default: "Choose a default model in Settings > AI.",
+                    comment: "Status line when LM Studio is reachable but no default model is selected"
+                )
             }
             return nil
         case .reachableNoModels:
-            return "No models loaded in LM Studio. Load a model first."
+            return localized(
+                "history.actions.lmStudio.noModels",
+                default: "No models loaded in LM Studio. Load a model first.",
+                comment: "Status line when LM Studio is reachable but has no loaded model"
+            )
         case .unreachable(let message):
             return message
         }
@@ -679,7 +1377,13 @@ struct TranscriptHistoryView: View {
         }
 
         guard let client = makeLMStudioClient() else {
-            lmStudioReachabilityStatus = .unreachable("Invalid LM Studio host or port.")
+            lmStudioReachabilityStatus = .unreachable(
+                localized(
+                    "error.lmStudio.invalidHostPort",
+                    default: "Invalid LM Studio host or port.",
+                    comment: "Error shown when LM Studio host or port values are invalid"
+                )
+            )
             return
         }
 
@@ -721,15 +1425,27 @@ struct TranscriptHistoryView: View {
     private func startStreamingAction(_ action: TranscriptAction, for record: TranscriptRecord, recordID: Int64) {
         guard areTranscriptActionsEnabled else {
             actionErrorByRecordID[recordID] = lmStudioStatusLine
-                ?? "LM Studio is not available for AI actions."
+                ?? localized(
+                    "error.lmStudio.notAvailableActions",
+                    default: "LM Studio is not available for AI actions.",
+                    comment: "Error shown when transcript AI action service cannot be used"
+                )
             return
         }
         guard let modelID = selectedLLMModelID else {
-            actionErrorByRecordID[recordID] = "Choose a default model in Settings > AI."
+            actionErrorByRecordID[recordID] = localized(
+                "history.actions.lmStudio.chooseDefaultModel",
+                default: "Choose a default model in Settings > AI.",
+                comment: "Error shown when transcript AI action is requested without default model"
+            )
             return
         }
         guard let service = makeTranscriptActionService() else {
-            actionErrorByRecordID[recordID] = "LM Studio is not configured."
+            actionErrorByRecordID[recordID] = localized(
+                "error.lmStudio.notConfigured",
+                default: "LM Studio is not configured.",
+                comment: "Error shown when transcript AI action is requested without LM Studio configuration"
+            )
             return
         }
 
@@ -842,6 +1558,24 @@ struct TranscriptHistoryView: View {
         waitingForFirstTokenRecordIDs = waitingForFirstTokenRecordIDs.intersection(validRecordIDs)
     }
 
+    private func pruneSpeakerDraftState(validRecordIDs: Set<Int64>) {
+        speakerNameDraftsByRecordID = speakerNameDraftsByRecordID.filter { validRecordIDs.contains($0.key) }
+        if let focusedSpeakerField, validRecordIDs.contains(focusedSpeakerField.recordID) == false {
+            self.focusedSpeakerField = nil
+        }
+    }
+
+    private func pruneNotesState(validRecordIDs: Set<Int64>) {
+        notesDraftByRecordID = notesDraftByRecordID.filter { validRecordIDs.contains($0.key) }
+        for (recordID, task) in notesSaveTaskByRecordID where validRecordIDs.contains(recordID) == false {
+            task.cancel()
+            notesSaveTaskByRecordID[recordID] = nil
+        }
+        if let focusedNotesRecordID, validRecordIDs.contains(focusedNotesRecordID) == false {
+            self.focusedNotesRecordID = nil
+        }
+    }
+
     private var selectedLLMModelID: String? {
         let trimmed = lmStudioModelID.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
@@ -859,19 +1593,151 @@ struct TranscriptHistoryView: View {
     private func actionTypeLabel(for actionType: String) -> String {
         switch actionType {
         case "summarise":
-            return "Summary"
+            return localized(
+                "history.actions.type.summary",
+                default: "Summary",
+                comment: "Label for previously saved summary AI action"
+            )
         case "translate":
-            return "Translate"
+            return localized(
+                "history.actions.type.translate",
+                default: "Translate",
+                comment: "Label for previously saved translation AI action"
+            )
         case "question":
-            return "Question"
+            return localized(
+                "history.actions.type.question",
+                default: "Question",
+                comment: "Label for previously saved question AI action"
+            )
         case "custom":
-            return "Custom"
+            return localized(
+                "history.actions.type.custom",
+                default: "Custom",
+                comment: "Label for previously saved custom prompt AI action"
+            )
         default:
             return actionType.capitalized
         }
     }
 
-    private func timelineView(for segments: [TranscriptSegment]) -> some View {
+    @ViewBuilder
+    private func speakerRenameSection(record: TranscriptRecord, recordID: Int64, segments: [TranscriptSegment]) -> some View {
+        let speakers = uniqueSpeakers(in: segments)
+        if speakers.isEmpty == false {
+            DisclosureGroup(
+                localized(
+                    "history.speakers.rename.section",
+                    default: "Rename Speakers",
+                    comment: "Disclosure title for transcript speaker renaming controls"
+                )
+            ) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(speakers, id: \.self) { speaker in
+                        HStack(spacing: 8) {
+                            Text(speaker)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 120, alignment: .leading)
+
+                            Image(systemName: "arrow.right")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+
+                            TextField(
+                                localized(
+                                    "history.speakers.rename.placeholder",
+                                    default: "Name",
+                                    comment: "Placeholder for custom speaker display name"
+                                ),
+                                text: speakerNameBinding(
+                                    for: recordID,
+                                    speaker: speaker,
+                                    currentSpeakerMap: record.speakerMap
+                                )
+                            )
+                            .textFieldStyle(.roundedBorder)
+                            .focused(
+                                $focusedSpeakerField,
+                                equals: SpeakerRenameField(recordID: recordID, speaker: speaker)
+                            )
+                            .onSubmit {
+                                persistSpeakerNameDraft(for: recordID, speaker: speaker)
+                            }
+                        }
+                    }
+
+                    HStack {
+                        Spacer()
+                        Button(
+                            localized(
+                                "history.speakers.rename.reset",
+                                default: "Reset Names",
+                                comment: "Action title to clear custom speaker names"
+                            )
+                        ) {
+                            resetSpeakerNames(for: recordID)
+                        }
+                        .disabled((record.speakerMap ?? [:]).isEmpty)
+                        .buttonStyle(.link)
+                        .font(.caption)
+                    }
+                }
+                .padding(.top, 4)
+            }
+            .font(.caption)
+        }
+    }
+
+    private func transcriptNotesSection(record: TranscriptRecord, recordID: Int64) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(
+                localized(
+                    "history.notes.section",
+                    default: "Notes",
+                    comment: "Section title for transcript notes editor"
+                )
+            )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: notesBinding(for: recordID, currentNotes: record.notes))
+                    .font(.body)
+                    .frame(minHeight: 62, maxHeight: 110)
+                    .scrollContentBackground(.hidden)
+                    .focused($focusedNotesRecordID, equals: recordID)
+                    .padding(.horizontal, 2)
+                    .padding(.vertical, 2)
+
+                if notesText(for: recordID, currentNotes: record.notes)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .isEmpty
+                {
+                    Text(
+                        localized(
+                            "history.notes.placeholder",
+                            default: "Add notes…",
+                            comment: "Placeholder text for transcript notes editor"
+                        )
+                    )
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 10)
+                        .padding(.leading, 8)
+                        .allowsHitTesting(false)
+                }
+            }
+            .background(Color.secondary.opacity(0.04))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private func timelineView(for record: TranscriptRecord, segments: [TranscriptSegment]) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
@@ -882,13 +1748,18 @@ struct TranscriptHistoryView: View {
                         .buttonStyle(.plain)
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel(
+                            timelineSegmentAccessibilityLabel(segment: segment, record: record)
+                        )
 
                         VStack(alignment: .leading, spacing: 2) {
-                            if let speaker = normalizedSpeakerLabel(segment.speaker) {
+                            if let speaker = record.resolvedSpeaker(for: segment) {
                                 Text("\(speaker):")
                                     .font(.system(.caption, design: .rounded))
                                     .fontWeight(.semibold)
-                                    .foregroundStyle(colorForSpeaker(speaker))
+                                    .foregroundStyle(
+                                        colorForSpeaker(normalizedSpeakerLabel(segment.speaker) ?? speaker)
+                                    )
                             }
 
                             Text(segment.text)
@@ -906,6 +1777,231 @@ struct TranscriptHistoryView: View {
     private func speakerCount(in segments: [TranscriptSegment]) -> Int? {
         let speakers = Set(segments.compactMap { normalizedSpeakerLabel($0.speaker) })
         return speakers.isEmpty ? nil : speakers.count
+    }
+
+    private func uniqueSpeakers(in segments: [TranscriptSegment]) -> [String] {
+        Array(Set(segments.compactMap { normalizedSpeakerLabel($0.speaker) })).sorted()
+    }
+
+    private func speakerNameBinding(
+        for recordID: Int64,
+        speaker: String,
+        currentSpeakerMap: [String: String]?
+    ) -> Binding<String> {
+        Binding(
+            get: {
+                speakerNameDraftsByRecordID[recordID]?[speaker]
+                    ?? currentSpeakerMap?[speaker]
+                    ?? ""
+            },
+            set: { newValue in
+                var recordDrafts = speakerNameDraftsByRecordID[recordID, default: [:]]
+                recordDrafts[speaker] = newValue
+                speakerNameDraftsByRecordID[recordID] = recordDrafts
+            }
+        )
+    }
+
+    private func persistSpeakerNameDraft(for recordID: Int64, speaker: String) {
+        guard let record = viewModel.record(withID: recordID) else { return }
+
+        let existingName = record.speakerMap?[speaker] ?? ""
+        let draftName = (speakerNameDraftsByRecordID[recordID]?[speaker] ?? existingName)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        var updatedMap = record.speakerMap ?? [:]
+
+        if draftName.isEmpty == false {
+            updatedMap[speaker] = draftName
+            speakerNameDraftsByRecordID[recordID, default: [:]][speaker] = draftName
+        } else {
+            updatedMap.removeValue(forKey: speaker)
+            speakerNameDraftsByRecordID[recordID, default: [:]][speaker] = ""
+        }
+
+        viewModel.updateSpeakerMap(
+            recordID: recordID,
+            speakerMap: updatedMap.isEmpty ? nil : updatedMap
+        )
+    }
+
+    private func resetSpeakerNames(for recordID: Int64) {
+        speakerNameDraftsByRecordID[recordID] = [:]
+        viewModel.updateSpeakerMap(recordID: recordID, speakerMap: nil)
+    }
+
+    private func notesBinding(for recordID: Int64, currentNotes: String?) -> Binding<String> {
+        Binding(
+            get: { notesText(for: recordID, currentNotes: currentNotes) },
+            set: { newValue in
+                notesDraftByRecordID[recordID] = newValue
+                scheduleNotesSave(for: recordID)
+            }
+        )
+    }
+
+    private func notesText(for recordID: Int64, currentNotes: String?) -> String {
+        notesDraftByRecordID[recordID] ?? currentNotes ?? ""
+    }
+
+    private func scheduleNotesSave(for recordID: Int64) {
+        notesSaveTaskByRecordID[recordID]?.cancel()
+        notesSaveTaskByRecordID[recordID] = Task {
+            do {
+                try await Task.sleep(for: .milliseconds(500))
+            } catch {
+                return
+            }
+
+            guard Task.isCancelled == false else { return }
+            await MainActor.run {
+                viewModel.updateNotes(recordID: recordID, notes: notesDraftByRecordID[recordID])
+                notesSaveTaskByRecordID[recordID] = nil
+            }
+        }
+    }
+
+    private func flushNotesSave(for recordID: Int64) {
+        notesSaveTaskByRecordID[recordID]?.cancel()
+        notesSaveTaskByRecordID[recordID] = nil
+        let notesToPersist = notesDraftByRecordID[recordID] ?? viewModel.record(withID: recordID)?.notes
+        viewModel.updateNotes(recordID: recordID, notes: notesToPersist)
+    }
+
+    private func flushAllNotesSaves() {
+        for (recordID, task) in notesSaveTaskByRecordID {
+            task.cancel()
+            viewModel.updateNotes(recordID: recordID, notes: notesDraftByRecordID[recordID])
+        }
+        notesSaveTaskByRecordID.removeAll()
+    }
+
+    private func applyDelete(summary: TranscriptHistoryViewModel.DeleteSelectionSummary) {
+        for recordID in summary.transcriptIDs {
+            stopStreaming(for: recordID)
+            expandedRecordIDs.remove(recordID)
+            speakerNameDraftsByRecordID[recordID] = nil
+            notesSaveTaskByRecordID[recordID]?.cancel()
+            notesSaveTaskByRecordID[recordID] = nil
+            notesDraftByRecordID[recordID] = nil
+        }
+        viewModel.deleteRecords(ids: summary.transcriptIDs)
+    }
+
+    private func performDeleteSelection() {
+        guard let summary = viewModel.makeDeleteSelectionSummary() else { return }
+        if summary.transcriptCount > 1 {
+            pendingBatchDeleteSummary = summary
+        } else {
+            applyDelete(summary: summary)
+        }
+    }
+
+    private func selectTranscriptFromExternalNavigation(_ transcriptID: Int64) {
+        guard viewModel.record(withID: transcriptID) != nil else {
+            if viewModel.activeFilterCount > 0 || viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                viewModel.searchQuery = ""
+                viewModel.clearFilters()
+            } else {
+                viewModel.reloadForSearchQuery()
+            }
+            return
+        }
+        viewModel.selectRecord(id: transcriptID, additive: false)
+        keyboardFocusedRecordID = transcriptID
+        expandedRecordIDs.insert(transcriptID)
+        viewModel.loadActions(for: transcriptID)
+        historyKeyboardFocus = .list
+    }
+
+    private func installKeyDownMonitorIfNeeded() {
+        guard keyDownMonitor == nil else { return }
+        keyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if handleKeyDown(event) {
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func removeKeyDownMonitor() {
+        if let keyDownMonitor {
+            NSEvent.removeMonitor(keyDownMonitor)
+            self.keyDownMonitor = nil
+        }
+    }
+
+    private func handleKeyDown(_ event: NSEvent) -> Bool {
+        guard NSApp.keyWindow?.title == localized(
+            "history.window.title",
+            default: "History",
+            comment: "Window title for transcript history"
+        ) else { return false }
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let hasCommand = flags.contains(.command)
+        if hasCommand { return false }
+        if focusedSpeakerField != nil || focusedNotesRecordID != nil { return false }
+
+        switch Int(event.keyCode) {
+        case kVK_UpArrow:
+            moveSelection(delta: -1)
+            return true
+        case kVK_DownArrow:
+            moveSelection(delta: 1)
+            return true
+        case kVK_Return:
+            toggleExpansionForKeyboardSelection()
+            return true
+        case kVK_Escape:
+            handleEscapeCascade()
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func moveSelection(delta: Int) {
+        guard historyKeyboardFocus == .list else { return }
+        let ids = viewModel.records.compactMap(\.id)
+        guard ids.isEmpty == false else { return }
+
+        let currentID = keyboardFocusedRecordID ?? viewModel.selectedRecordIDs.sorted().first
+        let currentIndex = currentID.flatMap { ids.firstIndex(of: $0) } ?? (delta > 0 ? -1 : ids.count)
+        let nextIndex = max(0, min(ids.count - 1, currentIndex + delta))
+        let nextID = ids[nextIndex]
+        viewModel.selectRecord(id: nextID, additive: false)
+        keyboardFocusedRecordID = nextID
+    }
+
+    private func toggleExpansionForKeyboardSelection() {
+        guard historyKeyboardFocus == .list else { return }
+        let targetID = keyboardFocusedRecordID ?? viewModel.selectedRecordIDs.sorted().first
+        guard let targetID else { return }
+        if expandedRecordIDs.contains(targetID) {
+            expandedRecordIDs.remove(targetID)
+            stopStreaming(for: targetID)
+        } else {
+            expandedRecordIDs.insert(targetID)
+            viewModel.loadActions(for: targetID)
+        }
+    }
+
+    private func handleEscapeCascade() {
+        let trimmedSearch = viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedSearch.isEmpty == false {
+            viewModel.searchQuery = ""
+            viewModel.reloadForSearchQuery()
+            historyKeyboardFocus = .search
+            return
+        }
+
+        if viewModel.selectedRecordIDs.isEmpty == false {
+            viewModel.clearSelection()
+            keyboardFocusedRecordID = nil
+            historyKeyboardFocus = .list
+            return
+        }
+
+        NSApp.keyWindow?.performClose(nil)
     }
 
     private func normalizedSpeakerLabel(_ speaker: String?) -> String? {
@@ -943,22 +2039,46 @@ struct TranscriptHistoryView: View {
     private func errorMessage(for error: Error) -> String {
         switch error {
         case LMStudioClientError.connectionRefused:
-            return "LM Studio is not running. Start LM Studio to use AI features."
+            return localized(
+                "error.lmStudio.notRunning",
+                default: "LM Studio is not running. Start LM Studio to use AI features.",
+                comment: "Error shown when LM Studio is offline while running transcript AI actions"
+            )
         case LMStudioClientError.noModelsLoaded:
-            return "No models loaded in LM Studio. Load a model first."
+            return localized(
+                "error.lmStudio.noModelsLoaded",
+                default: "No models loaded in LM Studio. Load a model first.",
+                comment: "Error shown when LM Studio has no loaded models for transcript AI actions"
+            )
         case LMStudioClientError.streamParsingFailed:
-            return "Received an unreadable streaming response from LM Studio."
+            return localized(
+                "error.lmStudio.streamUnreadable",
+                default: "Received an unreadable streaming response from LM Studio.",
+                comment: "Error shown when streamed LM Studio response cannot be parsed"
+            )
         case LMStudioClientError.unexpectedStatusCode:
-            return "LM Studio returned an unexpected response."
+            return localized(
+                "error.lmStudio.unexpectedResponse",
+                default: "LM Studio returned an unexpected response.",
+                comment: "Error shown when LM Studio returns an unexpected response"
+            )
         case TranscriptActionServiceError.emptyResponse:
-            return "The model returned an empty response. Try again or select a different model."
+            return localized(
+                "error.lmStudio.emptyResponse",
+                default: "The model returned an empty response. Try again or select a different model.",
+                comment: "Error shown when transcript AI action returns empty result"
+            )
         default:
             let lowercased = error.localizedDescription.lowercased()
             if lowercased.contains("context")
                 || lowercased.contains("maximum")
                 || lowercased.contains("token")
             {
-                return "Transcript is too long for the selected model."
+                return localized(
+                    "error.lmStudio.contextTooLong",
+                    default: "Transcript is too long for the selected model.",
+                    comment: "Error shown when transcript exceeds model context limits"
+                )
             }
             return error.localizedDescription
         }
@@ -967,11 +2087,19 @@ struct TranscriptHistoryView: View {
     private func sourceBadge(for record: TranscriptRecord) -> some View {
         let label: String
         if record.sourceType == "dictation" {
-            label = "Dictation"
+            label = localized(
+                "history.source.dictation",
+                default: "Dictation",
+                comment: "Badge label for dictation-sourced transcripts"
+            )
         } else if let sourceFileName = record.sourceFileName, sourceFileName.isEmpty == false {
             label = sourceFileName
         } else {
-            label = "Imported File"
+            label = localized(
+                "history.source.importedFile",
+                default: "Imported File",
+                comment: "Badge label for imported-file transcripts"
+            )
         }
 
         return Text(label)
@@ -992,6 +2120,44 @@ struct TranscriptHistoryView: View {
             return text
         }
         return "\(String(text.prefix(maxLength)))…"
+    }
+
+    private func timelineSegmentAccessibilityLabel(
+        segment: TranscriptSegment,
+        record: TranscriptRecord
+    ) -> String {
+        let timestamp = timelineTimestamp(for: segment.start)
+        let speaker = record.resolvedSpeaker(for: segment) ?? localized(
+            "history.timeline.speaker.unknown",
+            default: "Unknown speaker",
+            comment: "Fallback speaker label for timeline accessibility"
+        )
+        return localizedFormat(
+            "history.timeline.segment.accessibility",
+            default: "%@ %@: %@",
+            comment: "Accessibility label for a timeline transcript segment",
+            timestamp,
+            speaker,
+            segment.text
+        )
+    }
+
+    private func sourceAccessibilityName(for record: TranscriptRecord) -> String {
+        if record.sourceType == "dictation" {
+            return localized(
+                "history.source.dictation",
+                default: "Dictation",
+                comment: "Accessibility source name for dictation transcripts"
+            )
+        }
+        if let sourceFileName = record.sourceFileName, sourceFileName.isEmpty == false {
+            return sourceFileName
+        }
+        return localized(
+            "history.source.importedFile",
+            default: "Imported File",
+            comment: "Accessibility source name for imported transcripts"
+        )
     }
 
     private static let dateFormatter: DateFormatter = {
@@ -1027,6 +2193,35 @@ private enum LMStudioReachabilityStatus {
     case unreachable(String)
 }
 
+private struct SpeakerRenameField: Hashable {
+    let recordID: Int64
+    let speaker: String
+}
+
+private enum HistoryKeyboardFocus: Hashable {
+    case search
+    case list
+}
+
+struct HistorySelectionActions {
+    let focusSearch: () -> Void
+    let copySelection: () -> Void
+    let exportSelection: () -> Void
+    let deleteSelection: () -> Void
+    let selectAllVisible: () -> Void
+}
+
+private struct HistorySelectionActionsKey: FocusedValueKey {
+    typealias Value = HistorySelectionActions
+}
+
+extension FocusedValues {
+    var historySelectionActions: HistorySelectionActions? {
+        get { self[HistorySelectionActionsKey.self] }
+        set { self[HistorySelectionActionsKey.self] = newValue }
+    }
+}
+
 @MainActor
 final class TranscriptHistoryViewModel: ObservableObject {
     enum FileImportStatus: Equatable {
@@ -1045,10 +2240,95 @@ final class TranscriptHistoryViewModel: ObservableObject {
         var status: FileImportStatus
     }
 
+    struct DeleteSelectionSummary: Equatable {
+        let transcriptIDs: [Int64]
+        let transcriptCount: Int
+        let associatedActionCount: Int
+
+        var alertTitle: String {
+            localizedFormat(
+                "history.delete.alert.title",
+                default: "Delete %d transcripts?",
+                comment: "Delete confirmation title showing transcript count",
+                transcriptCount
+            )
+        }
+
+        var alertMessage: String {
+            let actionLabel = associatedActionCount == 1
+                ? localized(
+                    "history.delete.alert.actionLabel.singular",
+                    default: "AI action",
+                    comment: "Singular phrase for one associated AI action in delete confirmation"
+                )
+                : localized(
+                    "history.delete.alert.actionLabel.plural",
+                    default: "AI actions",
+                    comment: "Plural phrase for associated AI actions in delete confirmation"
+                )
+            return localizedFormat(
+                "history.delete.alert.message",
+                default: "This action cannot be undone. %d associated %@ will also be deleted.",
+                comment: "Delete confirmation message including cascade deletion count",
+                associatedActionCount,
+                actionLabel
+            )
+        }
+    }
+
+    enum SourceTypeFilterOption: String, CaseIterable, Identifiable {
+        case all
+        case dictation
+        case imported
+
+        var id: String { rawValue }
+
+        var sourceTypeValue: String? {
+            switch self {
+            case .all:
+                return nil
+            case .dictation:
+                return "dictation"
+            case .imported:
+                return "file_import"
+            }
+        }
+
+        var label: String {
+            switch self {
+            case .all:
+                return localized(
+                    "history.filters.source.option.all",
+                    default: "All",
+                    comment: "Filter option label for all transcript sources"
+                )
+            case .dictation:
+                return localized(
+                    "history.filters.source.option.dictation",
+                    default: "Dictation",
+                    comment: "Filter option label for dictation transcript source"
+                )
+            case .imported:
+                return localized(
+                    "history.filters.source.option.imported",
+                    default: "Imported",
+                    comment: "Filter option label for imported-file transcript source"
+                )
+            }
+        }
+    }
+
     @Published var searchQuery = ""
+    @Published var isFiltersExpanded = false
+    @Published var filterDateFrom: Date?
+    @Published var filterDateTo: Date?
+    @Published var sourceTypeFilter: SourceTypeFilterOption = .all
+    @Published var selectedModelFilterID = ""
+    @Published var hasSpeakersFilterEnabled = false
     @Published private(set) var records: [TranscriptRecord] = []
     @Published private(set) var isLoading = false
     @Published private(set) var hasMoreResults = true
+    @Published private(set) var availableModelFilterIDs: [String] = []
     @Published var selectedRecordIDs: Set<Int64> = []
     @Published var errorMessage: String?
     @Published private(set) var importJobs: [FileImportJob] = []
@@ -1058,7 +2338,6 @@ final class TranscriptHistoryViewModel: ObservableObject {
     private let fileTranscriptionService: FileTranscriptionService
     private let pageSize = 50
     private var offset = 0
-    private var searchLimit = 50
     private var isProcessingImportQueue = false
 
     init(
@@ -1083,15 +2362,27 @@ final class TranscriptHistoryViewModel: ObservableObject {
         }
     }
 
+    var activeFilterCount: Int {
+        var count = 0
+        if filterDateFrom != nil { count += 1 }
+        if filterDateTo != nil { count += 1 }
+        if sourceTypeFilter != .all { count += 1 }
+        if selectedModelFilterID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false { count += 1 }
+        if hasSpeakersFilterEnabled { count += 1 }
+        return count
+    }
+
+    func record(withID id: Int64) -> TranscriptRecord? {
+        records.first(where: { $0.id == id })
+    }
+
     func loadInitial() {
         offset = 0
-        searchLimit = pageSize
         fetch(reset: true)
     }
 
     func reloadForSearchQuery() {
         offset = 0
-        searchLimit = pageSize
         fetch(reset: true)
     }
 
@@ -1100,12 +2391,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
         guard hasMoreResults else { return }
         guard currentIndex >= max(records.count - 5, 0) else { return }
 
-        if isSearching {
-            searchLimit += pageSize
-            fetch(reset: true)
-        } else {
-            fetch(reset: false)
-        }
+        fetch(reset: false)
     }
 
     func copySelectedToPasteboard() {
@@ -1122,7 +2408,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
         if selected.count > 1 {
             guard
                 let selection = presentExportPanel(
-                    allowedFormats: [.json],
+                    allowedFormats: TranscriptExportFormat.allCases,
                     defaultFormat: .json,
                     defaultFilename: defaultBatchExportFilename()
                 )
@@ -1131,11 +2417,15 @@ final class TranscriptHistoryViewModel: ObservableObject {
             }
 
             do {
-                let data = try TranscriptExporter.exportAsJSON(selected)
+                let data = try TranscriptExporter.export(records: selected, format: selection.format)
                 try data.write(to: selection.url, options: .atomic)
                 errorMessage = nil
             } catch {
-                errorMessage = "Failed to export selected transcripts."
+                errorMessage = localized(
+                    "error.history.exportSelectionFailed",
+                    default: "Failed to export selected transcripts.",
+                    comment: "Error shown when batch transcript export fails"
+                )
             }
             return
         }
@@ -1156,35 +2446,147 @@ final class TranscriptHistoryViewModel: ObservableObject {
             let outputData: Data
             switch selection.format {
             case .plainText:
-                outputData = Data(TranscriptExporter.exportAsPlainText(record).utf8)
+                outputData = Data(
+                    TranscriptExporter.exportAsPlainText(record, speakerMap: record.speakerMap).utf8
+                )
             case .markdown:
-                outputData = Data(TranscriptExporter.exportAsMarkdown(record).utf8)
+                outputData = Data(
+                    TranscriptExporter.exportAsMarkdown(record, speakerMap: record.speakerMap).utf8
+                )
             case .json:
-                outputData = try TranscriptExporter.exportAsJSON([record])
+                outputData = try TranscriptExporter.exportAsJSON([record], speakerMap: record.speakerMap)
             case .srt:
-                outputData = Data(TranscriptExporter.exportAsSRT(record).utf8)
+                outputData = Data(
+                    TranscriptExporter.exportAsSRT(
+                        record,
+                        segments: record.segments,
+                        speakerMap: record.speakerMap
+                    ).utf8
+                )
             case .vtt:
-                outputData = Data(TranscriptExporter.exportAsVTT(record).utf8)
+                outputData = Data(
+                    TranscriptExporter.exportAsVTT(
+                        record,
+                        segments: record.segments,
+                        speakerMap: record.speakerMap
+                    ).utf8
+                )
             }
             try outputData.write(to: selection.url, options: .atomic)
             errorMessage = nil
         } catch {
-            errorMessage = "Failed to export transcript."
+            errorMessage = localized(
+                "error.history.exportSingleFailed",
+                default: "Failed to export transcript.",
+                comment: "Error shown when single transcript export fails"
+            )
         }
     }
 
     func deleteSelected() {
-        guard let selectedRecord else { return }
-        guard let selectedRecordID = selectedRecord.id else { return }
+        guard let summary = makeDeleteSelectionSummary() else { return }
+        deleteRecords(ids: summary.transcriptIDs)
+    }
+
+    func makeDeleteSelectionSummary() -> DeleteSelectionSummary? {
+        let ids = selectedRecords.compactMap(\.id)
+        guard ids.isEmpty == false else { return nil }
 
         do {
-            try transcriptStore.delete(id: selectedRecordID)
-            actionHistoryByTranscriptID[selectedRecordID] = nil
-            selectedRecordIDs.removeAll()
+            let actionCount = try transcriptStore.countActions(forTranscriptIDs: ids)
+            return DeleteSelectionSummary(
+                transcriptIDs: ids,
+                transcriptCount: ids.count,
+                associatedActionCount: actionCount
+            )
+        } catch {
+            errorMessage = localized(
+                "error.history.deleteConfirmationFailed",
+                default: "Failed to prepare delete confirmation.",
+                comment: "Error shown when preparing delete confirmation fails"
+            )
+            return nil
+        }
+    }
+
+    func deleteRecords(ids: [Int64]) {
+        guard ids.isEmpty == false else { return }
+
+        do {
+            if ids.count == 1, let id = ids.first {
+                try transcriptStore.delete(id: id)
+            } else {
+                try transcriptStore.delete(ids: ids)
+            }
+
+            for id in ids {
+                actionHistoryByTranscriptID[id] = nil
+            }
+            selectedRecordIDs.subtract(ids)
             reloadForSearchQuery()
             errorMessage = nil
         } catch {
-            errorMessage = "Failed to delete transcript."
+            errorMessage = ids.count > 1
+                ? localized(
+                    "error.history.deleteSelectionFailed",
+                    default: "Failed to delete selected transcripts.",
+                    comment: "Error shown when deleting multiple transcripts fails"
+                )
+                : localized(
+                    "error.history.deleteSingleFailed",
+                    default: "Failed to delete transcript.",
+                    comment: "Error shown when deleting a single transcript fails"
+                )
+        }
+    }
+
+    func updateSpeakerMap(recordID: Int64, speakerMap: [String: String]?) {
+        let normalizedMap = speakerMap?
+            .reduce(into: [String: String]()) { partialResult, entry in
+                let key = entry.key.trimmingCharacters(in: .whitespacesAndNewlines)
+                let value = entry.value.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard key.isEmpty == false, value.isEmpty == false else { return }
+                partialResult[key] = value
+            }
+        do {
+            try transcriptStore.updateSpeakerMap(
+                id: recordID,
+                speakerMap: normalizedMap?.isEmpty == false ? normalizedMap : nil
+            )
+            if let index = records.firstIndex(where: { $0.id == recordID }) {
+                records[index].speakerMap = normalizedMap?.isEmpty == false ? normalizedMap : nil
+            }
+            errorMessage = nil
+        } catch {
+            errorMessage = localized(
+                "error.history.saveSpeakerNamesFailed",
+                default: "Failed to save speaker names.",
+                comment: "Error shown when persisting custom speaker names fails"
+            )
+        }
+    }
+
+    func updateNotes(recordID: Int64, notes: String?) {
+        let normalizedNotes: String?
+        if let notes {
+            let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+            normalizedNotes = trimmed.isEmpty ? nil : notes
+        } else {
+            normalizedNotes = nil
+        }
+
+        do {
+            try transcriptStore.updateNotes(id: recordID, notes: normalizedNotes)
+            if let index = records.firstIndex(where: { $0.id == recordID }) {
+                records[index].notes = normalizedNotes
+            }
+            errorMessage = nil
+        } catch {
+            errorMessage = localized(
+                "error.history.saveNotesFailed",
+                default: "Failed to save notes.",
+                comment: "Error shown when persisting transcript notes fails"
+            )
         }
     }
 
@@ -1201,6 +2603,23 @@ final class TranscriptHistoryViewModel: ObservableObject {
         selectedRecordIDs = [id]
     }
 
+    func clearSelection() {
+        selectedRecordIDs.removeAll()
+    }
+
+    func selectAllVisible() {
+        selectedRecordIDs = Set(records.compactMap(\.id))
+    }
+
+    func clearFilters() {
+        filterDateFrom = nil
+        filterDateTo = nil
+        sourceTypeFilter = .all
+        selectedModelFilterID = ""
+        hasSpeakersFilterEnabled = false
+        reloadForSearchQuery()
+    }
+
     func retainSelection(validIDs: Set<Int64>) {
         selectedRecordIDs = selectedRecordIDs.intersection(validIDs)
     }
@@ -1211,7 +2630,11 @@ final class TranscriptHistoryViewModel: ObservableObject {
                 forTranscriptID: transcriptID
             )
         } catch {
-            errorMessage = "Failed to load previous AI actions."
+            errorMessage = localized(
+                "error.history.loadPreviousActionsFailed",
+                default: "Failed to load previous AI actions.",
+                comment: "Error shown when loading previous transcript AI actions fails"
+            )
         }
     }
 
@@ -1236,7 +2659,11 @@ final class TranscriptHistoryViewModel: ObservableObject {
             )
             loadActions(for: transcriptID)
         } catch {
-            errorMessage = "Failed to save AI action result."
+            errorMessage = localized(
+                "error.history.saveActionResultFailed",
+                default: "Failed to save AI action result.",
+                comment: "Error shown when saving transcript AI action result fails"
+            )
         }
     }
 
@@ -1245,7 +2672,11 @@ final class TranscriptHistoryViewModel: ObservableObject {
             try transcriptStore.deleteAction(id: id)
             loadActions(for: transcriptID)
         } catch {
-            errorMessage = "Failed to delete AI action result."
+            errorMessage = localized(
+                "error.history.deleteActionResultFailed",
+                default: "Failed to delete AI action result.",
+                comment: "Error shown when deleting transcript AI action result fails"
+            )
         }
     }
 
@@ -1262,7 +2693,11 @@ final class TranscriptHistoryViewModel: ObservableObject {
         requestDiarization: Bool = false
     ) {
         guard let selectedModelID else {
-            errorMessage = "No model installed. Open Settings > Models to download one."
+            errorMessage = localized(
+                "error.model.missing",
+                default: "No model installed. Open Settings > Models to download one.",
+                comment: "Error shown when importing files without an installed model"
+            )
             return
         }
 
@@ -1276,7 +2711,13 @@ final class TranscriptHistoryViewModel: ObservableObject {
                         modelID: selectedModelID,
                         languageHint: languageHint,
                         requestDiarization: requestDiarization,
-                        status: .failed("Unsupported file type. Use WAV, MP3, M4A, FLAC, or OGG.")
+                        status: .failed(
+                            localized(
+                                "error.import.unsupportedFileType",
+                                default: "Unsupported file type. Use WAV, MP3, M4A, FLAC, or OGG.",
+                                comment: "Error shown when importing unsupported audio file type"
+                            )
+                        )
                     )
                 )
                 continue
@@ -1296,10 +2737,6 @@ final class TranscriptHistoryViewModel: ObservableObject {
         }
 
         processImportQueueIfNeeded()
-    }
-
-    private var isSearching: Bool {
-        searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
     }
 
     private func processImportQueueIfNeeded() {
@@ -1337,7 +2774,13 @@ final class TranscriptHistoryViewModel: ObservableObject {
                 errorMessage = nil
             } catch {
                 if let index = importJobs.firstIndex(where: { $0.id == job.id }) {
-                    importJobs[index].status = .failed("Transcription failed. Please try again.")
+                    importJobs[index].status = .failed(
+                        localized(
+                            "error.import.transcriptionFailed",
+                            default: "Transcription failed. Please try again.",
+                            comment: "Error shown when file import transcription fails"
+                        )
+                    )
                 }
             }
 
@@ -1350,26 +2793,19 @@ final class TranscriptHistoryViewModel: ObservableObject {
         isLoading = true
 
         do {
-            let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            let currentOffset = reset ? 0 : offset
+            let fetched = try transcriptStore.fetchFiltered(currentFilter, limit: pageSize, offset: currentOffset)
 
-            if trimmedQuery.isEmpty {
-                let currentOffset = reset ? 0 : offset
-                let fetched = try transcriptStore.fetchAll(limit: pageSize, offset: currentOffset)
-
-                if reset {
-                    records = fetched
-                    offset = fetched.count
-                } else {
-                    records.append(contentsOf: fetched)
-                    offset += fetched.count
-                }
-
-                hasMoreResults = fetched.count == pageSize
-            } else {
-                let fetched = try transcriptStore.search(query: trimmedQuery, limit: searchLimit)
+            if reset {
                 records = fetched
-                hasMoreResults = fetched.count == searchLimit
+                offset = fetched.count
+            } else {
+                records.append(contentsOf: fetched)
+                offset += fetched.count
             }
+
+            hasMoreResults = fetched.count == pageSize
+            availableModelFilterIDs = try transcriptStore.fetchDistinctModelIDs()
 
             errorMessage = nil
         } catch {
@@ -1377,10 +2813,38 @@ final class TranscriptHistoryViewModel: ObservableObject {
                 records = []
             }
             hasMoreResults = false
-            errorMessage = "Failed to load transcript history."
+            errorMessage = localized(
+                "error.history.loadFailed",
+                default: "Failed to load transcript history.",
+                comment: "Error shown when transcript history fetch fails"
+            )
         }
 
         isLoading = false
+    }
+
+    private var currentFilter: TranscriptFilter {
+        TranscriptFilter(
+            searchText: searchQuery,
+            dateFrom: normalizedDateFrom,
+            dateTo: normalizedDateTo,
+            sourceType: sourceTypeFilter.sourceTypeValue,
+            modelID: selectedModelFilterID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? nil
+                : selectedModelFilterID,
+            hasSpeakers: hasSpeakersFilterEnabled ? true : nil
+        )
+    }
+
+    private var normalizedDateFrom: Date? {
+        guard let filterDateFrom else { return nil }
+        return Calendar.current.startOfDay(for: filterDateFrom)
+    }
+
+    private var normalizedDateTo: Date? {
+        guard let filterDateTo else { return nil }
+        let dayStart = Calendar.current.startOfDay(for: filterDateTo)
+        return Calendar.current.date(byAdding: DateComponents(day: 1, second: -1), to: dayStart)
     }
 
     private func defaultExportFilename(for record: TranscriptRecord, format: TranscriptExportFormat) -> String {
@@ -1426,7 +2890,13 @@ final class TranscriptHistoryViewModel: ObservableObject {
             popup.selectItem(at: defaultIndex)
         }
 
-        let label = NSTextField(labelWithString: "Format:")
+        let label = NSTextField(
+            labelWithString: localized(
+                "history.export.format.label",
+                default: "Format:",
+                comment: "Label shown in export save panel for selecting export format"
+            )
+        )
         let accessory = NSStackView(views: [label, popup])
         accessory.orientation = .horizontal
         accessory.spacing = 8

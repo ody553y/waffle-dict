@@ -13,7 +13,11 @@ final class UpdaterSettings: ObservableObject {
            version.isEmpty == false {
             return version
         }
-        return "dev"
+        return localized(
+            "settings.updates.currentVersion.dev",
+            default: "dev",
+            comment: "Fallback app version string used in development builds"
+        )
     }
 
     var isUpdaterReady: Bool {
@@ -22,7 +26,11 @@ final class UpdaterSettings: ObservableObject {
 
     var lastUpdateCheckDescription: String {
         guard let lastUpdateCheckDate else {
-            return "Never"
+            return localized(
+                "settings.updates.lastCheck.never",
+                default: "Never",
+                comment: "Fallback text when no update check has been run yet"
+            )
         }
         return Self.lastCheckFormatter.string(from: lastUpdateCheckDate)
     }

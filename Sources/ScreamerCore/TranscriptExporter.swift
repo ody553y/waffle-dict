@@ -39,11 +39,23 @@ public enum TranscriptExportFormat: String, CaseIterable, Sendable {
 }
 
 public enum TranscriptExporter {
-    public static func exportAsPlainText(_ record: TranscriptRecord) -> String {
-        record.text
+    public static func exportAsPlainText(
+        _ record: TranscriptRecord,
+        speakerMap: [String: String]? = nil
+    ) -> String {
+        if let dialogueLines = plainTextDialogueLines(
+            from: record.segments,
+            speakerMap: speakerMap ?? record.speakerMap
+        ) {
+            return dialogueLines.joined(separator: "\n")
+        }
+        return record.text
     }
 
-    public static func exportAsMarkdown(_ record: TranscriptRecord) -> String {
+    public static func exportAsMarkdown(
+        _ record: TranscriptRecord,
+        speakerMap: [String: String]? = nil
+    ) -> String {
         let date = markdownDateFormatter.string(from: record.createdAt)
         let source = sourceDisplayName(for: record)
 
@@ -64,7 +76,10 @@ public enum TranscriptExporter {
         }
 
         lines.append("")
-        if let dialogueLines = markdownDialogueLines(from: record.segments) {
+        if let dialogueLines = markdownDialogueLines(
+            from: record.segments,
+            speakerMap: speakerMap ?? record.speakerMap
+        ) {
             lines.append(contentsOf: dialogueLines)
         } else {
             lines.append(record.text)
@@ -73,18 +88,54 @@ public enum TranscriptExporter {
         return lines.joined(separator: "\n")
     }
 
-    public static func exportAsJSON(_ records: [TranscriptRecord]) throws -> Data {
+    public static func exportAsJSON(
+        _ records: [TranscriptRecord],
+        speakerMap: [String: String]? = nil
+    ) throws -> Data {
+        let exportRecords = records.map { record in
+            let resolvedMap = speakerMap ?? record.speakerMap
+            return TranscriptJSONExportRecord(
+                id: record.id,
+                createdAt: record.createdAt,
+                sourceType: record.sourceType,
+                sourceFileName: record.sourceFileName,
+                modelID: record.modelID,
+                languageHint: record.languageHint,
+                durationSeconds: record.durationSeconds,
+                text: record.text,
+                segments: record.segments?.map { segment in
+                    TranscriptJSONExportSegment(
+                        start: segment.start,
+                        end: segment.end,
+                        text: segment.text,
+                        speaker: normalizedSpeakerLabel(segment.speaker),
+                        displaySpeaker: resolvedSpeaker(
+                            rawSpeaker: segment.speaker,
+                            speakerMap: resolvedMap
+                        )
+                    )
+                },
+                speakerMap: record.speakerMap,
+                notes: record.notes
+            )
+        }
+
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        return try encoder.encode(records)
+        return try encoder.encode(exportRecords)
     }
 
     public static func exportAsSRT(
         _ record: TranscriptRecord,
-        segments: [TranscriptSegment]? = nil
+        segments: [TranscriptSegment]? = nil,
+        speakerMap: [String: String]? = nil
     ) -> String {
-        if let cues = formattedCues(from: segments ?? record.segments, separator: ","),
+        if let cues = formattedCues(
+            from: segments ?? record.segments,
+            separator: ",",
+            speakerMap: speakerMap ?? record.speakerMap
+        ),
            cues.isEmpty == false {
             return cues
         }
@@ -99,9 +150,14 @@ public enum TranscriptExporter {
 
     public static func exportAsVTT(
         _ record: TranscriptRecord,
-        segments: [TranscriptSegment]? = nil
+        segments: [TranscriptSegment]? = nil,
+        speakerMap: [String: String]? = nil
     ) -> String {
-        if let cues = formattedCues(from: segments ?? record.segments, separator: "."),
+        if let cues = formattedCues(
+            from: segments ?? record.segments,
+            separator: ".",
+            speakerMap: speakerMap ?? record.speakerMap
+        ),
            cues.isEmpty == false {
             return """
             WEBVTT
@@ -122,28 +178,61 @@ public enum TranscriptExporter {
 
     public static func export(
         records: [TranscriptRecord],
-        format: TranscriptExportFormat
+        format: TranscriptExportFormat,
+        speakerMap: [String: String]? = nil
     ) throws -> Data {
+        if records.count > 1 {
+            switch format {
+            case .json:
+                return try exportAsJSON(records)
+            case .plainText, .markdown, .srt, .vtt:
+                let batchOutput = batchTextExport(records: records, format: format)
+                return Data(batchOutput.utf8)
+            }
+        }
+
         switch format {
         case .json:
-            return try exportAsJSON(records)
+            return try exportAsJSON(records, speakerMap: speakerMap)
         case .plainText:
             guard let record = records.first else { return Data() }
-            return Data(exportAsPlainText(record).utf8)
+            return Data(exportAsPlainText(record, speakerMap: speakerMap).utf8)
         case .markdown:
             guard let record = records.first else { return Data() }
-            return Data(exportAsMarkdown(record).utf8)
+            return Data(exportAsMarkdown(record, speakerMap: speakerMap).utf8)
         case .srt:
             guard let record = records.first else { return Data() }
-            return Data(exportAsSRT(record, segments: record.segments).utf8)
+            return Data(exportAsSRT(record, segments: record.segments, speakerMap: speakerMap).utf8)
         case .vtt:
             guard let record = records.first else { return Data() }
-            return Data(exportAsVTT(record, segments: record.segments).utf8)
+            return Data(exportAsVTT(record, segments: record.segments, speakerMap: speakerMap).utf8)
         }
     }
 }
 
 private extension TranscriptExporter {
+    struct TranscriptJSONExportRecord: Encodable {
+        let id: Int64?
+        let createdAt: Date
+        let sourceType: String
+        let sourceFileName: String?
+        let modelID: String
+        let languageHint: String?
+        let durationSeconds: Double?
+        let text: String
+        let segments: [TranscriptJSONExportSegment]?
+        let speakerMap: [String: String]?
+        let notes: String?
+    }
+
+    struct TranscriptJSONExportSegment: Encodable {
+        let start: Double
+        let end: Double
+        let text: String
+        let speaker: String?
+        let displaySpeaker: String?
+    }
+
     static let markdownDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -171,7 +260,8 @@ private extension TranscriptExporter {
 
     static func formattedCues(
         from segments: [TranscriptSegment]?,
-        separator: String
+        separator: String,
+        speakerMap: [String: String]?
     ) -> String? {
         guard let segments, segments.isEmpty == false else {
             return nil
@@ -188,7 +278,7 @@ private extension TranscriptExporter {
             return """
             \(index + 1)
             \(start) --> \(end)
-            \(cueText(for: segment))
+            \(cueText(for: segment, speakerMap: speakerMap))
             """
         }
         .joined(separator: "\n\n")
@@ -221,8 +311,8 @@ private extension TranscriptExporter {
         return deduped
     }
 
-    static func cueText(for segment: TranscriptSegment) -> String {
-        guard let speaker = normalizedSpeakerLabel(segment.speaker) else {
+    static func cueText(for segment: TranscriptSegment, speakerMap: [String: String]?) -> String {
+        guard let speaker = resolvedSpeaker(rawSpeaker: segment.speaker, speakerMap: speakerMap) else {
             return segment.text
         }
         return "\(speaker): \(segment.text)"
@@ -234,7 +324,10 @@ private extension TranscriptExporter {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    static func markdownDialogueLines(from segments: [TranscriptSegment]?) -> [String]? {
+    static func markdownDialogueLines(
+        from segments: [TranscriptSegment]?,
+        speakerMap: [String: String]?
+    ) -> [String]? {
         guard let segments, segments.isEmpty == false else {
             return nil
         }
@@ -250,7 +343,7 @@ private extension TranscriptExporter {
             guard text.isEmpty == false else { continue }
             let timestamp = markdownDialogueTimestamp(for: segment.start)
 
-            if let speaker = normalizedSpeakerLabel(segment.speaker) {
+            if let speaker = resolvedSpeaker(rawSpeaker: segment.speaker, speakerMap: speakerMap) {
                 lines.append("**\(speaker)** (\(timestamp)): \(text)")
             } else {
                 lines.append("(\(timestamp)): \(text)")
@@ -263,6 +356,67 @@ private extension TranscriptExporter {
         }
 
         return lines.isEmpty ? nil : lines
+    }
+
+    static func plainTextDialogueLines(
+        from segments: [TranscriptSegment]?,
+        speakerMap: [String: String]?
+    ) -> [String]? {
+        guard let segments, segments.isEmpty == false else { return nil }
+        let hasSpeakers = segments.contains { normalizedSpeakerLabel($0.speaker) != nil }
+        guard hasSpeakers else { return nil }
+
+        let lines: [String] = segments.compactMap { segment in
+            let text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard text.isEmpty == false else { return nil }
+            if let speaker = resolvedSpeaker(rawSpeaker: segment.speaker, speakerMap: speakerMap) {
+                return "\(speaker): \(text)"
+            }
+            return text
+        }
+
+        return lines.isEmpty ? nil : lines
+    }
+
+    static func resolvedSpeaker(rawSpeaker: String?, speakerMap: [String: String]?) -> String? {
+        guard let normalizedRawSpeaker = normalizedSpeakerLabel(rawSpeaker) else { return nil }
+        if let mappedSpeaker = normalizedSpeakerLabel(speakerMap?[normalizedRawSpeaker]) {
+            return mappedSpeaker
+        }
+        return normalizedRawSpeaker
+    }
+
+    static func batchTextExport(records: [TranscriptRecord], format: TranscriptExportFormat) -> String {
+        records.map { record in
+            let content: String
+            switch format {
+            case .plainText:
+                content = exportAsPlainText(record, speakerMap: record.speakerMap)
+            case .markdown:
+                content = exportAsMarkdown(record, speakerMap: record.speakerMap)
+            case .srt:
+                content = exportAsSRT(record, segments: record.segments, speakerMap: record.speakerMap)
+            case .vtt:
+                content = exportAsVTT(record, segments: record.segments, speakerMap: record.speakerMap)
+            case .json:
+                content = record.text
+            }
+
+            return """
+            \(batchHeader(for: record))
+
+            \(content)
+            """
+        }
+        .joined(separator: "\n\n---\n\n")
+    }
+
+    static func batchHeader(for record: TranscriptRecord) -> String {
+        """
+        Date: \(markdownDateFormatter.string(from: record.createdAt))
+        Source: \(sourceDisplayName(for: record))
+        Model: \(record.modelID)
+        """
     }
 
     static func markdownDialogueTimestamp(for seconds: Double) -> String {
