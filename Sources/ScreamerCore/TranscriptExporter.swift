@@ -76,7 +76,15 @@ public enum TranscriptExporter {
         return try encoder.encode(records)
     }
 
-    public static func exportAsSRT(_ record: TranscriptRecord) -> String {
+    public static func exportAsSRT(
+        _ record: TranscriptRecord,
+        segments: [TranscriptSegment]? = nil
+    ) -> String {
+        if let cues = formattedCues(from: segments ?? record.segments, separator: ","),
+           cues.isEmpty == false {
+            return cues
+        }
+
         let end = formatSRTTime(record.durationSeconds ?? 0)
         return """
         1
@@ -85,7 +93,19 @@ public enum TranscriptExporter {
         """
     }
 
-    public static func exportAsVTT(_ record: TranscriptRecord) -> String {
+    public static func exportAsVTT(
+        _ record: TranscriptRecord,
+        segments: [TranscriptSegment]? = nil
+    ) -> String {
+        if let cues = formattedCues(from: segments ?? record.segments, separator: "."),
+           cues.isEmpty == false {
+            return """
+            WEBVTT
+
+            \(cues)
+            """
+        }
+
         let end = formatVTTTime(record.durationSeconds ?? 0)
         return """
         WEBVTT
@@ -111,10 +131,10 @@ public enum TranscriptExporter {
             return Data(exportAsMarkdown(record).utf8)
         case .srt:
             guard let record = records.first else { return Data() }
-            return Data(exportAsSRT(record).utf8)
+            return Data(exportAsSRT(record, segments: record.segments).utf8)
         case .vtt:
             guard let record = records.first else { return Data() }
-            return Data(exportAsVTT(record).utf8)
+            return Data(exportAsVTT(record, segments: record.segments).utf8)
         }
     }
 }
@@ -143,6 +163,56 @@ private extension TranscriptExporter {
 
     static func formatVTTTime(_ seconds: Double) -> String {
         formatTime(seconds: seconds, separator: ".")
+    }
+
+    static func formattedCues(
+        from segments: [TranscriptSegment]?,
+        separator: String
+    ) -> String? {
+        guard let segments, segments.isEmpty == false else {
+            return nil
+        }
+
+        let dedupedSegments = deduplicateAdjacentSegments(segments)
+        guard dedupedSegments.isEmpty == false else {
+            return nil
+        }
+
+        return dedupedSegments.enumerated().map { index, segment in
+            let start = formatTime(seconds: segment.start, separator: separator)
+            let end = formatTime(seconds: segment.end, separator: separator)
+            return """
+            \(index + 1)
+            \(start) --> \(end)
+            \(segment.text)
+            """
+        }
+        .joined(separator: "\n\n")
+    }
+
+    static func deduplicateAdjacentSegments(_ segments: [TranscriptSegment]) -> [TranscriptSegment] {
+        guard segments.isEmpty == false else {
+            return []
+        }
+
+        var deduped: [TranscriptSegment] = []
+        deduped.reserveCapacity(segments.count)
+
+        for segment in segments {
+            let normalizedText = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let last = deduped.last,
+               last.text.trimmingCharacters(in: .whitespacesAndNewlines) == normalizedText {
+                deduped[deduped.count - 1] = TranscriptSegment(
+                    start: last.start,
+                    end: max(last.end, segment.end),
+                    text: last.text
+                )
+            } else {
+                deduped.append(segment)
+            }
+        }
+
+        return deduped
     }
 
     static func formatTime(seconds: Double, separator: String) -> String {

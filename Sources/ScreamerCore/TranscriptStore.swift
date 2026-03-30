@@ -1,6 +1,18 @@
 import Foundation
 import GRDB
 
+public struct TranscriptSegment: Codable, Equatable, Sendable {
+    public let start: Double
+    public let end: Double
+    public let text: String
+
+    public init(start: Double, end: Double, text: String) {
+        self.start = start
+        self.end = end
+        self.text = text
+    }
+}
+
 public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableRecord, Equatable, Identifiable, Sendable {
     public static let databaseTableName = "transcripts"
 
@@ -12,6 +24,7 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
     public var languageHint: String?
     public var durationSeconds: Double?
     public var text: String
+    public var segments: [TranscriptSegment]?
 
     public init(
         id: Int64? = nil,
@@ -21,7 +34,8 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         modelID: String,
         languageHint: String?,
         durationSeconds: Double?,
-        text: String
+        text: String,
+        segments: [TranscriptSegment]? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -31,6 +45,93 @@ public struct TranscriptRecord: Codable, FetchableRecord, MutablePersistableReco
         self.languageHint = languageHint
         self.durationSeconds = durationSeconds
         self.text = text
+        self.segments = segments
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case createdAt
+        case sourceType
+        case sourceFileName
+        case modelID
+        case languageHint
+        case durationSeconds
+        case text
+        case segments
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(Int64.self, forKey: .id)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        sourceType = try container.decode(String.self, forKey: .sourceType)
+        sourceFileName = try container.decodeIfPresent(String.self, forKey: .sourceFileName)
+        modelID = try container.decode(String.self, forKey: .modelID)
+        languageHint = try container.decodeIfPresent(String.self, forKey: .languageHint)
+        durationSeconds = try container.decodeIfPresent(Double.self, forKey: .durationSeconds)
+        text = try container.decode(String.self, forKey: .text)
+
+        if let segmentsJSONString = try container.decodeIfPresent(String.self, forKey: .segments),
+           segmentsJSONString.isEmpty == false {
+            let data = Data(segmentsJSONString.utf8)
+            segments = try JSONDecoder().decode([TranscriptSegment].self, from: data)
+        } else {
+            segments = nil
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(id, forKey: .id)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(sourceType, forKey: .sourceType)
+        try container.encodeIfPresent(sourceFileName, forKey: .sourceFileName)
+        try container.encode(modelID, forKey: .modelID)
+        try container.encodeIfPresent(languageHint, forKey: .languageHint)
+        try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
+        try container.encode(text, forKey: .text)
+
+        if let segments {
+            let data = try JSONEncoder().encode(segments)
+            let jsonString = String(decoding: data, as: UTF8.self)
+            try container.encode(jsonString, forKey: .segments)
+        } else {
+            try container.encodeNil(forKey: .segments)
+        }
+    }
+
+    public mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+}
+
+public struct TranscriptActionRecord: Codable, FetchableRecord, MutablePersistableRecord, Equatable, Identifiable, Sendable {
+    public static let databaseTableName = "transcript_actions"
+
+    public var id: Int64?
+    public var transcriptID: Int64
+    public var createdAt: Date
+    public var actionType: String
+    public var actionInput: String?
+    public var llmModelID: String
+    public var resultText: String
+
+    public init(
+        id: Int64? = nil,
+        transcriptID: Int64,
+        createdAt: Date,
+        actionType: String,
+        actionInput: String?,
+        llmModelID: String,
+        resultText: String
+    ) {
+        self.id = id
+        self.transcriptID = transcriptID
+        self.createdAt = createdAt
+        self.actionType = actionType
+        self.actionInput = actionInput
+        self.llmModelID = llmModelID
+        self.resultText = resultText
     }
 
     public mutating func didInsert(_ inserted: InsertionSuccess) {
@@ -52,7 +153,10 @@ public final class TranscriptStore: @unchecked Sendable {
             try Self.ensureParentDirectoryExists(forDatabasePath: path, fileManager: fileManager)
         }
 
-        dbQueue = try DatabaseQueue(path: path)
+        var configuration = Configuration()
+        configuration.foreignKeysEnabled = true
+
+        dbQueue = try DatabaseQueue(path: path, configuration: configuration)
         try Self.makeMigrator().migrate(dbQueue)
     }
 
@@ -81,7 +185,7 @@ public final class TranscriptStore: @unchecked Sendable {
             try TranscriptRecord.fetchAll(
                 db,
                 sql: """
-                SELECT id, createdAt, sourceType, sourceFileName, modelID, languageHint, durationSeconds, text
+                SELECT id, createdAt, sourceType, sourceFileName, modelID, languageHint, durationSeconds, text, segments
                 FROM transcripts
                 ORDER BY createdAt DESC, id DESC
                 LIMIT ? OFFSET ?
@@ -103,7 +207,7 @@ public final class TranscriptStore: @unchecked Sendable {
             try TranscriptRecord.fetchAll(
                 db,
                 sql: """
-                SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text
+                SELECT t.id, t.createdAt, t.sourceType, t.sourceFileName, t.modelID, t.languageHint, t.durationSeconds, t.text, t.segments
                 FROM transcripts AS t
                 JOIN transcripts_fts ON transcripts_fts.rowid = t.id
                 WHERE transcripts_fts MATCH ?
@@ -125,6 +229,42 @@ public final class TranscriptStore: @unchecked Sendable {
     public func fetchOne(id: Int64) throws -> TranscriptRecord? {
         try dbQueue.read { db in
             try TranscriptRecord.fetchOne(db, key: id)
+        }
+    }
+
+    public func saveAction(_ record: TranscriptActionRecord) throws -> TranscriptActionRecord {
+        var savedRecord = record
+        savedRecord.id = nil
+
+        try dbQueue.write { db in
+            try savedRecord.insert(db)
+
+            guard savedRecord.id != nil else {
+                throw TranscriptStoreError.insertedRecordMissingID
+            }
+        }
+
+        return savedRecord
+    }
+
+    public func fetchActions(forTranscriptID transcriptID: Int64) throws -> [TranscriptActionRecord] {
+        try dbQueue.read { db in
+            try TranscriptActionRecord.fetchAll(
+                db,
+                sql: """
+                SELECT id, transcriptID, createdAt, actionType, actionInput, llmModelID, resultText
+                FROM transcript_actions
+                WHERE transcriptID = ?
+                ORDER BY createdAt DESC, id DESC
+                """,
+                arguments: [transcriptID]
+            )
+        }
+    }
+
+    public func deleteAction(id: Int64) throws {
+        try dbQueue.write { db in
+            _ = try TranscriptActionRecord.deleteOne(db, key: id)
         }
     }
 
@@ -153,6 +293,32 @@ private extension TranscriptStore {
 
             try db.create(virtualTable: "transcripts_fts", using: FTS5()) { table in
                 table.column("text")
+            }
+        }
+
+        migrator.registerMigration("createTranscriptActions") { db in
+            try db.create(table: TranscriptActionRecord.databaseTableName) { table in
+                table.autoIncrementedPrimaryKey("id")
+                table.column("transcriptID", .integer)
+                    .notNull()
+                    .references("transcripts", onDelete: .cascade)
+                table.column("createdAt", .datetime).notNull()
+                table.column("actionType", .text).notNull()
+                table.column("actionInput", .text)
+                table.column("llmModelID", .text).notNull()
+                table.column("resultText", .text).notNull()
+            }
+
+            try db.create(
+                index: "idx_transcript_actions_transcriptID",
+                on: "transcript_actions",
+                columns: ["transcriptID"]
+            )
+        }
+
+        migrator.registerMigration("addSegmentsColumn") { db in
+            try db.alter(table: "transcripts") { table in
+                table.add(column: "segments", .text)
             }
         }
 

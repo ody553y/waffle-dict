@@ -33,6 +33,40 @@ struct FileTranscriptionServiceTests {
         #expect(result.text == "hello from file")
         #expect(result.backendID == "stub-whisper")
         #expect(result.durationSeconds == nil)
+        #expect(result.segments == nil)
+    }
+
+    @Test func transcribeMapsWorkerSegmentsToResultSegments() async throws {
+        let workerClient = MockWorkerFileTranscribingClient()
+        workerClient.response = FileTranscriptionResponsePayload(
+            jobID: "job-1",
+            backendID: "stub-whisper",
+            text: "hello from file",
+            segments: [
+                .init(start: 0.0, end: 1.0, text: "hello"),
+                .init(start: 1.0, end: 2.0, text: "from file"),
+            ]
+        )
+
+        let service = FileTranscriptionService(workerClient: workerClient)
+
+        let tempFile = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).txt")
+        try Data("not-audio".utf8).write(to: tempFile)
+        defer { try? FileManager.default.removeItem(at: tempFile) }
+
+        let result = try await service.transcribe(
+            fileURL: tempFile,
+            modelID: "whisper-small",
+            languageHint: "en"
+        )
+
+        #expect(
+            result.segments
+            == [
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello"),
+                TranscriptSegment(start: 1.0, end: 2.0, text: "from file"),
+            ]
+        )
     }
 }
 

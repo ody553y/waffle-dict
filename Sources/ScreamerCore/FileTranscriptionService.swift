@@ -13,11 +13,18 @@ public struct FileTranscriptionResult: Equatable, Sendable {
     public let text: String
     public let durationSeconds: Double?
     public let backendID: String
+    public let segments: [TranscriptSegment]?
 
-    public init(text: String, durationSeconds: Double?, backendID: String) {
+    public init(
+        text: String,
+        durationSeconds: Double?,
+        backendID: String,
+        segments: [TranscriptSegment]? = nil
+    ) {
         self.text = text
         self.durationSeconds = durationSeconds
         self.backendID = backendID
+        self.segments = segments
     }
 }
 
@@ -46,7 +53,10 @@ public final class FileTranscriptionService: @unchecked Sendable {
         return FileTranscriptionResult(
             text: response.text,
             durationSeconds: audioDurationSeconds(for: fileURL),
-            backendID: response.backendID
+            backendID: response.backendID,
+            segments: response.segments?.map {
+                TranscriptSegment(start: $0.start, end: $0.end, text: $0.text)
+            }
         )
     }
 }

@@ -139,4 +139,136 @@ struct TranscriptStoreTests {
         #expect(try store.fetchOne(id: id) == nil)
         #expect(try store.search(query: "delete", limit: 10).isEmpty)
     }
+
+    @Test func saveFetchDeleteActionsPersistsResultsNewestFirst() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+
+        let transcript = try store.save(
+            TranscriptRecord(
+                createdAt: Date(timeIntervalSince1970: 1_710_000_000),
+                sourceType: "dictation",
+                sourceFileName: nil,
+                modelID: "whisper-small",
+                languageHint: nil,
+                durationSeconds: 10,
+                text: "action source"
+            )
+        )
+        let transcriptID = try #require(transcript.id)
+
+        let older = try store.saveAction(
+            TranscriptActionRecord(
+                transcriptID: transcriptID,
+                createdAt: Date(timeIntervalSince1970: 1_710_000_010),
+                actionType: "summarise",
+                actionInput: nil,
+                llmModelID: "qwen3-8b",
+                resultText: "Older summary"
+            )
+        )
+        let newer = try store.saveAction(
+            TranscriptActionRecord(
+                transcriptID: transcriptID,
+                createdAt: Date(timeIntervalSince1970: 1_710_000_020),
+                actionType: "question",
+                actionInput: "What are the actions?",
+                llmModelID: "qwen3-8b",
+                resultText: "Newer answer"
+            )
+        )
+
+        let actions = try store.fetchActions(forTranscriptID: transcriptID)
+        #expect(actions.map(\.resultText) == ["Newer answer", "Older summary"])
+        #expect(actions.map(\.actionType) == ["question", "summarise"])
+        #expect(actions.first?.transcriptID == transcriptID)
+        #expect(actions.first?.id == newer.id)
+        #expect(actions.last?.id == older.id)
+
+        let newerID = try #require(newer.id)
+        try store.deleteAction(id: newerID)
+
+        let remaining = try store.fetchActions(forTranscriptID: transcriptID)
+        #expect(remaining.count == 1)
+        #expect(remaining[0].id == older.id)
+        #expect(remaining[0].resultText == "Older summary")
+    }
+
+    @Test func deletingTranscriptCascadesToTranscriptActions() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+
+        let transcript = try store.save(
+            TranscriptRecord(
+                createdAt: Date(timeIntervalSince1970: 1_710_000_000),
+                sourceType: "dictation",
+                sourceFileName: nil,
+                modelID: "whisper-small",
+                languageHint: nil,
+                durationSeconds: 10,
+                text: "cascade source"
+            )
+        )
+        let transcriptID = try #require(transcript.id)
+
+        _ = try store.saveAction(
+            TranscriptActionRecord(
+                transcriptID: transcriptID,
+                createdAt: Date(timeIntervalSince1970: 1_710_000_030),
+                actionType: "custom",
+                actionInput: "Extract TODOs",
+                llmModelID: "qwen3-8b",
+                resultText: "TODO: ship"
+            )
+        )
+        #expect(try store.fetchActions(forTranscriptID: transcriptID).count == 1)
+
+        try store.delete(id: transcriptID)
+
+        #expect(try store.fetchOne(id: transcriptID) == nil)
+        #expect(try store.fetchActions(forTranscriptID: transcriptID).isEmpty)
+    }
+
+    @Test func saveAndFetchRoundTripsSegments() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+
+        let input = TranscriptRecord(
+            createdAt: Date(timeIntervalSince1970: 1_710_000_000),
+            sourceType: "dictation",
+            sourceFileName: nil,
+            modelID: "whisper-small",
+            languageHint: "en",
+            durationSeconds: 3.0,
+            text: "hello world",
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello"),
+                TranscriptSegment(start: 1.0, end: 2.2, text: "world"),
+            ]
+        )
+
+        let saved = try store.save(input)
+        let id = try #require(saved.id)
+
+        let fetched = try #require(try store.fetchOne(id: id))
+        #expect(fetched.segments == input.segments)
+    }
+
+    @Test func saveAndFetchHandlesNilSegments() throws {
+        let store = try TranscriptStore(databasePath: ":memory:")
+
+        let saved = try store.save(
+            TranscriptRecord(
+                createdAt: Date(timeIntervalSince1970: 1_710_000_000),
+                sourceType: "dictation",
+                sourceFileName: nil,
+                modelID: "whisper-small",
+                languageHint: nil,
+                durationSeconds: 1.0,
+                text: "no segments",
+                segments: nil
+            )
+        )
+        let id = try #require(saved.id)
+
+        let fetched = try #require(try store.fetchOne(id: id))
+        #expect(fetched.segments == nil)
+    }
 }

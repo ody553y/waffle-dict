@@ -335,7 +335,10 @@ final class DictationController: ObservableObject {
                 text: response.text,
                 modelID: modelID,
                 languageHint: languageHint,
-                durationSeconds: audioCaptureService.recordingDurationSeconds(for: recordingURL)
+                durationSeconds: audioCaptureService.recordingDurationSeconds(for: recordingURL),
+                segments: response.segments?.map {
+                    TranscriptSegment(start: $0.start, end: $0.end, text: $0.text)
+                }
             )
 
             let pasteIntoActiveApp = value(for: "pasteIntoActiveApp", defaultValue: true)
@@ -430,7 +433,8 @@ final class DictationController: ObservableObject {
         text: String,
         modelID: String,
         languageHint: String?,
-        durationSeconds: Double?
+        durationSeconds: Double?,
+        segments: [TranscriptSegment]?
     ) {
         guard let transcriptStore else { return }
 
@@ -441,7 +445,8 @@ final class DictationController: ObservableObject {
             modelID: modelID,
             languageHint: languageHint,
             durationSeconds: durationSeconds,
-            text: text
+            text: text,
+            segments: segments
         )
 
         Task.detached(priority: .utility) {

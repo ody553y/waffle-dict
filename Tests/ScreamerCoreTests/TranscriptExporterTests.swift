@@ -66,6 +66,101 @@ struct TranscriptExporterTests {
 
         #expect(output == expected)
     }
+
+    @Test func srtExportUsesRealSegmentsWhenAvailable() {
+        let record = makeRecord(
+            text: "caption text",
+            durationSeconds: 12.345,
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.2, text: "hello"),
+                TranscriptSegment(start: 1.2, end: 2.5, text: "world"),
+            ]
+        )
+
+        let output = TranscriptExporter.exportAsSRT(record, segments: record.segments)
+
+        let expected = """
+        1
+        00:00:00,000 --> 00:00:01,200
+        hello
+
+        2
+        00:00:01,200 --> 00:00:02,500
+        world
+        """
+
+        #expect(output == expected)
+    }
+
+    @Test func vttExportUsesRealSegmentsWhenAvailable() {
+        let record = makeRecord(
+            text: "caption text",
+            durationSeconds: 12.345,
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.2, text: "hello"),
+                TranscriptSegment(start: 1.2, end: 2.5, text: "world"),
+            ]
+        )
+
+        let output = TranscriptExporter.exportAsVTT(record, segments: record.segments)
+
+        let expected = """
+        WEBVTT
+
+        1
+        00:00:00.000 --> 00:00:01.200
+        hello
+
+        2
+        00:00:01.200 --> 00:00:02.500
+        world
+        """
+
+        #expect(output == expected)
+    }
+
+    @Test func srtExportDeduplicatesAdjacentIdenticalSegments() {
+        let record = makeRecord(
+            text: "caption text",
+            durationSeconds: 12.345,
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.0, text: "hello"),
+                TranscriptSegment(start: 1.0, end: 2.0, text: "hello"),
+                TranscriptSegment(start: 2.0, end: 3.0, text: "world"),
+            ]
+        )
+
+        let output = TranscriptExporter.exportAsSRT(record, segments: record.segments)
+
+        let expected = """
+        1
+        00:00:00,000 --> 00:00:02,000
+        hello
+
+        2
+        00:00:02,000 --> 00:00:03,000
+        world
+        """
+
+        #expect(output == expected)
+    }
+
+    @Test func exportDispatcherUsesSegmentsForSRT() throws {
+        let record = makeRecord(
+            text: "caption text",
+            durationSeconds: 12.345,
+            segments: [
+                TranscriptSegment(start: 0.0, end: 1.2, text: "hello"),
+                TranscriptSegment(start: 1.2, end: 2.5, text: "world"),
+            ]
+        )
+
+        let data = try TranscriptExporter.export(records: [record], format: .srt)
+        let output = String(decoding: data, as: UTF8.self)
+
+        #expect(output.contains("1\n00:00:00,000 --> 00:00:01,200\nhello"))
+        #expect(output.contains("2\n00:00:01,200 --> 00:00:02,500\nworld"))
+    }
 }
 
 private func makeRecord(
@@ -73,7 +168,8 @@ private func makeRecord(
     text: String,
     sourceType: String = "dictation",
     sourceFileName: String? = nil,
-    durationSeconds: Double? = 5.2
+    durationSeconds: Double? = 5.2,
+    segments: [TranscriptSegment]? = nil
 ) -> TranscriptRecord {
     TranscriptRecord(
         id: id,
@@ -83,6 +179,7 @@ private func makeRecord(
         modelID: "whisper-small",
         languageHint: "en",
         durationSeconds: durationSeconds,
-        text: text
+        text: text,
+        segments: segments
     )
 }

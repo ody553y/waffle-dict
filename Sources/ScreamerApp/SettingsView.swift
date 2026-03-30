@@ -5,6 +5,7 @@ import ScreamerCore
 
 struct SettingsView: View {
     let onUpdateHotkey: (GlobalHotkey) -> Void
+    let onLMStudioConfigurationChanged: () -> Void
     @ObservedObject var modelStore: ModelStore
 
     var body: some View {
@@ -13,6 +14,8 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gear") }
             ModelsSettingsView(modelStore: modelStore)
                 .tabItem { Label("Models", systemImage: "arrow.down.circle") }
+            AISettingsView(onConfigurationChanged: onLMStudioConfigurationChanged)
+                .tabItem { Label("AI", systemImage: "sparkles") }
             KeyboardSettingsView(onUpdateHotkey: onUpdateHotkey)
                 .tabItem { Label("Keyboard", systemImage: "keyboard") }
         }
@@ -65,7 +68,7 @@ struct GeneralSettingsView: View {
             Section("Language Hint") {
                 Picker("Language", selection: $languageHint) {
                     Text("Auto-detect").tag("")
-                    ForEach(Self.languageOptions, id: \.code) { option in
+                    ForEach(AppLanguageOption.all) { option in
                         Text(option.name).tag(option.code)
                     }
                 }
@@ -91,26 +94,6 @@ struct GeneralSettingsView: View {
     private var isParakeetSelected: Bool {
         modelStore.selectedEntry?.family == .parakeet
     }
-
-    private struct LanguageOption {
-        let name: String
-        let code: String
-    }
-
-    private static let languageOptions: [LanguageOption] = [
-        LanguageOption(name: "English", code: "en"),
-        LanguageOption(name: "Spanish", code: "es"),
-        LanguageOption(name: "French", code: "fr"),
-        LanguageOption(name: "German", code: "de"),
-        LanguageOption(name: "Italian", code: "it"),
-        LanguageOption(name: "Portuguese", code: "pt"),
-        LanguageOption(name: "Chinese", code: "zh"),
-        LanguageOption(name: "Japanese", code: "ja"),
-        LanguageOption(name: "Korean", code: "ko"),
-        LanguageOption(name: "Russian", code: "ru"),
-        LanguageOption(name: "Arabic", code: "ar"),
-        LanguageOption(name: "Hindi", code: "hi"),
-    ]
 }
 
 struct ModelsSettingsView: View {
@@ -122,6 +105,156 @@ struct ModelsSettingsView: View {
         }
         .task {
             modelStore.refreshCatalog()
+        }
+    }
+}
+
+struct AISettingsView: View {
+    @AppStorage("lmStudioHost") private var lmStudioHost = "127.0.0.1"
+    @AppStorage("lmStudioPort") private var lmStudioPort = "1234"
+    @AppStorage("lmStudioModelID") private var lmStudioModelID = ""
+    @AppStorage("lmStudioStreaming") private var lmStudioStreaming = true
+    @AppStorage("lmStudioDefaultTranslationLanguage")
+    private var lmStudioDefaultTranslationLanguage = AppLanguageOption.defaultCode
+
+    let onConfigurationChanged: () -> Void
+
+    @State private var availableModels: [LMStudioModel] = []
+    @State private var isConnected = false
+    @State private var connectionMessage = "Not connected"
+    @State private var isTestingConnection = false
+
+    var body: some View {
+        Form {
+            Section("LM Studio Connection") {
+                TextField("Host", text: $lmStudioHost)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: lmStudioHost) { _, _ in
+                        onConfigurationChanged()
+                    }
+
+                TextField("Port", text: $lmStudioPort)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: lmStudioPort) { _, _ in
+                        onConfigurationChanged()
+                    }
+
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(isConnected ? Color.green : Color.red)
+                        .frame(width: 8, height: 8)
+                    Text(isConnected ? "Connected" : "Not connected")
+                        .font(.caption)
+                    Spacer()
+                }
+
+                if connectionMessage.isEmpty == false {
+                    Text(connectionMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button("Test Connection") {
+                    Task {
+                        await refreshModels()
+                    }
+                }
+                .disabled(isTestingConnection)
+            }
+
+            Section("Default Model") {
+                Picker("Model", selection: $lmStudioModelID) {
+                    if availableModels.isEmpty {
+                        Text("No models loaded").tag("")
+                    } else {
+                        ForEach(availableModels, id: \.id) { model in
+                            Text(model.id).tag(model.id)
+                        }
+                    }
+                }
+                .disabled(availableModels.isEmpty)
+
+                Button("Refresh") {
+                    Task {
+                        await refreshModels()
+                    }
+                }
+                .disabled(isTestingConnection)
+
+                Text("Models are managed in LM Studio. Load a model there to use it here.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Defaults") {
+                Toggle("Use streaming responses", isOn: $lmStudioStreaming)
+
+                Picker("Default translation language", selection: $lmStudioDefaultTranslationLanguage) {
+                    ForEach(AppLanguageOption.all) { option in
+                        Text(option.name).tag(option.code)
+                    }
+                }
+            }
+        }
+        .padding()
+        .task {
+            await refreshModels()
+        }
+    }
+
+    private func refreshModels() async {
+        isTestingConnection = true
+        defer { isTestingConnection = false }
+
+        let host = lmStudioHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard host.isEmpty == false else {
+            isConnected = false
+            connectionMessage = "Enter a host to connect."
+            availableModels = []
+            return
+        }
+
+        guard let port = Int(lmStudioPort), port > 0 else {
+            isConnected = false
+            connectionMessage = "Port must be a valid number."
+            availableModels = []
+            return
+        }
+
+        let client = LMStudioClient(
+            configuration: LMStudioConfiguration(host: host, port: port)
+        )
+
+        do {
+            let models = try await client.fetchModels()
+            availableModels = models
+            isConnected = true
+            connectionMessage = "Connection successful."
+
+            if models.contains(where: { $0.id == lmStudioModelID }) == false {
+                lmStudioModelID = models.first?.id ?? ""
+            }
+        } catch LMStudioClientError.noModelsLoaded {
+            availableModels = []
+            isConnected = true
+            connectionMessage = "Connected, but no models are loaded in LM Studio."
+            lmStudioModelID = ""
+        } catch {
+            availableModels = []
+            isConnected = false
+            connectionMessage = connectionErrorMessage(for: error)
+            lmStudioModelID = ""
+        }
+    }
+
+    private func connectionErrorMessage(for error: Error) -> String {
+        switch error {
+        case LMStudioClientError.connectionRefused:
+            return "LM Studio is not running or unreachable."
+        case LMStudioClientError.unexpectedStatusCode(let code):
+            return "LM Studio returned status code \(code)."
+        default:
+            return "Connection test failed."
         }
     }
 }
@@ -250,6 +383,30 @@ struct KeyboardSettingsView: View {
         validationMessage = nil
         onUpdateHotkey(hotkey)
     }
+}
+
+struct AppLanguageOption: Identifiable, Sendable {
+    let name: String
+    let code: String
+
+    var id: String { code }
+
+    static let defaultCode = "en"
+
+    static let all: [AppLanguageOption] = [
+        AppLanguageOption(name: "English", code: "en"),
+        AppLanguageOption(name: "Spanish", code: "es"),
+        AppLanguageOption(name: "French", code: "fr"),
+        AppLanguageOption(name: "German", code: "de"),
+        AppLanguageOption(name: "Italian", code: "it"),
+        AppLanguageOption(name: "Portuguese", code: "pt"),
+        AppLanguageOption(name: "Chinese", code: "zh"),
+        AppLanguageOption(name: "Japanese", code: "ja"),
+        AppLanguageOption(name: "Korean", code: "ko"),
+        AppLanguageOption(name: "Russian", code: "ru"),
+        AppLanguageOption(name: "Arabic", code: "ar"),
+        AppLanguageOption(name: "Hindi", code: "hi"),
+    ]
 }
 
 private struct HotkeyRecorderView: View {

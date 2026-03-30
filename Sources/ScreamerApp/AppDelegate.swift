@@ -4,10 +4,15 @@ import ScreamerCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private static let hotkeyStorageKey = "globalHotkey"
+    private static let lmStudioHostStorageKey = "lmStudioHost"
+    private static let lmStudioPortStorageKey = "lmStudioPort"
 
     private var workerProcess: Process?
     let modelStore = ModelStore()
     let transcriptStore: TranscriptStore? = try? TranscriptStore()
+    private(set) var lmStudioClient = LMStudioClient(
+        configuration: AppDelegate.loadLMStudioConfiguration()
+    )
     lazy var dictationController: DictationController = {
         DictationController(
             modelStore: modelStore,
@@ -89,6 +94,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshHotkeyRegistration()
     }
 
+    func refreshLMStudioClientConfiguration() {
+        lmStudioClient = LMStudioClient(configuration: Self.loadLMStudioConfiguration())
+    }
+
     private func restartWorkerProcess() async -> Bool {
         workerProcess?.terminate()
         workerProcess = nil
@@ -111,5 +120,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return .optionSpace
         }
         return hotkey
+    }
+
+    private static func loadLMStudioConfiguration() -> LMStudioConfiguration {
+        let defaults = UserDefaults.standard
+
+        let storedHost = defaults.string(forKey: lmStudioHostStorageKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let host = (storedHost?.isEmpty == false) ? storedHost! : "127.0.0.1"
+
+        let storedPort = defaults.string(forKey: lmStudioPortStorageKey) ?? "1234"
+        let port = Int(storedPort) ?? 1234
+
+        return LMStudioConfiguration(host: host, port: port)
     }
 }

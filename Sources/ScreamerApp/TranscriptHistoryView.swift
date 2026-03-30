@@ -10,6 +10,27 @@ struct TranscriptHistoryView: View {
     @State private var expandedRecordIDs: Set<Int64> = []
     @State private var isDropTargeted = false
 
+    @AppStorage("lmStudioHost") private var lmStudioHost = "127.0.0.1"
+    @AppStorage("lmStudioPort") private var lmStudioPort = "1234"
+    @AppStorage("lmStudioModelID") private var lmStudioModelID = ""
+    @AppStorage("lmStudioDefaultTranslationLanguage")
+    private var lmStudioDefaultTranslationLanguage = AppLanguageOption.defaultCode
+
+    @State private var lmStudioReachabilityStatus: LMStudioReachabilityStatus = .unknown
+    @State private var actionInputModeByRecordID: [Int64: TranscriptActionInputMode] = [:]
+    @State private var questionInputByRecordID: [Int64: String] = [:]
+    @State private var customPromptInputByRecordID: [Int64: String] = [:]
+    @State private var translateLanguageCodeByRecordID: [Int64: String] = [:]
+    @State private var translatePopoverRecordID: Int64?
+    @State private var streamingTextByRecordID: [Int64: String] = [:]
+    @State private var streamingRecordIDs: Set<Int64> = []
+    @State private var waitingForFirstTokenRecordIDs: Set<Int64> = []
+    @State private var actionErrorByRecordID: [Int64: String] = [:]
+    @State private var streamTaskByRecordID: [Int64: Task<Void, Never>] = [:]
+    @State private var previousActionsExpandedByRecordID: [Int64: Bool] = [:]
+    @State private var expandedPreviousActionResultIDs: Set<Int64> = []
+    @State private var timelineEnabledRecordIDs: Set<Int64> = []
+
     init(transcriptStore: TranscriptStore, modelStore: ModelStore) {
         self._modelStore = ObservedObject(wrappedValue: modelStore)
         self._viewModel = StateObject(
@@ -113,11 +134,19 @@ struct TranscriptHistoryView: View {
         .task {
             modelStore.refreshCatalog()
             viewModel.loadInitial()
+            await refreshLMStudioReachability()
+        }
+        .task(id: lmStudioConnectionSignature) {
+            await refreshLMStudioReachability()
         }
         .onChange(of: viewModel.records) { _, newRecords in
             let validIDs = Set(newRecords.compactMap(\.id))
             expandedRecordIDs = expandedRecordIDs.intersection(validIDs)
             viewModel.retainSelection(validIDs: validIDs)
+            pruneAIState(validRecordIDs: validIDs)
+        }
+        .onDisappear {
+            cancelAllStreamingTasks()
         }
     }
 
@@ -242,10 +271,31 @@ struct TranscriptHistoryView: View {
 
             if isExpanded {
                 Divider()
-                Text(record.text)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if let recordID = record.id, let segments = record.segments, segments.isEmpty == false {
+                    Toggle("Timeline", isOn: timelineEnabledBinding(for: recordID))
+                        .toggleStyle(.switch)
+                        .font(.caption)
+
+                    if timelineEnabledRecordIDs.contains(recordID) {
+                        timelineView(for: segments)
+                    } else {
+                        Text(record.text)
+                            .font(.body)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    Text(record.text)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if let recordID = record.id, isLMStudioConfigured {
+                    Divider()
+                    transcriptActionsSection(record: record, recordID: recordID)
+                }
             }
         }
         .padding(12)
@@ -261,9 +311,549 @@ struct TranscriptHistoryView: View {
             viewModel.selectRecord(id: recordID, additive: additiveSelection)
             if expandedRecordIDs.contains(recordID) {
                 expandedRecordIDs.remove(recordID)
+                stopStreaming(for: recordID)
             } else {
                 expandedRecordIDs.insert(recordID)
+                viewModel.loadActions(for: recordID)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func transcriptActionsSection(record: TranscriptRecord, recordID: Int64) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Button("Summarise") {
+                    startStreamingAction(.summarise, for: record, recordID: recordID)
+                }
+                .buttonStyle(.bordered)
+
+                Button("Translate") {
+                    translatePopoverRecordID = recordID
+                }
+                .buttonStyle(.bordered)
+                .popover(
+                    isPresented: Binding(
+                        get: { translatePopoverRecordID == recordID },
+                        set: { isPresented in
+                            translatePopoverRecordID = isPresented ? recordID : nil
+                        }
+                    ),
+                    arrowEdge: .bottom
+                ) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Picker("Language", selection: translateLanguageCodeBinding(for: recordID)) {
+                            ForEach(AppLanguageOption.all) { option in
+                                Text(option.name).tag(option.code)
+                            }
+                        }
+
+                        Button("Translate") {
+                            let languageCode = translateLanguageCodeByRecordID[recordID]
+                                ?? lmStudioDefaultTranslationLanguage
+                            let targetLanguage = languageName(for: languageCode)
+                            startStreamingAction(
+                                .translate(targetLanguage: targetLanguage),
+                                for: record,
+                                recordID: recordID
+                            )
+                            translatePopoverRecordID = nil
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(areTranscriptActionsEnabled == false)
+                    }
+                    .padding()
+                    .frame(width: 260)
+                }
+
+                Button("Ask a Question") {
+                    toggleInputMode(.question, for: recordID)
+                }
+                .buttonStyle(.bordered)
+
+                Button("Custom Prompt") {
+                    toggleInputMode(.customPrompt, for: recordID)
+                }
+                .buttonStyle(.bordered)
+            }
+            .disabled(areTranscriptActionsEnabled == false)
+
+            if let statusLine = lmStudioStatusLine {
+                Text(statusLine)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            if actionInputModeByRecordID[recordID] == .question {
+                HStack(spacing: 8) {
+                    TextField("Ask a question about this transcript", text: questionBinding(for: recordID))
+                        .textFieldStyle(.roundedBorder)
+                    Button("Ask") {
+                        let question = questionInputByRecordID[recordID, default: ""]
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard question.isEmpty == false else { return }
+                        startStreamingAction(
+                            .askQuestion(question: question),
+                            for: record,
+                            recordID: recordID
+                        )
+                        actionInputModeByRecordID[recordID] = TranscriptActionInputMode.none
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(areTranscriptActionsEnabled == false)
+                }
+            }
+
+            if actionInputModeByRecordID[recordID] == .customPrompt {
+                HStack(spacing: 8) {
+                    TextField("Custom prompt", text: customPromptBinding(for: recordID))
+                        .textFieldStyle(.roundedBorder)
+                    Button("Run") {
+                        let prompt = customPromptInputByRecordID[recordID, default: ""]
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard prompt.isEmpty == false else { return }
+                        startStreamingAction(
+                            .customPrompt(prompt: prompt),
+                            for: record,
+                            recordID: recordID
+                        )
+                        actionInputModeByRecordID[recordID] = TranscriptActionInputMode.none
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(areTranscriptActionsEnabled == false)
+                }
+            }
+
+            if streamingRecordIDs.contains(recordID) || (streamingTextByRecordID[recordID]?.isEmpty == false) {
+                VStack(alignment: .leading, spacing: 8) {
+                    if waitingForFirstTokenRecordIDs.contains(recordID) {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Waiting for response…")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                    }
+
+                    if let streamedText = streamingTextByRecordID[recordID], streamedText.isEmpty == false {
+                        Text(streamedText)
+                            .font(.body)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    if streamingRecordIDs.contains(recordID) {
+                        Button("Stop") {
+                            stopStreaming(for: recordID)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                )
+            }
+
+            if let actionError = actionErrorByRecordID[recordID] {
+                Text(actionError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            previousActionsSection(for: recordID)
+        }
+    }
+
+    @ViewBuilder
+    private func previousActionsSection(for recordID: Int64) -> some View {
+        let actions = viewModel.actionHistoryByTranscriptID[recordID] ?? []
+        DisclosureGroup(
+            isExpanded: previousActionsExpandedBinding(for: recordID)
+        ) {
+            if actions.isEmpty {
+                Text("No previous actions yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(actions, id: \.id) { actionRecord in
+                        previousActionRow(actionRecord, transcriptID: recordID)
+                    }
+                }
+                .padding(.top, 4)
+            }
+        } label: {
+            Text("Previous Actions")
+                .font(.subheadline)
+        }
+    }
+
+    @ViewBuilder
+    private func previousActionRow(_ actionRecord: TranscriptActionRecord, transcriptID: Int64) -> some View {
+        let isExpanded = actionRecord.id.map { expandedPreviousActionResultIDs.contains($0) } ?? false
+        let text = actionRecord.resultText
+        let preview = previewText(for: text, maxLength: 200)
+
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(actionTypeLabel(for: actionRecord.actionType))
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.accentColor.opacity(0.15), in: Capsule())
+
+                Text(modelDisplayName(for: actionRecord.llmModelID))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text(Self.dateFormatter.string(from: actionRecord.createdAt))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(isExpanded ? text : preview)
+                .font(.caption)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 8) {
+                if let actionID = actionRecord.id, text.count > 200 {
+                    Button(isExpanded ? "Collapse" : "Expand") {
+                        if isExpanded {
+                            expandedPreviousActionResultIDs.remove(actionID)
+                        } else {
+                            expandedPreviousActionResultIDs.insert(actionID)
+                        }
+                    }
+                    .font(.caption)
+                }
+
+                Button("Copy") {
+                    viewModel.copyActionText(text)
+                }
+                .font(.caption)
+
+                if let actionID = actionRecord.id {
+                    Button("Delete", role: .destructive) {
+                        viewModel.deleteAction(id: actionID, transcriptID: transcriptID)
+                    }
+                    .font(.caption)
+                }
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.secondary.opacity(0.07))
+        )
+    }
+
+    private func toggleInputMode(_ mode: TranscriptActionInputMode, for recordID: Int64) {
+        if actionInputModeByRecordID[recordID] == mode {
+            actionInputModeByRecordID[recordID] = TranscriptActionInputMode.none
+        } else {
+            actionInputModeByRecordID[recordID] = mode
+        }
+    }
+
+    private func questionBinding(for recordID: Int64) -> Binding<String> {
+        Binding(
+            get: { questionInputByRecordID[recordID, default: ""] },
+            set: { questionInputByRecordID[recordID] = $0 }
+        )
+    }
+
+    private func customPromptBinding(for recordID: Int64) -> Binding<String> {
+        Binding(
+            get: { customPromptInputByRecordID[recordID, default: ""] },
+            set: { customPromptInputByRecordID[recordID] = $0 }
+        )
+    }
+
+    private func translateLanguageCodeBinding(for recordID: Int64) -> Binding<String> {
+        Binding(
+            get: { translateLanguageCodeByRecordID[recordID] ?? lmStudioDefaultTranslationLanguage },
+            set: { translateLanguageCodeByRecordID[recordID] = $0 }
+        )
+    }
+
+    private func timelineEnabledBinding(for recordID: Int64) -> Binding<Bool> {
+        Binding(
+            get: { timelineEnabledRecordIDs.contains(recordID) },
+            set: { isEnabled in
+                if isEnabled {
+                    timelineEnabledRecordIDs.insert(recordID)
+                } else {
+                    timelineEnabledRecordIDs.remove(recordID)
+                }
+            }
+        )
+    }
+
+    private func previousActionsExpandedBinding(for recordID: Int64) -> Binding<Bool> {
+        Binding(
+            get: { previousActionsExpandedByRecordID[recordID, default: true] },
+            set: { previousActionsExpandedByRecordID[recordID] = $0 }
+        )
+    }
+
+    private var lmStudioConnectionSignature: String {
+        "\(lmStudioHost)|\(lmStudioPort)"
+    }
+
+    private var isLMStudioConfigured: Bool {
+        let host = lmStudioHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        return host.isEmpty == false && Int(lmStudioPort) != nil
+    }
+
+    private var areTranscriptActionsEnabled: Bool {
+        guard case .reachableWithModels = lmStudioReachabilityStatus else {
+            return false
+        }
+        return lmStudioModelID.isEmpty == false
+    }
+
+    private var lmStudioStatusLine: String? {
+        switch lmStudioReachabilityStatus {
+        case .unconfigured:
+            return nil
+        case .unknown:
+            return "Checking LM Studio status…"
+        case .reachableWithModels:
+            if lmStudioModelID.isEmpty {
+                return "Choose a default model in Settings > AI."
+            }
+            return nil
+        case .reachableNoModels:
+            return "No models loaded in LM Studio. Load a model first."
+        case .unreachable(let message):
+            return message
+        }
+    }
+
+    private func refreshLMStudioReachability() async {
+        guard isLMStudioConfigured else {
+            lmStudioReachabilityStatus = .unconfigured
+            return
+        }
+
+        guard let client = makeLMStudioClient() else {
+            lmStudioReachabilityStatus = .unreachable("Invalid LM Studio host or port.")
+            return
+        }
+
+        do {
+            let models = try await client.fetchModels()
+            lmStudioReachabilityStatus = .reachableWithModels
+            if models.contains(where: { $0.id == lmStudioModelID }) == false {
+                lmStudioModelID = models.first?.id ?? ""
+            }
+        } catch LMStudioClientError.noModelsLoaded {
+            lmStudioReachabilityStatus = .reachableNoModels
+            lmStudioModelID = ""
+        } catch {
+            lmStudioReachabilityStatus = .unreachable(errorMessage(for: error))
+        }
+    }
+
+    private func makeLMStudioClient() -> LMStudioClient? {
+        let host = lmStudioHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard host.isEmpty == false else { return nil }
+        guard let port = Int(lmStudioPort), port > 0 else { return nil }
+
+        return LMStudioClient(configuration: LMStudioConfiguration(host: host, port: port))
+    }
+
+    private func startStreamingAction(_ action: TranscriptAction, for record: TranscriptRecord, recordID: Int64) {
+        guard areTranscriptActionsEnabled else {
+            actionErrorByRecordID[recordID] = lmStudioStatusLine
+                ?? "LM Studio is not available for AI actions."
+            return
+        }
+        guard let modelID = selectedLLMModelID else {
+            actionErrorByRecordID[recordID] = "Choose a default model in Settings > AI."
+            return
+        }
+        guard let service = makeTranscriptActionService() else {
+            actionErrorByRecordID[recordID] = "LM Studio is not configured."
+            return
+        }
+
+        stopStreaming(for: recordID)
+        actionErrorByRecordID[recordID] = nil
+        streamingTextByRecordID[recordID] = ""
+        waitingForFirstTokenRecordIDs.insert(recordID)
+        streamingRecordIDs.insert(recordID)
+
+        streamTaskByRecordID[recordID] = Task {
+            var completeText = ""
+            do {
+                let stream = service.performStreaming(
+                    action: action,
+                    on: record,
+                    modelID: modelID
+                )
+                for try await delta in stream {
+                    completeText.append(delta)
+                    await MainActor.run {
+                        waitingForFirstTokenRecordIDs.remove(recordID)
+                        streamingTextByRecordID[recordID, default: ""].append(delta)
+                    }
+                }
+
+                await MainActor.run {
+                    waitingForFirstTokenRecordIDs.remove(recordID)
+                    streamingRecordIDs.remove(recordID)
+                    streamTaskByRecordID[recordID] = nil
+
+                    if completeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                        viewModel.saveActionResult(
+                            transcriptID: recordID,
+                            action: action,
+                            modelID: modelID,
+                            resultText: completeText
+                        )
+                    }
+                }
+            } catch {
+                let nsError = error as NSError
+                if error is CancellationError || nsError.code == NSURLErrorCancelled {
+                    await MainActor.run {
+                        waitingForFirstTokenRecordIDs.remove(recordID)
+                        streamingRecordIDs.remove(recordID)
+                        streamTaskByRecordID[recordID] = nil
+                    }
+                    return
+                }
+
+                await MainActor.run {
+                    waitingForFirstTokenRecordIDs.remove(recordID)
+                    streamingRecordIDs.remove(recordID)
+                    streamTaskByRecordID[recordID] = nil
+                    actionErrorByRecordID[recordID] = errorMessage(for: error)
+                }
+            }
+        }
+    }
+
+    private func stopStreaming(for recordID: Int64) {
+        streamTaskByRecordID[recordID]?.cancel()
+        streamTaskByRecordID[recordID] = nil
+        waitingForFirstTokenRecordIDs.remove(recordID)
+        streamingRecordIDs.remove(recordID)
+    }
+
+    private func cancelAllStreamingTasks() {
+        for task in streamTaskByRecordID.values {
+            task.cancel()
+        }
+        streamTaskByRecordID.removeAll()
+        waitingForFirstTokenRecordIDs.removeAll()
+        streamingRecordIDs.removeAll()
+    }
+
+    private func pruneAIState(validRecordIDs: Set<Int64>) {
+        actionInputModeByRecordID = actionInputModeByRecordID.filter { validRecordIDs.contains($0.key) }
+        questionInputByRecordID = questionInputByRecordID.filter { validRecordIDs.contains($0.key) }
+        customPromptInputByRecordID = customPromptInputByRecordID.filter { validRecordIDs.contains($0.key) }
+        translateLanguageCodeByRecordID = translateLanguageCodeByRecordID.filter { validRecordIDs.contains($0.key) }
+        streamingTextByRecordID = streamingTextByRecordID.filter { validRecordIDs.contains($0.key) }
+        actionErrorByRecordID = actionErrorByRecordID.filter { validRecordIDs.contains($0.key) }
+        previousActionsExpandedByRecordID = previousActionsExpandedByRecordID.filter {
+            validRecordIDs.contains($0.key)
+        }
+        streamTaskByRecordID = streamTaskByRecordID.filter { validRecordIDs.contains($0.key) }
+        timelineEnabledRecordIDs = timelineEnabledRecordIDs.intersection(validRecordIDs)
+        streamingRecordIDs = streamingRecordIDs.intersection(validRecordIDs)
+        waitingForFirstTokenRecordIDs = waitingForFirstTokenRecordIDs.intersection(validRecordIDs)
+    }
+
+    private var selectedLLMModelID: String? {
+        let trimmed = lmStudioModelID.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func makeTranscriptActionService() -> TranscriptActionService? {
+        guard let client = makeLMStudioClient() else { return nil }
+        return TranscriptActionService(lmStudioClient: client)
+    }
+
+    private func languageName(for code: String) -> String {
+        AppLanguageOption.all.first(where: { $0.code == code })?.name ?? code
+    }
+
+    private func actionTypeLabel(for actionType: String) -> String {
+        switch actionType {
+        case "summarise":
+            return "Summary"
+        case "translate":
+            return "Translate"
+        case "question":
+            return "Question"
+        case "custom":
+            return "Custom"
+        default:
+            return actionType.capitalized
+        }
+    }
+
+    private func timelineView(for segments: [TranscriptSegment]) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
+                    HStack(alignment: .top, spacing: 8) {
+                        Button("[\(timelineTimestamp(for: segment.start))]") {
+                            viewModel.copyActionText(segment.text)
+                        }
+                        .buttonStyle(.plain)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.secondary)
+
+                        Text(segment.text)
+                            .font(.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxHeight: 180)
+    }
+
+    private func timelineTimestamp(for seconds: Double) -> String {
+        let totalSeconds = Int(max(seconds, 0))
+        let minutes = totalSeconds / 60
+        let remainingSeconds = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, remainingSeconds)
+    }
+
+    private func errorMessage(for error: Error) -> String {
+        switch error {
+        case LMStudioClientError.connectionRefused:
+            return "LM Studio is not running. Start LM Studio to use AI features."
+        case LMStudioClientError.noModelsLoaded:
+            return "No models loaded in LM Studio. Load a model first."
+        case LMStudioClientError.streamParsingFailed:
+            return "Received an unreadable streaming response from LM Studio."
+        case LMStudioClientError.unexpectedStatusCode:
+            return "LM Studio returned an unexpected response."
+        default:
+            let lowercased = error.localizedDescription.lowercased()
+            if lowercased.contains("context")
+                || lowercased.contains("maximum")
+                || lowercased.contains("token")
+            {
+                return "Transcript is too long for the selected model."
+            }
+            return error.localizedDescription
         }
     }
 
@@ -305,6 +895,20 @@ struct TranscriptHistoryView: View {
     }()
 }
 
+private enum TranscriptActionInputMode {
+    case none
+    case question
+    case customPrompt
+}
+
+private enum LMStudioReachabilityStatus {
+    case unconfigured
+    case unknown
+    case reachableWithModels
+    case reachableNoModels
+    case unreachable(String)
+}
+
 @MainActor
 final class TranscriptHistoryViewModel: ObservableObject {
     enum FileImportStatus: Equatable {
@@ -329,6 +933,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
     @Published var selectedRecordIDs: Set<Int64> = []
     @Published var errorMessage: String?
     @Published private(set) var importJobs: [FileImportJob] = []
+    @Published private(set) var actionHistoryByTranscriptID: [Int64: [TranscriptActionRecord]] = [:]
 
     private let transcriptStore: TranscriptStore
     private let fileTranscriptionService: FileTranscriptionService
@@ -455,6 +1060,7 @@ final class TranscriptHistoryViewModel: ObservableObject {
 
         do {
             try transcriptStore.delete(id: selectedRecordID)
+            actionHistoryByTranscriptID[selectedRecordID] = nil
             selectedRecordIDs.removeAll()
             reloadForSearchQuery()
             errorMessage = nil
@@ -478,6 +1084,56 @@ final class TranscriptHistoryViewModel: ObservableObject {
 
     func retainSelection(validIDs: Set<Int64>) {
         selectedRecordIDs = selectedRecordIDs.intersection(validIDs)
+    }
+
+    func loadActions(for transcriptID: Int64) {
+        do {
+            actionHistoryByTranscriptID[transcriptID] = try transcriptStore.fetchActions(
+                forTranscriptID: transcriptID
+            )
+        } catch {
+            errorMessage = "Failed to load previous AI actions."
+        }
+    }
+
+    func saveActionResult(
+        transcriptID: Int64,
+        action: TranscriptAction,
+        modelID: String,
+        resultText: String
+    ) {
+        let (actionType, actionInput) = Self.serialize(action: action)
+
+        do {
+            _ = try transcriptStore.saveAction(
+                TranscriptActionRecord(
+                    transcriptID: transcriptID,
+                    createdAt: Date(),
+                    actionType: actionType,
+                    actionInput: actionInput,
+                    llmModelID: modelID,
+                    resultText: resultText
+                )
+            )
+            loadActions(for: transcriptID)
+        } catch {
+            errorMessage = "Failed to save AI action result."
+        }
+    }
+
+    func deleteAction(id: Int64, transcriptID: Int64) {
+        do {
+            try transcriptStore.deleteAction(id: id)
+            loadActions(for: transcriptID)
+        } catch {
+            errorMessage = "Failed to delete AI action result."
+        }
+    }
+
+    func copyActionText(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 
     func enqueueImportedFiles(_ urls: [URL], selectedModelID: String?, languageHint: String?) {
@@ -544,7 +1200,8 @@ final class TranscriptHistoryViewModel: ObservableObject {
                         modelID: job.modelID,
                         languageHint: job.languageHint,
                         durationSeconds: result.durationSeconds,
-                        text: result.text
+                        text: result.text,
+                        segments: result.segments
                     )
                 )
 
@@ -684,6 +1341,19 @@ final class TranscriptHistoryViewModel: ObservableObject {
             return UTType(filenameExtension: "srt")
         case .vtt:
             return UTType(filenameExtension: "vtt")
+        }
+    }
+
+    static func serialize(action: TranscriptAction) -> (type: String, input: String?) {
+        switch action {
+        case .summarise:
+            return ("summarise", nil)
+        case .translate(let targetLanguage):
+            return ("translate", targetLanguage)
+        case .askQuestion(let question):
+            return ("question", question)
+        case .customPrompt(let prompt):
+            return ("custom", prompt)
         }
     }
 }
