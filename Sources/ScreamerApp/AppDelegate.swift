@@ -127,7 +127,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let storedHost = defaults.string(forKey: lmStudioHostStorageKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let host = (storedHost?.isEmpty == false) ? storedHost! : "127.0.0.1"
+        let host = (storedHost?.isEmpty == false) ? storedHost ?? "127.0.0.1" : "127.0.0.1"
 
         let storedPort = defaults.string(forKey: lmStudioPortStorageKey) ?? "1234"
         let port = Int(storedPort) ?? 1234

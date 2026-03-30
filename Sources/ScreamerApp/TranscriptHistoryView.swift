@@ -845,6 +845,8 @@ struct TranscriptHistoryView: View {
             return "Received an unreadable streaming response from LM Studio."
         case LMStudioClientError.unexpectedStatusCode:
             return "LM Studio returned an unexpected response."
+        case TranscriptActionServiceError.emptyResponse:
+            return "The model returned an empty response. Try again or select a different model."
         default:
             let lowercased = error.localizedDescription.lowercased()
             if lowercased.contains("context")

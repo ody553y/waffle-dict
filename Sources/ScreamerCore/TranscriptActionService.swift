@@ -31,6 +31,7 @@ public struct TranscriptActionResult: Equatable, Sendable {
 
 public enum TranscriptActionServiceError: Error, Equatable {
     case transcriptMissingID
+    case emptyResponse
 }
 
 public final class TranscriptActionService: Sendable {
@@ -54,10 +55,14 @@ public final class TranscriptActionService: Sendable {
         )
         let response = try await lmStudioClient.chatCompletion(request)
 
+        guard let content = response.choices.first?.message.content, !content.isEmpty else {
+            throw TranscriptActionServiceError.emptyResponse
+        }
+
         return TranscriptActionResult(
             action: action,
             sourceTranscriptID: sourceTranscriptID,
-            resultText: response.choices.first?.message.content ?? "",
+            resultText: content,
             modelUsed: modelID,
             createdAt: Date()
         )
